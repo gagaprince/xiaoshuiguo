@@ -59,3 +59,17 @@
 - `ShuiguoGameBootstrap.loadingTasks`：按 GbzIndex.loadPrefabbAsync / loadENUM_RES 接入真实资源预加载。
 - LoadingState 并入 GbzDataManager；GbzLoadingLayer 的父类后续可切换为重建后的 GbzBaselayer。
 - Home 按钮（btn_start 等）逻辑属于后续首页步骤，本步不实现。
+
+## Logo 补齐（Loading + Home，2026-10-17）
+
+- 现象：Loading 页与 Home 页（GbzMenuLayer）顶部均缺游戏 logo。
+- 根因：两页的 `bg_notice` 节点结构、三张品牌 logo SpriteFrame 引用（`@f9941`，原图 590x475）
+  都在，唯独原版 logoCom 是空壳 RestoredComponent_002（无 onEnable 逻辑），运行时没人把帧赋给 Sprite。
+- 修复：删除 `assets/scripts/restored/RestoredComponent_002.ts`，新增
+  `assets/scripts/ui/LogoCom.ts`（meta 沿用原脚本 UUID `11693561-9042-4f3a-b854-16e5fd252075`，
+  故 gameNew.scene 与 GbzMenuLayer.prefab 中的 `__type__: 11693VhkEJPOrhUFuX9JSB1` 无需改动）：
+  - logoFrames 顺序 消个水果/闯关乐消除/解压水果消（index 0/1/2），icon 为本节点 Sprite。
+  - onEnable 按品牌名选帧（本包 wxf41b76649658b9e3 = 消个水果，对应原版 GlobalXZ.logo），
+    赋帧后下一帧按宽 520 等比缩放（原版 SOUtil.SetSpriteSizeWidth）。
+  - 后续 GlobalXZ 重建后，logoName 改为读其 logo 配置。
+- 验收：浏览器实测 Loading 页与 Home 页 logo 均正常显示，编辑器组件解析为 LogoCom，3 帧与 icon 绑定完整。
