@@ -13,6 +13,8 @@ export interface LevelLaunchOptions {
     level: number;
     difficulty: LevelDifficulty;
     seed: number;
+    /** 开发预览：?autolevel=1 时 Loading 结束直接进 Level，跳过手动点击 */
+    autoEnterLevel: boolean;
 }
 
 const DEFAULT_LEVEL = 1;
@@ -39,6 +41,7 @@ export class LevelLaunchConfig {
             level: this.parsePositiveInt(params.get('level'), DEFAULT_LEVEL),
             difficulty: this.parseDifficulty(params.get('difficulty')),
             seed: this.parsePositiveInt(params.get('seed'), DEFAULT_SEED),
+            autoEnterLevel: params.get('autolevel') === '1',
         };
     }
 

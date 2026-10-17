@@ -1,6 +1,7 @@
 import { _decorator, Component } from 'cc';
 import { LoadingState } from '../core/LoadingState';
 import { GameNavigator } from '../nav/GameNavigator';
+import { LevelLaunchConfig } from '../level/LevelLaunchConfig';
 
 const { ccclass, property } = _decorator;
 
@@ -31,7 +32,12 @@ export class ShuiguoGameBootstrap extends Component {
         await this.runLoadingTasks();
         await this.ensureMinLoadingTime(beginAt);
 
-        this.showHome();
+        const navigator = this.getComponent(GameNavigator);
+        if (navigator && LevelLaunchConfig.options.autoEnterLevel) {
+            navigator.showLevel();
+        } else {
+            navigator?.showHome();
+        }
 
         LoadingState.ins.loadingRate = 1;
     }
@@ -47,10 +53,5 @@ export class ShuiguoGameBootstrap extends Component {
         const elapsed = (Date.now() - beginAt) / 1000;
         const restMs = (this.minLoadingTime - elapsed) * 1000;
         if (restMs > 0) await new Promise<void>(resolve => this.scheduleOnce(resolve, restMs / 1000));
-    }
-
-    private showHome(): void {
-        const navigator = this.getComponent(GameNavigator);
-        if (navigator) navigator.showHome();
     }
 }

@@ -1,0 +1,124 @@
+import { _decorator, Component, Label, Node, Sprite } from 'cc';
+import { LevelLaunchConfig } from './LevelLaunchConfig';
+
+const { ccclass } = _decorator;
+
+/**
+ * 第 2 步：Level 静态 UI 校准与初始状态。
+ *
+ * 只负责 GbzLvCommon/game 下已有节点的初始显隐与文案：
+ * - levelBg/labLevel：顶部关卡条主文案“第 N 关”。
+ * - levelBg/labLevel/labLevel copy：原版为“城市名 + 关卡名”小字，依赖 CityConfig
+ *   （城市主题系统，后续步骤接入）；接入前先置空，避免与主文案重叠。
+ * - levelBg/img：水果移动方向图标，arrangeType>1 的方向关才显示；第 1 关初始隐藏。
+ * - fruitTextBg/labFruit：剩余目标水果数。
+ * - progressBg/fillImg（cc.Sprite FILLED，竖向）+ labProgress：进度 0~1。
+ *   fillImg/fillBg 的贴图原版在进关时按城市主题异步加载（GameMgr.getImgFill），
+ *   预制体里本就没有 spriteFrame；与原版一致，仅在 spriteFrame 存在时写 fillRange。
+ * - 开局隐藏 dirtectionTip（方向教学）、full（“装不下啦”）、leaderTip。
+ *
+ * 本步不接水果交互；setGoalRemain/setProgress 供后续 LevelController 调用。
+ * 开发预览可用 ?uigoal=12&uiprogress=50 注入临时数据做 UI 验收。
+ */
+@ccclass('LevelView')
+export class LevelView extends Component {
+    private labFruit: Label | null = null;
+    private fillImg: Sprite | null = null;
+    private labProgress: Label | null = null;
+    private labLevel: Label | null = null;
+    private labLevelSub: Label | null = null;
+    private levelDirImg: Node | null = null;
+    private dirtectionTip: Node | null = null;
+    private fullTip: Node | null = null;
+    private leaderTip: Node | null = null;
+
+    public onLoad(): void {
+        this.labFruit = this.findLabel('game/fruitTextBg/labFruit');
+        this.fillImg = this.findSprite('game/progressBg/fillImg');
+        this.labProgress = this.findLabel('game/progressBg/labProgress');
+        this.labLevel = this.findLabel('game/levelBg/labLevel');
+        this.labLevelSub = this.findLabel('game/levelBg/labLevel/labLevel copy');
+        this.levelDirImg = this.node.getChildByPath('game/levelBg/img');
+
+        this.dirtectionTip = this.node.getChildByPath('game/dirtectionTip');
+        this.fullTip = this.node.getChildByPath('game/full');
+        this.leaderTip = this.node.getChildByPath('game/leaderTip');
+    }
+
+    public start(): void {
+        this.applyInitialState();
+        this.setLevel(LevelLaunchConfig.options.level);
+        this.setGoalRemain(this.readDebugNumber('uigoal', 0));
+        this.setProgress(this.readDebugNumber('uiprogress', 0) / 100);
+    }
+
+    /** 关卡号文案，原版格式为“第 N 关”；城市/关卡名小字待 CityConfig 接入后再填。 */
+    public setLevel(level: number): void {
+        if (this.labLevel) this.labLevel.string = `第 ${level} 关`;
+        if (this.labLevelSub) this.labLevelSub.string = '';
+    }
+
+    /** 剩余目标水果数；初始为关卡水果总数，每次消除后递减。 */
+    public setGoalRemain(remain: number): void {
+        if (this.labFruit) this.labFruit.string = `${Math.max(0, Math.round(remain))}`;
+    }
+
+    /**
+     * 进度 0~1。文案始终更新；fillRange 与原版一样仅在填充贴图已加载时写入，
+     * 否则引擎 BarFilled.updateUVs 会因 spriteFrame 为空抛错。
+     * 文案保留原版格式：整数 + 空格 + 百分号。
+     */
+    public setProgress(progress: number): void {
+        const clamped = Math.min(1, Math.max(0, progress));
+        if (this.labProgress) this.labProgress.string = `${Math.round(clamped * 100)} %`;
+        // 开发验收：?uifill=1 且主题填充贴图未加载时，借用 progressBg 底板临时显示填充量。
+        if (this.fillImg && !this.fillImg.spriteFrame && this.readDebugFlag('uifill')) {
+            const bg = this.node.getChildByPath('game/progressBg')?.getComponent(Sprite);
+            if (bg?.spriteFrame) this.fillImg.spriteFrame = bg.spriteFrame;
+        }
+        if (this.fillImg && this.fillImg.spriteFrame) this.fillImg.fillRange = clamped;
+    }
+
+    private applyInitialState(): void {
+        if (this.dirtectionTip) this.dirtectionTip.active = false;
+        if (this.fullTip) this.fullTip.active = false;
+        if (this.leaderTip) this.leaderTip.active = false;
+        if (this.levelDirImg) this.levelDirImg.active = false;
+    }
+
+    private findLabel(path: string): Label | null {
+        const node = this.node.getChildByPath(path);
+        return node ? node.getComponent(Label) : null;
+    }
+
+    private findSprite(path: string): Sprite | null {
+        const node = this.node.getChildByPath(path);
+        return node ? node.getComponent(Sprite) : null;
+    }
+
+    private readDebugNumber(key: string, fallback: number): number {
+        try {
+            if (typeof location !== 'undefined' && location.search) {
+                const raw = new URLSearchParams(location.search).get(key);
+                if (raw !== null) {
+                    const value = Number.parseFloat(raw);
+                    if (Number.isFinite(value) && value >= 0) return value;
+                }
+            }
+        } catch {
+            // 非浏览器环境忽略调试参数
+        }
+        return fallback;
+    }
+
+    private readDebugFlag(key: string): boolean {
+        try {
+            if (typeof location !== 'undefined' && location.search) {
+                return new URLSearchParams(location.search).get(key) === '1';
+            }
+        } catch {
+            // 非浏览器环境忽略调试参数
+        }
+        return false;
+    }
+}

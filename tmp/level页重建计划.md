@@ -1,7 +1,7 @@
 # Level 页面重建计划
 
-> 状态：执行中；第 0、1 步已于 2026-10-17 重做并经人工真实点击验收通过（3 轮 Home <-> Level 往返正常）；
-> 当前等待第 2 步指示。证据梳理见 `tmp/level页逻辑梳理.md`。  
+> 状态：执行中；第 0、1、2 步已于 2026-10-17 完成并验收（第 2 步含 0/50/100% 进度三档与
+> iPhone 14 Pro / iPad 10.2 两规格截图验证）；当前等待第 3 步指示。证据梳理见 `tmp/level页逻辑梳理.md`。  
 > 创建日期：2026-10-16  
 > 最近更新：2026-10-16  
 > 目标工程：Cocos Creator 3.8.8，设计分辨率 750 x 1334  
@@ -209,7 +209,7 @@ Win / Lose -> Restart / Next / Home
 
 ### 第 2 步：校准 Level 静态 UI 和初始状态
 
-状态：`[ ] 未开始`
+状态：`[x] 已完成（2026-10-17）`
 
 实现范围：
 
@@ -228,6 +228,18 @@ Win / Lose -> Restart / Next / Home
 - UI 文本不会溢出或遮挡。
 - 进度条在 0%、50%、100% 三个测试值下均正确显示。
 - 本步仍不实现水果交互。
+
+完成记录（2026-10-17）：
+
+- 新增 `assets/scripts/level/LevelView.ts`，由 `GameNavigator.showLevel()` 在实例化 `GbzLvCommon` 后 `addComponent` 挂载（运行时挂载，不改预制体序列化）；对外提供 `setLevel/setGoalRemain/setProgress`，供后续 `LevelController` 复用。
+- 关卡号：`game/levelBg/labLevel` 设为“第 N 关”（N 取 `LevelLaunchConfig.options.level`）。子节点 `labLevel copy` 经反混淆核实是“城市名 + 关卡名”小字（`CityConfig`，见 GameMgr.ts.js:880），不是重复文案；城市主题系统接入前置空，消除了两条文案重叠的问题。
+- 初始隐藏：`game/dirtectionTip`（方向教学，预制体原为可见）、`game/full`（“装不下啦”，原为可见）、`game/leaderTip`（预制体已隐藏，双保险）、`game/levelBg/img`（移动方向图标，第 1 关 arrangeType=1 不显示，与 GameMgr.start 逻辑一致）。HUD 侧 `timer/ticket/c_item/levelTips/lightningNode/animNodes` 预制体本就 [H]，`btn_Win/jumpLv/linearDamping` 已在第 1 步由 GameNavigator 隐藏。
+- 剩余目标 `game/fruitTextBg/labFruit` 直接给整数；进度 `game/progressBg/labProgress` 文案格式与原版一致为 `整数 + " %"`（GameMgr.updateFruitText: `(100*n).toFixed(0)+" %"`）。
+- 重要修正：`game/progressBg/fillImg`（cc.Sprite FILLED，fillType=VERTICAL）在预制体中本就没有 spriteFrame——原版进关时由 `GameMgr.getImgFill()` 按城市主题（`CityConfig`+`setSpriteFrameAsync`）异步加载 fillBg/fillImg 贴图。直接写 fillRange 会触发引擎 `BarFilled.updateUVs` 读 null 报错并中断后续文案赋值；已按原版写法加 `spriteFrame` 判空保护，当前无报错，待城市主题系统接入后填充自动生效。
+- 布局核查：GbzLvCommon 根 Widget 未启用对齐（仅 SafeArea + 全屏 750x1334），game 与 GbzMainLayer 根 Widget 同样无对齐，两层全屏叠放、互不约束；各 HUD 元素自带 Widget。不存在双重控制冲突，本步未改任何 Widget/预制体布局。
+- 开发开关：`?autolevel=1`（Loading 后直接进 Level，免点击）、`?uigoal=N&uiprogress=M`（注入临时目标数/百分比）、`?uifill=1`（主题贴图未接入时借用 progressBg 底板临时显示竖向填充，仅供进度三档肉眼验收）。
+- 验收（自动截图 + 控制台日志）：iPhone 14 Pro 规格下 0% 无填充、50% 填充约半槽、100% 满槽，文案分别为 `0 %/50 %/100 %`，三档均无 BarFilled/TypeError；纯 `?autolevel=1` 初始态显示“第 1 关 / 剩余 0 / 0 %”，无方向提示与失败提示。Apple iPad 10.2 宽屏下画面按 750 逻辑宽等比居中，关卡条/剩余/进度/退出/技能按钮位置正确，无裁切、错位、重叠。
+- 遗留（非本步引入）：城市主题进度贴图、`labLevel copy` 城市名待 CityConfig/主题系统步骤接入；既有 `materialAttacked/lightMaterial` 缺失材质报错与引擎 .d.ts 88 条诊断不变。
 
 ### 第 3 步：迁移并验证关卡生成器
 

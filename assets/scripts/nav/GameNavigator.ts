@@ -1,5 +1,6 @@
 import { _decorator, Component, find, instantiate, Node, Prefab } from 'cc';
 import { LevelLaunchConfig } from '../level/LevelLaunchConfig';
+import { LevelView } from '../level/LevelView';
 
 const { ccclass, property } = _decorator;
 
@@ -70,6 +71,7 @@ export class GameNavigator extends Component {
 
             this.levelCommon = instantiate(this.levelCommonPrefab);
             this.stage.addChild(this.levelCommon);
+            this.levelCommon.addComponent(LevelView);
 
             this.levelHud = instantiate(this.levelHudPrefab);
             this.stage.addChild(this.levelHud);
