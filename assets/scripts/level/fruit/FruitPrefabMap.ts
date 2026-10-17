@@ -40,14 +40,19 @@ export const FRUIT_PREFAB_UUID: Readonly<Record<number, string>> = Object.freeze
     33: 'dd947f5b-c7b5-4a17-a493-bd142ee10cae',
 });
 
-/** 物理分组索引（settings/v2/packages/project.json collisionGroups）。 */
+/**
+ * 物理分组位值（collisionGroups 索引 i 对应运行时 1<<i）。
+ * 注意：Cocos 3.8 box2d 后端运行时使用位值而不是数组索引，
+ * 且 RigidBody2D.group 赋值后不会同步 fixture，切换分组请用
+ * Physics2DGroups.setNodePhysicsGroup（它同时写 collider）。
+ */
 export const FRUIT_PHYSICS_GROUP = Object.freeze({
-    DEFAULT: 0,
-    FRUIT: 1,
-    WALL: 2,
-    OBST: 3,
-    CLICK_FRUIT: 4,
-    GUARDRAIL: 5,
+    DEFAULT: 1 << 0,
+    FRUIT: 1 << 1,
+    WALL: 1 << 2,
+    OBST: 1 << 3,
+    CLICK_FRUIT: 1 << 4,
+    GUARDRAIL: 1 << 5,
 } as const);
 
 /**

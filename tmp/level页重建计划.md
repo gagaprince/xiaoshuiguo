@@ -1,7 +1,6 @@
 # Level 页面重建计划
 
-> 状态：执行中；第 0～5 步已完成（第 0～4 步人肉验收；第 5 步已自动截图验证
-> 174 水果稳定性与四个移动方向，等待人肉验收）。证据梳理见 `tmp/level页逻辑梳理.md`。  
+> 状态：执行中；第 0～6 步已完成并人肉验收（2026-10-17）。证据梳理见 `tmp/level页逻辑梳理.md`。  
 > 创建日期：2026-10-16  
 > 最近更新：2026-10-17  
 > 目标工程：Cocos Creator 3.8.8，设计分辨率 750 x 1334  
@@ -335,7 +334,7 @@ Win / Lose -> Restart / Next / Home
 
 ### 第 5 步：启用主场地物理和移动方向
 
-状态：`[x] 已完成（2026-10-17，自动验证通过，待人肉验收）`
+状态：`[x] 已完成（2026-10-17，人肉验收通过）`
 
 实现范围：
 
@@ -465,7 +464,37 @@ Win / Lose -> Restart / Next / Home
 
 ### 第 6 步：点击水果并进入下方收集区
 
-状态：`[ ] 未开始`
+状态：`[x] 已完成（2026-10-17，自动点击回归 + 人肉验收通过）`
+
+完成记录（2026-10-17，自动点击回归 + 人肉验收）：
+
+- 点击链：`FruitEntity.bindInput` 绑 TOUCH_START（isNoLg/status/isCanTouch/isTouch
+  门禁，event.propagationStopped），点击后 clickTween（UITransform 0.95 回弹）、
+  切 clickFruit 分组、`setRigType(Dynamic, g=13, bullet)` 下落；接触 floor/
+  btnFirstWall/btnSecondWall（BEGIN_CONTACT 与 POST_SOLVE 双判定）入槽，
+  去重写 isInSlot 并入 `inSlotEntities`（第 7 步配对消费）。
+- 左右移关入槽后 `fruitMove(true)` 重新靠拢；自动下落（autoDrop）保持 fruit 分组。
+- **运行时物理分组必须用位值**：Cocos 3.8 的 group 是 1<<index
+  （DEFAULT=1/fruit=2/wall=4/obst=8/clickFruit=16/guardrail=32），不是索引；
+  `FRUIT_PHYSICS_GROUP` 已改为位值。
+- **重建工程的 physics2d 碰撞矩阵不会注入运行时**（实测
+  `PhysicsSystem2D.instance.collisionMatrix` 为引擎默认值，仅 bit1 掩码=1），
+  导致早期“点击水果 maskBits=0 穿透一切”。新增 `Physics2DGroups.ts`：
+  `ensurePhysics2DMatrix()` 玩法启动幂等安装 [19,31,2,18,59,16]；
+  `setNodePhysicsGroup` 同时写 RigidBody2D 与 collider 的 `_group`
+  （两个 setter 都不能运行时直接用：body setter 不同步 fixture；
+  collider setter 立即 Refilter，同帧节点激活切换会让 box2d 代理错乱），
+  再在下一帧（b2 body 已创建后）`applyNodePhysicsGroup` 重建 fixture；
+  不能在激活首帧 apply，否则 fixture 被挂到 groundBody。
+- **接触回调内禁止 collider.apply()**：world step 期间 IsLocked，
+  `_destroy` 先把 m_userData 置空再 DestroyFixture 会抛异常，留下空代理，
+  bullet 的 SolveTOI 随后 `PhysicsContact.init` 空指针崩溃。
+  canCheck 的 friction 0.2 改为只改 `IPhysics2DContact.setFriction(0.2)`。
+- 回归：第 1 关连点 2 个草莓均落入漏斗；L10 右移关护栏压暗/越线自动下落/
+  密集场景快速连点 3 个水果零报错、无穿透无重复；
+  `verify-level-generator.cjs` 1440 组全绿；tsc 0 诊断。
+- 已知遗留（表现层，后续步骤）：冰冻水果点击的 iceTip 气泡、落地音效/粒子、
+  教学关第 2/3 行按教学轮次移入（当前只放第 1 行 4 个）。
 
 实现范围：
 

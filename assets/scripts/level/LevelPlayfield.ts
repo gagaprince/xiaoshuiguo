@@ -1,9 +1,10 @@
-import { _decorator, Component, Node, RigidBody2D, Tween, UITransform, Widget, tween } from 'cc';
+import { _decorator, Collider2D, Component, Node, Tween, UITransform, Widget, tween } from 'cc';
 import { LevelLaunchConfig } from './LevelLaunchConfig';
 import { LevelData } from './generator/LevelTypes';
-import { FruitEntity } from './fruit/FruitEntity';
+import { FruitEntity, FruitInputHost } from './fruit/FruitEntity';
 import { FruitSpawner } from './fruit/FruitSpawner';
 import { FRUIT_PHYSICS_GROUP } from './fruit/FruitPrefabMap';
+import { applyNodePhysicsGroup, ensurePhysics2DMatrix, setNodePhysicsGroup } from './Physics2DGroups';
 
 const { ccclass } = _decorator;
 
@@ -34,7 +35,7 @@ interface ShiftItem {
  * 本步不绑触摸、不入槽、不配对；自动下落的水果只会落到漏斗/地板上静止。
  */
 @ccclass('LevelPlayfield')
-export class LevelPlayfield extends Component {
+export class LevelPlayfield extends Component implements FruitInputHost {
     private static readonly MOVE_DISTANCE = 7;
     private static readonly BASE_Y = 120;
     private static readonly DOWN_INTERVAL = 1;
@@ -52,7 +53,12 @@ export class LevelPlayfield extends Component {
     private rightWall: Node | null = null;
     private topWall: Node | null = null;
     private bottomWall: Node | null = null;
+    private canCheckWall: Node | null = null;
     private boundaryLine: Node | null = null;
+    /** 场地是否已可操作（对齐原版 ENUM_STATUS.RUN，UNRUN 期间点击无效）。 */
+    private running = false;
+    /** 已落入下方收集区的水果（原版 fruitsInSlotComp，第 7 步配对用）。 */
+    private readonly inSlotEntities: FruitEntity[] = [];
 
     /** 进入场地：配置墙体 -> 等水果实例化 -> 生成保护期动画 -> 启动方向移动。 */
     public enter(data: LevelData, spawner: FruitSpawner): void {
@@ -69,9 +75,20 @@ export class LevelPlayfield extends Component {
         this.halfWidth = (rootUITransform?.width ?? 750) / 2;
         this.halfHeight = (rootUITransform?.height ?? 1334) / 2;
 
+        // 重建工程的 physics2d 碰撞矩阵不会自动注入运行时，玩法启动先显式安装。
+        ensurePhysics2DMatrix();
+
         this.cacheWallNodes();
+        // 先把全部场地碰撞体统一刷成 DEFAULT（即时重建 fixture filter），
+        // 随后 initWall 再把护栏侧 left/right 改成 guardrail。
+        this.refreshWallGroups();
         this.boundaryLine?.getComponent(Widget)?.updateAlignment();
         this.initWall();
+        // b2 body 在本帧物理 step 后才创建，延迟一帧再重建 fixture，
+        // 避免 apply 时把 fixture 挂到 groundBody 上。
+        this.scheduleOnce(() => {
+            if (this.node.isValid) this.applyWallFixtures();
+        }, 0);
 
         await spawner.spawnComplete;
         if (!this.node.isValid) return;
@@ -80,8 +97,11 @@ export class LevelPlayfield extends Component {
         await Promise.all(spawner.entities.map(entity => entity.playSpawnAnim()));
         if (!this.node.isValid) return;
 
+        // 第 6 步：绑定触摸与接触回调，checkBound 决定护栏侧是否可点。
+        for (const entity of spawner.entities) entity.bindInput(this);
         this.checkBoundAll();
         this.hideWall();
+        this.running = true;
 
         if (this.level === 1) return;
 
@@ -105,7 +125,54 @@ export class LevelPlayfield extends Component {
         this.rightWall = walls?.getChildByName('right') ?? null;
         this.topWall = walls?.getChildByName('top') ?? null;
         this.bottomWall = walls?.getChildByName('bottom') ?? null;
+        this.canCheckWall = walls?.getChildByName('canCheck') ?? null;
         this.boundaryLine = this.node.getChildByPath('game/boundaryLine');
+    }
+
+    /** FruitInputHost：canCheck 传感器 y（节点本地坐标，预制体 -144）。 */
+    public get canCheckY(): number {
+        return this.canCheckWall?.position.y ?? -144;
+    }
+
+    public isInputActive(): boolean {
+        return this.running;
+    }
+
+    /** FruitInputHost：点击水果后，下移关立即整体下移一步（原版 GameMgr.fruitDown）。 */
+    public onFruitClicked(_entity: FruitEntity): void {
+        if (this.level !== 1 && this.arrangeType === 1) this.fruitDown();
+    }
+
+    /** FruitInputHost：水果接触 floor/btnFirstWall/btnSecondWall，进入收集区。 */
+    public onFruitSettled(entity: FruitEntity): void {
+        if (this.inSlotEntities.indexOf(entity) < 0) this.inSlotEntities.push(entity);
+        // 原版 setLastTouchFruit(f,true) 后左右移关重新向分界线靠拢。
+        if (this.arrangeType === 2 || this.arrangeType === 3) this.fruitMove(true);
+    }
+
+    /**
+     * 把场地内所有非水果碰撞体归到 DEFAULT 分组并即时刷新 filter；
+     * left/right 的 guardrail 特例随后由 initWall 的分组设置覆盖。
+     */
+    private refreshWallGroups(): void {
+        const walk = (node: Node): void => {
+            if (!node.getComponent(FruitEntity) && node.getComponent(Collider2D)) {
+                setNodePhysicsGroup(node, FRUIT_PHYSICS_GROUP.DEFAULT);
+            }
+            for (const child of node.children) walk(child);
+        };
+        walk(this.node);
+    }
+
+    /** b2 body 就绪后的下一帧：重建全部场地碰撞体的 fixture（跳过水果）。 */
+    private applyWallFixtures(): void {
+        const walk = (node: Node): void => {
+            if (!node.getComponent(FruitEntity) && node.getComponent(Collider2D)) {
+                applyNodePhysicsGroup(node);
+            }
+            for (const child of node.children) walk(child);
+        };
+        walk(this.node);
     }
 
     /**
@@ -128,8 +195,7 @@ export class LevelPlayfield extends Component {
         }
 
         const setGroup = (wall: Node | null, group: number): void => {
-            const body = wall?.getComponent(RigidBody2D);
-            if (body) body.group = group;
+            if (wall) setNodePhysicsGroup(wall, group);
         };
 
         switch (this.arrangeType) {

@@ -2,11 +2,16 @@ import {
     _decorator,
     CircleCollider2D,
     Collider2D,
+    Contact2DType,
     Color,
     Component,
     ERigidBody2DType,
+    EventTouch,
+    IPhysics2DContact,
+    Node,
     PolygonCollider2D,
     RigidBody2D,
+    Size,
     Sprite,
     Tween,
     UIOpacity,
@@ -21,6 +26,18 @@ const { ccclass } = _decorator;
 
 /** 水果实例的种类（CalculatedInfo.type）：0 普通 / 1 冰冻 / 2 随机盒 / 3 黑洞关联。 */
 export type FruitKind = 0 | 1 | 2 | 3;
+
+/** 第 6 步：水果与场地控制器之间的回调（由 LevelPlayfield 实现）。 */
+export interface FruitInputHost {
+    /** 全局是否处于可操作状态（对齐原版 status !== UNRUN）。 */
+    isInputActive(): boolean;
+    /** canCheck 传感器的世界 y（点击下落水果越过该 y 即标记 isCanCheck）。 */
+    canCheckY: number;
+    /** 水果被点击：下移关立即整体下移一步（对齐 GameMgr.fruitDown）。 */
+    onFruitClicked(entity: FruitEntity): void;
+    /** 水果接触 floor/btnFirstWall/btnSecondWall，进入下方收集区。 */
+    onFruitSettled(entity: FruitEntity): void;
+}
 
 export interface FruitEntityInit {
     /** 本关内稳定唯一的实例 ID。 */
@@ -61,6 +78,12 @@ export class FruitEntity extends Component {
     public isTouch = false;
     /** 越过分界线自动下落的水果（原版 isAutoDrop）。 */
     public isAutoDrop = false;
+    /** 已进入下方槽位（原版 isInSlot）。 */
+    public isInSlot = false;
+    /** 进入 canCheck 传感器区域（原版 inCheckBox）。 */
+    public inCheckBox = false;
+    /** 已越过 canCheck.y，可参与第 7 步配对（原版 isCanCheck）。 */
+    public canCheckPassed = false;
     /** 点击下落时的重力倍率（原版固定 13，世界重力 -10）。 */
     public readonly gravityScale = 13;
     public readonly restitution = 0;
@@ -70,6 +93,10 @@ export class FruitEntity extends Component {
     private boardScale = 0.68;
     private body: RigidBody2D | null = null;
     private circleCollider: CircleCollider2D | null = null;
+    private host: FruitInputHost | null = null;
+    private inputBound = false;
+    private baseWidth = 0;
+    private baseHeight = 0;
 
     public setup(init: FruitEntityInit, scale: number): void {
         this.id = init.id;
@@ -80,13 +107,127 @@ export class FruitEntity extends Component {
         this.isCanTouch = false;
         this.isTouch = false;
         this.isAutoDrop = false;
+        this.isInSlot = false;
+        this.inCheckBox = false;
+        this.canCheckPassed = false;
         this.boardScale = scale;
 
+        this.baseWidth = this.node.getComponent(UITransform)?.width ?? 100;
+        this.baseHeight = this.node.getComponent(UITransform)?.height ?? this.baseWidth;
         this.replaceWithCircleCollider();
         this.body = this.node.getComponent(RigidBody2D);
+        if (this.body) this.body.group = FRUIT_PHYSICS_GROUP.FRUIT;
         this.applyAppearance(false);
         this.node.setScale(new Vec3(0, 0, 1));
         this.setRigType(ERigidBody2DType.Static, 0, true);
+    }
+
+    /**
+     * 第 6 步：绑定触摸与物理接触回调（对齐原版 initCom/initContactCallBack，
+     * 在生成保护期结束后由 LevelPlayfield 统一调用一次）。
+     */
+    public bindInput(host: FruitInputHost): void {
+        this.host = host;
+        if (!this.inputBound) {
+            this.inputBound = true;
+            this.node.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
+            const collider = this.circleCollider;
+            if (collider) {
+                collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
+                collider.on(Contact2DType.END_CONTACT, this.onEndContact, this);
+               collider.on(Contact2DType.POST_SOLVE, this.onPostSolve, this);
+           }
+        }
+    }
+
+    /** 原版 FruitComp.touchStart：点击 -> clickFruit 组 -> Dynamic(g=13) 下落。 */
+    private onTouchStart(event: EventTouch): void {
+        event.propagationStopped = true;
+        const host = this.host;
+        if (!host || !host.isInputActive() || this.fruitType === 1) return;
+        if (!this.isCanTouch || this.isTouch) return;
+
+        const body = this.body;
+        if (body) body.group = FRUIT_PHYSICS_GROUP.CLICK_FRUIT;
+        // 直接写 _group，下面 setRigType 的 collider.apply() 会用新 filter 重建
+        // fixture；不能走 collider.group setter（同帧 Refilter 会让 box2d 代理错乱）。
+        if (this.circleCollider) {
+            (this.circleCollider as unknown as { _group: number })._group = FRUIT_PHYSICS_GROUP.CLICK_FRUIT;
+        }
+        this.clickTween();
+        this.node.setScale(new Vec3(this.boardScale, this.boardScale, 1));
+        this.isTouch = true;
+        this.applyAppearance(false);
+        Tween.stopAllByTarget(this.node);
+        this.setRigType(ERigidBody2DType.Dynamic, this.gravityScale, true);
+        host.onFruitClicked(this);
+    }
+
+    /**
+     * 原版 FruitComp.clickTween：UITransform 尺寸缩到 0.95 再还原（各 0.1s，
+     * tag=1）。碰撞圆半径在生成时已固定，只做视觉反馈。
+     */
+    private clickTween(): void {
+        const ui = this.node.getComponent(UITransform);
+        if (!ui) return;
+        tween(ui)
+            .to(0.1, { contentSize: new Size(this.baseWidth * 0.95, this.baseHeight * 0.95) })
+            .to(0.1, { contentSize: new Size(this.baseWidth, this.baseHeight) })
+            .start();
+    }
+
+    protected update(): void {
+        const host = this.host;
+        if (!host || !this.isTouch) return;
+        this.canCheckPassed = this.node.position.y <= host.canCheckY;
+    }
+
+    /** 原版 FruitComp.onBeginContact。 */
+    private onBeginContact(
+        self: Collider2D,
+        other: Collider2D,
+        _contact: IPhysics2DContact | null,
+    ): void {
+        switch (other.node.name) {
+            case 'canCheck':
+                this.inCheckBox = true;
+                // 原包在这里把 collider.friction 改成 0.2；3.8 box2d 后端在
+                // 接触回调期间 world 已锁定，不能 apply() 重建 fixture（会留下
+                // m_userData 为空的脏代理并在 SolveTOI 崩溃），只能改当前接触摩擦。
+                if (this.circleCollider) this.circleCollider.friction = 0.2;
+                _contact?.setFriction(0.2);
+                break;
+            case 'dropRight':
+            case 'dropLeft':
+                // 原包 checkDropWall 的力向量是未施加的死代码，这里只保留接触语义；
+                // 落地音效/粒子在后续表现步骤补。
+                break;
+            case 'btnFirstWall':
+            case 'btnSecondWall':
+            case 'floor':
+                this.markSettled();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private onEndContact(_self: Collider2D, other: Collider2D): void {
+        if (other.node.name === 'canCheck') this.inCheckBox = false;
+    }
+
+    /** 原版 checkID 在 POST_SOLVE 里对 floor/btnFirstWall/btnSecondWall 的入槽分支。 */
+    private onPostSolve(_self: Collider2D, other: Collider2D): void {
+        const name = other.node.name;
+        if (name === 'floor' || name === 'btnFirstWall' || name === 'btnSecondWall') {
+            this.markSettled();
+        }
+    }
+
+    private markSettled(): void {
+        if (this.isInSlot) return;
+        this.isInSlot = true;
+        this.host?.onFruitSettled(this);
     }
 
     /**
