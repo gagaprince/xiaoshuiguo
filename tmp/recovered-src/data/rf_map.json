@@ -1,0 +1,462 @@
+{
+ "19c5aMSuXpBz4uvDRWR5oHr": {
+  "name": "AbMgr",
+  "file": "chunks_____virtual_AbMgr.ts.js"
+ },
+ "61e85oyla1M+rWVc0ob1xLa": {
+  "name": "AdPlatformBase",
+  "file": "chunks_____virtual_AdPlatformBase.ts.js"
+ },
+ "941204WFQNPVI53n5mYMzOj": {
+  "name": "AudioEngine",
+  "file": "chunks_____virtual_AudioEngine.ts.js"
+ },
+ "514ee+7mfpPzaXWM1+0QdHi": {
+  "name": "AutoLightEffect%20",
+  "file": "chunks_____virtual_AutoLightEffect_20.ts.js"
+ },
+ "4f368eEohxLP56G4KmXeyHu": {
+  "name": "BaseEventDispatcher",
+  "file": "chunks_____virtual_BaseEventDispatcher.ts.js"
+ },
+ "6ad69nt3wRDApprbpdjggrp": {
+  "name": "BgCtrCom",
+  "file": "chunks_____virtual_BgCtrCom.ts.js"
+ },
+ "be5fe4D6NxK1YLtRIN7eVWt": {
+  "name": "CCNodePool",
+  "file": "chunks_____virtual_CCNodePool.ts.js"
+ },
+ "0c495w+CwdIiJ2rChkM4w5B": {
+  "name": "CCPoolManager",
+  "file": "chunks_____virtual_CCPoolManager.ts.js"
+ },
+ "36265G80BJCQ53Psks9UD9D": {
+  "name": "CalculatedInfo",
+  "file": "chunks_____virtual_CalculatedInfo.ts.js"
+ },
+ "acf520OJytAxa5ekqX+w531": {
+  "name": "ChuiziCom",
+  "file": "chunks_____virtual_ChuiziCom.ts.js"
+ },
+ "46d77BVM9JKFLZIdDrTwrJG": {
+  "name": "CityConfig",
+  "file": "chunks_____virtual_CityConfig.ts.js"
+ },
+ "59aadvBsNVHLZzOZru52DGq": {
+  "name": "CloudManager",
+  "file": "chunks_____virtual_CloudManager.ts.js"
+ },
+ "0ff578h29lFgpVQKY68qLZB": {
+  "name": "CloudMgr",
+  "file": "chunks_____virtual_CloudMgr.ts.js"
+ },
+ "b8f34r1lmZKb6/WSof5ViNL": {
+  "name": "CocosUtils",
+  "file": "chunks_____virtual_CocosUtils.ts.js"
+ },
+ "cbc3fiRx/hLopAEtKEDVsDT": {
+  "name": "CusReport",
+  "file": "chunks_____virtual_CusReport.ts.js"
+ },
+ "065e87xdWdGAL53glDflLx+": {
+  "name": "DataManager",
+  "file": "chunks_____virtual_DataManager.ts.js"
+ },
+ "296acgPi1pN2LoxOc6r4JVg": {
+  "name": "DebugLog",
+  "file": "chunks_____virtual_DebugLog.ts.js"
+ },
+ "846692SKIxGB4ExEMuPKi3+": {
+  "name": "DecryptUtil",
+  "file": "chunks_____virtual_DecryptUtil.ts.js"
+ },
+ "35bd5+7fYhOja80EYdgkeuB": {
+  "name": "DragFruit",
+  "file": "chunks_____virtual_DragFruit.ts.js"
+ },
+ "14a36Ji0zNFoqxXDy36Rvip": {
+  "name": "EventDispatcher",
+  "file": "chunks_____virtual_EventDispatcher.ts.js"
+ },
+ "28ebf3XjF1IfIgnSzzCjMhD": {
+  "name": "FruitBookComp",
+  "file": "chunks_____virtual_FruitBookComp.ts.js"
+ },
+ "d0cbfZE7HhEdYOVgy/v3E6s": {
+  "name": "FruitComp",
+  "file": "chunks_____virtual_FruitComp.ts.js"
+ },
+ "c9328VJBTZKDKNXQfsrk2ST": {
+  "name": "FruitConfig",
+  "file": "chunks_____virtual_FruitConfig.ts.js"
+ },
+ "1d585fA4iFAr6RPZf4s+WU7": {
+  "name": "FruitMgr",
+  "file": "chunks_____virtual_FruitMgr.ts.js"
+ },
+ "2268bBt3ndCXqORnn1ceeMQ": {
+  "name": "FruitPositionCalculator",
+  "file": "chunks_____virtual_FruitPositionCalculator.ts.js"
+ },
+ "5a1307lnl5GiY1U+r4sHG9t": {
+  "name": "GameCreatJS",
+  "file": "chunks_____virtual_GameCreatJS.ts.js"
+ },
+ "fefd0XKWvBC7bioUQPoOoSe": {
+  "name": "GameLanucher",
+  "file": "chunks_____virtual_GameLanucher.ts.js"
+ },
+ "d2634BH/IBDuqK7wdEJOpTl": {
+  "name": "GameMgr",
+  "file": "chunks_____virtual_GameMgr.ts.js"
+ },
+ "9caa5Do4HBBgqCpgcMfS41R": {
+  "name": "GameMsg",
+  "file": "chunks_____virtual_GameMsg.ts.js"
+ },
+ "a15438Vd/5MzJSqFKAj6ViC": {
+  "name": "GbzAudioManager",
+  "file": "chunks_____virtual_GbzAudioManager.ts.js"
+ },
+ "dbb58wIh1lA1LX7NIY8fsHK": {
+  "name": "GbzAviseLayer",
+  "file": "chunks_____virtual_GbzAviseLayer.ts.js"
+ },
+ "5e53dba57RP2YRbDtfDJQBt": {
+  "name": "GbzBaselayer",
+  "file": "chunks_____virtual_GbzBaselayer.ts.js"
+ },
+ "4a3a4GyhVdCTJtcJ+yZHpTy": {
+  "name": "GbzCarMoveLayer",
+  "file": "chunks_____virtual_GbzCarMoveLayer.ts.js"
+ },
+ "2abf0A6ll1IhJlv3bhcjUJN": {
+  "name": "GbzDataManager",
+  "file": "chunks_____virtual_GbzDataManager.ts.js"
+ },
+ "22671S0d7NP/4/wnTS7ylEC": {
+  "name": "GbzEnum",
+  "file": "chunks_____virtual_GbzEnum.ts.js"
+ },
+ "0253cfZpsZMxrm9b6MPXhSY": {
+  "name": "GbzExitLayer",
+  "file": "chunks_____virtual_GbzExitLayer.ts.js"
+ },
+ "b95ecbzeLNL74WI7+VKg9n8": {
+  "name": "GbzFadeManager",
+  "file": "chunks_____virtual_GbzFadeManager.ts.js"
+ },
+ "adf6dj1TWpAlLArjFGnbJXf": {
+  "name": "GbzFansLayer",
+  "file": "chunks_____virtual_GbzFansLayer.ts.js"
+ },
+ "0c5bbRGoUZPKoZmi32gUXh2": {
+  "name": "GbzFruitBookLayer",
+  "file": "chunks_____virtual_GbzFruitBookLayer.ts.js"
+ },
+ "262778VlvxPEKK1dLw7LFiu": {
+  "name": "GbzFruitDownLayer",
+  "file": "chunks_____virtual_GbzFruitDownLayer.ts.js"
+ },
+ "8dee9CGwE5NrbcsI8oQa6CF": {
+  "name": "GbzGameManager",
+  "file": "chunks_____virtual_GbzGameManager.ts.js"
+ },
+ "d967aFPMNhB3rcoIZERodNW": {
+  "name": "GbzGetItemLayer",
+  "file": "chunks_____virtual_GbzGetItemLayer.ts.js"
+ },
+ "86443jbBh1HRrRCVgHLxLg+": {
+  "name": "GbzGetRewLayer",
+  "file": "chunks_____virtual_GbzGetRewLayer.ts.js"
+ },
+ "920f995b--b39-4-4b-74-8-daf-4fc1f35dea4b": {
+  "name": "GbzIndex",
+  "file": "chunks_____virtual_GbzIndex.ts.js"
+ },
+ "a47ba428--c31-a-41-be-8-e9f-58b8483aeb7e": {
+  "name": "GbzInstance",
+  "file": "chunks_____virtual_GbzInstance.ts.js"
+ },
+ "bdfdd713--e66-3-43-95-b-add-e06292781271": {
+  "name": "GbzLoadingLayer",
+  "file": "chunks_____virtual_GbzLoadingLayer.ts.js"
+ },
+ "453102MJiZGvpbon5n4Q3/F": {
+  "name": "GbzLoseFullLayer",
+  "file": "chunks_____virtual_GbzLoseFullLayer.ts.js"
+ },
+ "7c330JdxoVKRZpHO2ppqzfY": {
+  "name": "GbzMainLayer",
+  "file": "chunks_____virtual_GbzMainLayer.ts.js"
+ },
+ "6cd43MVVK5NNY+5UtqwDA2W": {
+  "name": "GbzMenuLayer",
+  "file": "chunks_____virtual_GbzMenuLayer.ts.js"
+ },
+ "e92f4H/5+VMCZnr3htu+flw": {
+  "name": "GbzPoolManager",
+  "file": "chunks_____virtual_GbzPoolManager.ts.js"
+ },
+ "ec8b0A5Y65HabydgRKe8uoD": {
+  "name": "GbzPropSpecialLayer",
+  "file": "chunks_____virtual_GbzPropSpecialLayer.ts.js"
+ },
+ "c5c8cWHi+dNWpeCH5A4oaZm": {
+  "name": "GbzRankLayer",
+  "file": "chunks_____virtual_GbzRankLayer.ts.js"
+ },
+ "cefd4zbwANP1L1y7WydE8dK": {
+  "name": "GbzResManager",
+  "file": "chunks_____virtual_GbzResManager.ts.js"
+ },
+ "4ff01AYmhNCV5aw24pCz3Q8": {
+  "name": "GbzResurgenceLayer",
+  "file": "chunks_____virtual_GbzResurgenceLayer.ts.js"
+ },
+ "ecfc40/aCVE6JD1sVRWfB2Y": {
+  "name": "GbzSdkManager",
+  "file": "chunks_____virtual_GbzSdkManager.ts.js"
+ },
+ "e03cc5PeeZMUav4h4jw9/Zo": {
+  "name": "GbzSettingLayer",
+  "file": "chunks_____virtual_GbzSettingLayer.ts.js"
+ },
+ "72816oqm65Nk612deOWBd6+": {
+  "name": "GbzTTAddtableLayer",
+  "file": "chunks_____virtual_GbzTTAddtableLayer.ts.js"
+ },
+ "e4a90zCL7NLYL5+0IubBWYJ": {
+  "name": "GbzTTRequestLayer",
+  "file": "chunks_____virtual_GbzTTRequestLayer.ts.js"
+ },
+ "15fef17wSlEuaIhCJ1iB0D9": {
+  "name": "GbzTTcblLayer",
+  "file": "chunks_____virtual_GbzTTcblLayer.ts.js"
+ },
+ "37680PV7WpHyZ6GZYkW7SjI": {
+  "name": "GbzThemeLayer",
+  "file": "chunks_____virtual_GbzThemeLayer.ts.js"
+ },
+ "2c30esmzUVMSbo3h4LMUgQv": {
+  "name": "GbzToastManager",
+  "file": "chunks_____virtual_GbzToastManager.ts.js"
+ },
+ "67bf2VPib9B17El63LDib8u": {
+  "name": "GbzUIManager",
+  "file": "chunks_____virtual_GbzUIManager.ts.js"
+ },
+ "95f86NK+rFG2YDQCu58XETZ": {
+  "name": "GbzUtils",
+  "file": "chunks_____virtual_GbzUtils.ts.js"
+ },
+ "198aaN23dBAaL62KzMHr32p": {
+  "name": "GbzWin2Layer",
+  "file": "chunks_____virtual_GbzWin2Layer.ts.js"
+ },
+ "c03f5dy6z9CeaCQD3pKQ26H": {
+  "name": "GbzWinLayer",
+  "file": "chunks_____virtual_GbzWinLayer.ts.js"
+ },
+ "34435dUiwVBsb/Yl3hWSdkG": {
+  "name": "GlobalXZ",
+  "file": "chunks_____virtual_GlobalXZ.ts.js"
+ },
+ "9d992VDm1FECo27GTxJW4Cj": {
+  "name": "GridLayerListView",
+  "file": "chunks_____virtual_GridLayerListView.ts.js"
+ },
+ "f4d795vtPBJVZFjwN4S4rtv": {
+  "name": "GridListView",
+  "file": "chunks_____virtual_GridListView.ts.js"
+ },
+ "1092cQW53FOl5JQMe6u+gle": {
+  "name": "GridManager",
+  "file": "chunks_____virtual_GridManager.ts.js"
+ },
+ "660f9dYosVK94gn+yW59a0L": {
+  "name": "Handler",
+  "file": "chunks_____virtual_Handler.ts.js"
+ },
+ "a2e1eTGSSZHyI7JJkoNfs7j": {
+  "name": "HoleComp",
+  "file": "chunks_____virtual_HoleComp.ts.js"
+ },
+ "9d3f8UrqJBO7YB5isuzZZYd": {
+  "name": "HwPlatform",
+  "file": "chunks_____virtual_HwPlatform.ts.js"
+ },
+ "f0184AcW6BG8YkzHIVODOEF": {
+  "name": "IPool",
+  "file": "chunks_____virtual_IPool.ts.js"
+ },
+ "03816qQeA1F2r9hRCq/fvhw": {
+  "name": "IceFollow",
+  "file": "chunks_____virtual_IceFollow.ts.js"
+ },
+ "48596WE0IJGhLlhhkBar7Zt": {
+  "name": "JDPlatform",
+  "file": "chunks_____virtual_JDPlatform.ts.js"
+ },
+ "f9629AlCotKs5dIJMcaMGhP": {
+  "name": "JointGearMgr",
+  "file": "chunks_____virtual_JointGearMgr.ts.js"
+ },
+ "5f7f5WXEYpORp6URYlj+aHC": {
+  "name": "JumpLvBtn",
+  "file": "chunks_____virtual_JumpLvBtn.ts.js"
+ },
+ "59f92wAndBC4ZdwRttEdV1b": {
+  "name": "LabelUp",
+  "file": "chunks_____virtual_LabelUp.ts.js"
+ },
+ "a0041p7ElxMVbhEYQYoOnLB": {
+  "name": "LayoutIMy",
+  "file": "chunks_____virtual_LayoutIMy.ts.js"
+ },
+ "5907663yQJJTI0B3dKE8H3f": {
+  "name": "LayoutRectSafe",
+  "file": "chunks_____virtual_LayoutRectSafe.ts.js"
+ },
+ "c2101kTvSNHAJ8u8bqcCgd0": {
+  "name": "LevelConfig",
+  "file": "chunks_____virtual_LevelConfig.ts.js"
+ },
+ "0a11dE7AdhBAaoqiDtzhH+X": {
+  "name": "LvConfig1",
+  "file": "chunks_____virtual_LvConfig1.ts.js"
+ },
+ "fbac7Fsl+hFNKNHBZ4UCj7L": {
+  "name": "LvConfig1_easy",
+  "file": "chunks_____virtual_LvConfig1_easy.ts.js"
+ },
+ "ee3af6o3/hJ5qnjBfTwNXcY": {
+  "name": "LvConfig2",
+  "file": "chunks_____virtual_LvConfig2.ts.js"
+ },
+ "a4d24gR9V5AfpFVmkSaZxBE": {
+  "name": "LvConfig3",
+  "file": "chunks_____virtual_LvConfig3.ts.js"
+ },
+ "72a12ngylJKTZpdEfwrZaqM": {
+  "name": "MD5",
+  "file": "chunks_____virtual_MD5.ts.js"
+ },
+ "ba107pYm49Ip6YO7m8Ipz8k": {
+  "name": "NavigateBtn",
+  "file": "chunks_____virtual_NavigateBtn.ts.js"
+ },
+ "e450e6NuSBPTbiyX+vYS/8K": {
+  "name": "PiaoEff",
+  "file": "chunks_____virtual_PiaoEff.ts.js"
+ },
+ "b098e7l0hlM4aJj7BWlSYEX": {
+  "name": "PkManager",
+  "file": "chunks_____virtual_PkManager.ts.js"
+ },
+ "2d474m4r01PYphV2ofwQ12Y": {
+  "name": "RTQueue",
+  "file": "chunks_____virtual_RTQueue.ts.js"
+ },
+ "1eb62NLT9NKcqi4uXgrDyzG": {
+  "name": "RandTool",
+  "file": "chunks_____virtual_RandTool.ts.js"
+ },
+ "f80feq1W+9MarJkC21+SmQM": {
+  "name": "RankDataComp",
+  "file": "chunks_____virtual_RankDataComp.ts.js"
+ },
+ "63c68ZPv5tIRqcJmT2E6U1v": {
+  "name": "ReferenceLayMgr",
+  "file": "chunks_____virtual_ReferenceLayMgr.ts.js"
+ },
+ "3b25a+n9QZLloPCOi2V2rEj": {
+  "name": "ReferenceMgr",
+  "file": "chunks_____virtual_ReferenceMgr.ts.js"
+ },
+ "3f81aHTce9Ad4lGCbvn86xe": {
+  "name": "ReportHelper",
+  "file": "chunks_____virtual_ReportHelper.ts.js"
+ },
+ "896ecNg16hAz4aUghuhjl5O": {
+  "name": "SOUtil",
+  "file": "chunks_____virtual_SOUtil.ts.js"
+ },
+ "e9185DqjAVN9J6rNkKkMuko": {
+  "name": "ScoreLvMgr",
+  "file": "chunks_____virtual_ScoreLvMgr.ts.js"
+ },
+ "355cf5ZHjBECrMMVGHNvEln": {
+  "name": "ScrollListItem",
+  "file": "chunks_____virtual_ScrollListItem.ts.js"
+ },
+ "509342BxtFHmKe2sY51qfbL": {
+  "name": "SelfPool",
+  "file": "chunks_____virtual_SelfPool.ts.js"
+ },
+ "98cf5ooMiFFJ4OFVNmM14Oy": {
+  "name": "StreakComp",
+  "file": "chunks_____virtual_StreakComp.ts.js"
+ },
+ "b96e9BmCXNALrx20vaqoefV": {
+  "name": "TestMgr",
+  "file": "chunks_____virtual_TestMgr.ts.js"
+ },
+ "4e70dHng9VPdq11Wr0GiT+y": {
+  "name": "TickCntlr",
+  "file": "chunks_____virtual_TickCntlr.ts.js"
+ },
+ "c3434dZ9dRA66I3mfTTJ9/S": {
+  "name": "Tool2",
+  "file": "chunks_____virtual_Tool2.ts.js"
+ },
+ "a8cb34sMORMLKt+jIPXQ38v": {
+  "name": "TxList",
+  "file": "chunks_____virtual_TxList.ts.js"
+ },
+ "43bb6fKayNBYbX8U1vE9wAT": {
+  "name": "VibrateCom",
+  "file": "chunks_____virtual_VibrateCom.ts.js"
+ },
+ "f5322BTOHxO4pccMz2DMzcP": {
+  "name": "VideoShareCom",
+  "file": "chunks_____virtual_VideoShareCom.ts.js"
+ },
+ "d3e05fdK21M8Zf5/QI2/jKz": {
+  "name": "ViewFPS",
+  "file": "chunks_____virtual_ViewFPS.ts.js"
+ },
+ "b200bhH7ttKCKqiSzuzk238": {
+  "name": "WxIAAMgr",
+  "file": "chunks_____virtual_WxIAAMgr.ts.js"
+ },
+ "c84d2CGDMZLj6w7VDzE3H2f": {
+  "name": "WxTTPlatform",
+  "file": "chunks_____virtual_WxTTPlatform.ts.js"
+ },
+ "756beZ6z0hF55pJdo4Z0B36": {
+  "name": "autoGame",
+  "file": "chunks_____virtual_autoGame.ts.js"
+ },
+ "6bc54al2YpPu7IDmmJOWzxV": {
+  "name": "expJson",
+  "file": "chunks_____virtual_expJson.ts.js"
+ },
+ "5dba1RZ/KRLgbybwk+ZvrXg": {
+  "name": "gridInfo",
+  "file": "chunks_____virtual_gridInfo.ts.js"
+ },
+ "6402fTTRW9Gf6vK/V/OdgSl": {
+  "name": "index",
+  "file": "chunks_____virtual_index.mjs.js"
+ },
+ "c7fcayTVvpASqFTveUWnVBq": {
+  "name": "localData",
+  "file": "chunks_____virtual_localData.ts.js"
+ },
+ "11693VhkEJPOrhUFuX9JSB1": {
+  "name": "logoCom",
+  "file": "chunks_____virtual_logoCom.ts.js"
+ }
+}

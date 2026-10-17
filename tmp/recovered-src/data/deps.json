@@ -1,0 +1,954 @@
+{
+ "AbMgr.ts": [
+  "cc"
+ ],
+ "AdPlatformBase.ts": [
+  "cc"
+ ],
+ "AudioEngine.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./RTQueue.ts",
+  "./DebugLog.ts"
+ ],
+ "autoGame.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GameMgr.ts",
+  "./GbzDataManager.ts",
+  "./GbzEnum.ts"
+ ],
+ "AutoLightEffect%20.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "BaseEventDispatcher.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./EventDispatcher.ts"
+ ],
+ "BgCtrCom.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzDataManager.ts",
+  "./AbMgr.ts"
+ ],
+ "CalculatedInfo.ts": [
+  "cc"
+ ],
+ "CCNodePool.ts": [
+  "cc",
+  "./DebugLog.ts"
+ ],
+ "CCPoolManager.ts": [
+  "cc",
+  "./CCNodePool.ts",
+  "./SelfPool.ts"
+ ],
+ "ChuiziCom.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzPoolManager.ts"
+ ],
+ "CityConfig.ts": [
+  "cc"
+ ],
+ "CloudManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzDataManager.ts",
+  "./GbzSdkManager.ts",
+  "./DebugLog.ts"
+ ],
+ "CloudMgr.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzPoolManager.ts",
+  "./ReferenceMgr.ts"
+ ],
+ "CocosUtils.ts": [
+  "cc",
+  "./DebugLog.ts"
+ ],
+ "CusReport.ts": [
+  "cc",
+  "./GlobalXZ.ts",
+  "./GbzDataManager.ts",
+  "./DebugLog.ts"
+ ],
+ "DataManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./DebugLog.ts"
+ ],
+ "DebugLog.ts": [
+  "cc"
+ ],
+ "DecryptUtil.ts": [
+  "cc"
+ ],
+ "DragFruit.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "EventDispatcher.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./Handler.ts"
+ ],
+ "expJson.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./ReferenceLayMgr.ts",
+  "./ReferenceMgr.ts",
+  "./DebugLog.ts"
+ ],
+ "FruitBookComp.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./CityConfig.ts",
+  "./GbzDataManager.ts",
+  "./GbzResManager.ts",
+  "./ScrollListItem.ts",
+  "./GbzEnum.ts"
+ ],
+ "FruitComp.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./FruitConfig.ts",
+  "./StreakComp.ts",
+  "./HoleComp.ts",
+  "./GameMgr.ts",
+  "./GbzPoolManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzEnum.ts",
+  "./GbzAudioManager.ts",
+  "./GbzSdkManager.ts",
+  "./SOUtil.ts",
+  "./GameMsg.ts",
+  "./GbzInstance.ts"
+ ],
+ "FruitConfig.ts": [
+  "cc"
+ ],
+ "FruitMgr.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "FruitPositionCalculator.ts": [
+  "cc"
+ ],
+ "GameCreatJS.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "GameLanucher.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "GameMgr.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./FruitComp.ts",
+  "./HoleComp.ts",
+  "./ReferenceMgr.ts",
+  "./GbzFruitDownLayer.ts",
+  "./ReferenceLayMgr.ts",
+  "./FruitConfig.ts",
+  "./CalculatedInfo.ts",
+  "./GbzDataManager.ts",
+  "./localData.ts",
+  "./GbzEnum.ts",
+  "./GbzMainLayer.ts",
+  "./GbzInstance.ts",
+  "./GbzPoolManager.ts",
+  "./SOUtil.ts",
+  "./GbzSdkManager.ts",
+  "./GbzResManager.ts",
+  "./ReportHelper.ts",
+  "./PkManager.ts",
+  "./GbzAudioManager.ts",
+  "./Tool2.ts",
+  "./CityConfig.ts",
+  "./JointGearMgr.ts",
+  "./ScoreLvMgr.ts",
+  "./GameMsg.ts",
+  "./LayoutRectSafe.ts",
+  "./ViewFPS.ts",
+  "./DebugLog.ts",
+  "./ChuiziCom.ts",
+  "./WxIAAMgr.ts"
+ ],
+ "GameMsg.ts": [
+  "cc"
+ ],
+ "GbzAudioManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzDataManager.ts",
+  "./GbzResManager.ts",
+  "./AudioEngine.ts"
+ ],
+ "GbzAviseLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzInstance.ts",
+  "./GbzSdkManager.ts",
+  "./SOUtil.ts",
+  "./GbzEnum.ts",
+  "./DebugLog.ts",
+  "./GbzBaselayer.ts"
+ ],
+ "GbzBaselayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "GbzCarMoveLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./CityConfig.ts",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzDataManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzEnum.ts",
+  "./ReportHelper.ts",
+  "./GbzInstance.ts",
+  "./GbzResManager.ts",
+  "./GbzSdkManager.ts",
+  "./SOUtil.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzEnum.ts": [
+  "cc"
+ ],
+ "GbzExitLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzSdkManager.ts",
+  "./ReportHelper.ts",
+  "./GameMgr.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./WxIAAMgr.ts"
+ ],
+ "GbzFadeManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzInstance.ts"
+ ],
+ "GbzFansLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./DebugLog.ts",
+  "./GbzInstance.ts",
+  "./GbzSdkManager.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./GlobalXZ.ts"
+ ],
+ "GbzFruitBookLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GridLayerListView.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./GbzSdkManager.ts"
+ ],
+ "GbzFruitDownLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzPoolManager.ts",
+  "./GbzSdkManager.ts",
+  "./GameMgr.ts",
+  "./GbzEnum.ts",
+  "./FruitConfig.ts"
+ ],
+ "GbzGameManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzPoolManager.ts",
+  "./GbzEnum.ts",
+  "./GlobalXZ.ts",
+  "./ReportHelper.ts",
+  "./GbzInstance.ts",
+  "./TickCntlr.ts",
+  "./GameMgr.ts",
+  "./GbzResManager.ts",
+  "./GbzSdkManager.ts",
+  "./WxIAAMgr.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzGetItemLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzBaselayer.ts",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzSdkManager.ts",
+  "./GameMgr.ts",
+  "./GbzEnum.ts"
+ ],
+ "GbzGetRewLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzPoolManager.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./GbzTTAddtableLayer.ts",
+  "./GbzTTcblLayer.ts",
+  "./GbzTTRequestLayer.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzIndex.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./CityConfig.ts",
+  "./GbzEnum.ts",
+  "./GameMsg.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzResManager.ts",
+  "./GbzSdkManager.ts",
+  "./SOUtil.ts",
+  "./WxIAAMgr.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzInstance.ts": [
+  "cc"
+ ],
+ "GbzLoadingLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzDataManager.ts",
+  "./GbzBaselayer.ts"
+ ],
+ "GbzLoseFullLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzSdkManager.ts",
+  "./GbzToastManager.ts",
+  "./ReportHelper.ts",
+  "./GameMgr.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./WxIAAMgr.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzMainLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GameMsg.ts",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzPoolManager.ts",
+  "./GbzSdkManager.ts",
+  "./GbzToastManager.ts",
+  "./SOUtil.ts",
+  "./Tool2.ts",
+  "./GameMgr.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./ReferenceMgr.ts",
+  "./LevelConfig.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzMenuLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GameMsg.ts",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzPoolManager.ts",
+  "./GbzSdkManager.ts",
+  "./SOUtil.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./GbzToastManager.ts",
+  "./WxIAAMgr.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzPoolManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./DebugLog.ts"
+ ],
+ "GbzPropSpecialLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzSdkManager.ts",
+  "./GameMgr.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzRankLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzSdkManager.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./GridLayerListView.ts",
+  "./RankDataComp.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzResManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzPoolManager.ts",
+  "./GbzDataManager.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzResurgenceLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzSdkManager.ts",
+  "./ReportHelper.ts",
+  "./GameMgr.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts"
+ ],
+ "GbzSdkManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./MD5.ts",
+  "./GbzEnum.ts",
+  "./GbzTTAddtableLayer.ts",
+  "./GbzTTcblLayer.ts",
+  "./GameMsg.ts",
+  "./GlobalXZ.ts",
+  "./ReportHelper.ts",
+  "./HwPlatform.ts",
+  "./WxTTPlatform.ts",
+  "./SOUtil.ts",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzResManager.ts",
+  "./GbzToastManager.ts",
+  "./WxIAAMgr.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzSettingLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GameMsg.ts",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzSdkManager.ts",
+  "./SOUtil.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts"
+ ],
+ "GbzThemeLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzResManager.ts",
+  "./GbzSdkManager.ts",
+  "./SOUtil.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzToastManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "GbzTTAddtableLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzResManager.ts",
+  "./GbzSdkManager.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts"
+ ],
+ "GbzTTcblLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzResManager.ts",
+  "./GbzSdkManager.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzTTRequestLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzResManager.ts",
+  "./GbzSdkManager.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts"
+ ],
+ "GbzUIManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzEnum.ts",
+  "./GameMsg.ts",
+  "./SOUtil.ts",
+  "./GbzInstance.ts",
+  "./GbzPoolManager.ts",
+  "./GbzResManager.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzUtils.ts": [
+  "cc"
+ ],
+ "GbzWin2Layer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./CityConfig.ts",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzResManager.ts",
+  "./GbzSdkManager.ts",
+  "./GbzToastManager.ts",
+  "./GameMgr.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./DebugLog.ts"
+ ],
+ "GbzWinLayer.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts",
+  "./GbzResManager.ts",
+  "./GbzSdkManager.ts",
+  "./SOUtil.ts",
+  "./GbzEnum.ts",
+  "./GbzBaselayer.ts",
+  "./GbzThemeLayer.ts",
+  "./DebugLog.ts"
+ ],
+ "GlobalXZ.ts": [
+  "cc",
+  "./DebugLog.ts"
+ ],
+ "gridInfo.ts": [
+  "cc"
+ ],
+ "GridLayerListView.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GridListView.ts"
+ ],
+ "GridListView.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./ScrollListItem.ts",
+  "./CCPoolManager.ts",
+  "./DebugLog.ts"
+ ],
+ "GridManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./ReferenceMgr.ts"
+ ],
+ "Handler.ts": [
+  "cc"
+ ],
+ "HoleComp.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./CalculatedInfo.ts",
+  "./ReferenceLayMgr.ts",
+  "./GameMgr.ts",
+  "./GbzPoolManager.ts"
+ ],
+ "HwPlatform.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./SOUtil.ts",
+  "./AdPlatformBase.ts",
+  "./DebugLog.ts"
+ ],
+ "IceFollow.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "index.mjs": [
+  "cc"
+ ],
+ "IPool.ts": [
+  "cc"
+ ],
+ "JDPlatform.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./AdPlatformBase.ts",
+  "./DebugLog.ts"
+ ],
+ "JointGearMgr.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./FruitComp.ts",
+  "./GbzDataManager.ts",
+  "./ReferenceMgr.ts",
+  "./GbzPoolManager.ts",
+  "./DebugLog.ts"
+ ],
+ "JumpLvBtn.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzDataManager.ts",
+  "./GbzInstance.ts"
+ ],
+ "LabelUp.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "LayoutIMy.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./DebugLog.ts"
+ ],
+ "LayoutRectSafe.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./DebugLog.ts"
+ ],
+ "LevelConfig.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./LvConfig1.ts",
+  "./LvConfig1_easy.ts",
+  "./LvConfig3.ts",
+  "./DebugLog.ts"
+ ],
+ "localData.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "logoCom.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GlobalXZ.ts",
+  "./SOUtil.ts"
+ ],
+ "LvConfig1_easy.ts": [
+  "cc"
+ ],
+ "LvConfig1.ts": [
+  "cc"
+ ],
+ "LvConfig2.ts": [
+  "cc"
+ ],
+ "LvConfig3.ts": [
+  "cc"
+ ],
+ "MD5.ts": [
+  "cc"
+ ],
+ "NavigateBtn.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzSdkManager.ts",
+  "./DebugLog.ts"
+ ],
+ "PiaoEff.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzDataManager.ts",
+  "./DebugLog.ts"
+ ],
+ "PkManager.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzSdkManager.ts"
+ ],
+ "RandTool.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./TxList.ts"
+ ],
+ "RankDataComp.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GbzDataManager.ts",
+  "./GbzResManager.ts",
+  "./ScrollListItem.ts"
+ ],
+ "ReferenceLayMgr.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./FruitConfig.ts",
+  "./CalculatedInfo.ts",
+  "./GridManager.ts",
+  "./ReferenceMgr.ts",
+  "./GbzPoolManager.ts",
+  "./GbzDataManager.ts",
+  "./GameMgr.ts",
+  "./DebugLog.ts"
+ ],
+ "ReferenceMgr.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./FruitConfig.ts",
+  "./LevelConfig.ts"
+ ],
+ "ReportHelper.ts": [
+  "cc",
+  "./CusReport.ts",
+  "./GlobalXZ.ts",
+  "./GbzDataManager.ts",
+  "./DebugLog.ts"
+ ],
+ "RTQueue.ts": [
+  "cc",
+  "./DebugLog.ts"
+ ],
+ "ScoreLvMgr.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./DebugLog.ts"
+ ],
+ "ScrollListItem.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "SelfPool.ts": [
+  "cc"
+ ],
+ "SOUtil.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./LabelUp.ts",
+  "./EventDispatcher.ts",
+  "./GbzUtils.ts",
+  "./GbzInstance.ts",
+  "./GbzPoolManager.ts",
+  "./GbzResManager.ts",
+  "./RandTool.ts",
+  "./DebugLog.ts"
+ ],
+ "start-scene": [
+  "./CityConfig.ts",
+  "./AbMgr.ts",
+  "./CusReport.ts",
+  "./DataManager.ts",
+  "./DecryptUtil.ts",
+  "./GameMsg.ts",
+  "./GbzIndex.ts",
+  "./GbzUtils.ts",
+  "./GlobalXZ.ts",
+  "./JumpLvBtn.ts",
+  "./LayoutRectSafe.ts",
+  "./ReportHelper.ts",
+  "./ScoreLvMgr.ts",
+  "./GridLayerListView.ts",
+  "./GridListView.ts",
+  "./ScrollListItem.ts",
+  "./CCNodePool.ts",
+  "./CCPoolManager.ts",
+  "./IPool.ts",
+  "./SelfPool.ts",
+  "./AdPlatformBase.ts",
+  "./CloudManager.ts",
+  "./HwPlatform.ts",
+  "./JDPlatform.ts",
+  "./WxTTPlatform.ts",
+  "./BaseEventDispatcher.ts",
+  "./EventDispatcher.ts",
+  "./Handler.ts",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzFadeManager.ts",
+  "./GbzGameManager.ts",
+  "./GbzInstance.ts",
+  "./GbzPoolManager.ts",
+  "./GbzResManager.ts",
+  "./GbzSdkManager.ts",
+  "./GbzToastManager.ts",
+  "./GbzUIManager.ts",
+  "./PkManager.ts",
+  "./CocosUtils.ts",
+  "./DebugLog.ts",
+  "./RTQueue.ts",
+  "./RandTool.ts",
+  "./SOUtil.ts",
+  "./TickCntlr.ts",
+  "./TxList.ts",
+  "./GameLanucher.ts",
+  "./GbzEnum.ts",
+  "./LayoutIMy.ts",
+  "./autoGame.ts",
+  "./AudioEngine.ts",
+  "./AutoLightEffect%20.ts",
+  "./BgCtrCom.ts",
+  "./ChuiziCom.ts",
+  "./CloudMgr.ts",
+  "./LabelUp.ts",
+  "./NavigateBtn.ts",
+  "./PiaoEff.ts",
+  "./VibrateCom.ts",
+  "./VideoShareCom.ts",
+  "./ViewFPS.ts",
+  "./logoCom.ts",
+  "./Tool2.ts",
+  "./expJson.ts",
+  "./localData.ts",
+  "./FruitComp.ts",
+  "./HoleComp.ts",
+  "./JointGearMgr.ts",
+  "./FruitConfig.ts",
+  "./GridManager.ts",
+  "./LevelConfig.ts",
+  "./ReferenceLayMgr.ts",
+  "./ReferenceMgr.ts",
+  "./LvConfig1.ts",
+  "./LvConfig1_easy.ts",
+  "./LvConfig2.ts",
+  "./LvConfig3.ts",
+  "./CalculatedInfo.ts",
+  "./gridInfo.ts",
+  "./IceFollow.ts",
+  "./StreakComp.ts",
+  "./DragFruit.ts",
+  "./GameCreatJS.ts",
+  "./FruitBookComp.ts",
+  "./FruitMgr.ts",
+  "./FruitPositionCalculator.ts",
+  "./GameMgr.ts",
+  "./RankDataComp.ts",
+  "./GbzAviseLayer.ts",
+  "./GbzBaselayer.ts",
+  "./GbzCarMoveLayer.ts",
+  "./GbzExitLayer.ts",
+  "./GbzFansLayer.ts",
+  "./GbzFruitBookLayer.ts",
+  "./GbzFruitDownLayer.ts",
+  "./GbzGetItemLayer.ts",
+  "./GbzGetRewLayer.ts",
+  "./GbzLoadingLayer.ts",
+  "./GbzLoseFullLayer.ts",
+  "./GbzMainLayer.ts",
+  "./GbzMenuLayer.ts",
+  "./GbzPropSpecialLayer.ts",
+  "./GbzRankLayer.ts",
+  "./GbzResurgenceLayer.ts",
+  "./GbzSettingLayer.ts",
+  "./GbzTTAddtableLayer.ts",
+  "./GbzTTRequestLayer.ts",
+  "./GbzTTcblLayer.ts",
+  "./GbzThemeLayer.ts",
+  "./GbzWin2Layer.ts",
+  "./GbzWinLayer.ts",
+  "./WxIAAMgr.ts",
+  "./index.mjs",
+  "./MD5.ts",
+  "./TestMgr.ts"
+ ],
+ "StreakComp.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./FruitConfig.ts"
+ ],
+ "TestMgr.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "TickCntlr.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./ReportHelper.ts"
+ ],
+ "Tool2.ts": [
+  "cc"
+ ],
+ "TxList.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc"
+ ],
+ "VibrateCom.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./DebugLog.ts",
+  "./GbzSdkManager.ts"
+ ],
+ "VideoShareCom.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./GameMsg.ts",
+  "./GbzDataManager.ts",
+  "./SOUtil.ts"
+ ],
+ "ViewFPS.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./RTQueue.ts",
+  "./DebugLog.ts"
+ ],
+ "WxIAAMgr.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./index.mjs",
+  "./DebugLog.ts"
+ ],
+ "WxTTPlatform.ts": [
+  "./rollupPluginModLoBabelHelpers.js",
+  "cc",
+  "./MD5.ts",
+  "./GbzTTRequestLayer.ts",
+  "./GlobalXZ.ts",
+  "./GbzAudioManager.ts",
+  "./GbzDataManager.ts",
+  "./GbzResManager.ts",
+  "./GbzSdkManager.ts",
+  "./GbzToastManager.ts",
+  "./SOUtil.ts",
+  "./AdPlatformBase.ts",
+  "./LevelConfig.ts",
+  "./WxIAAMgr.ts",
+  "./DebugLog.ts"
+ ],
+ "virtual:///prerequisite-imports/start-scene": [
+  "chunks:///_virtual/start-scene"
+ ]
+}

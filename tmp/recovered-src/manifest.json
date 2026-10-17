@@ -1,0 +1,1773 @@
+[
+ {
+  "name": "chunks:///_virtual/AbMgr.ts",
+  "file": "AbMgr.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 966
+ },
+ {
+  "name": "chunks:///_virtual/AdPlatformBase.ts",
+  "file": "AdPlatformBase.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 4525
+ },
+ {
+  "name": "chunks:///_virtual/AudioEngine.ts",
+  "file": "AudioEngine.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./RTQueue.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2928
+ },
+ {
+  "name": "chunks:///_virtual/autoGame.ts",
+  "file": "autoGame.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GameMgr.ts",
+   "./GbzDataManager.ts",
+   "./GbzEnum.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1448
+ },
+ {
+  "name": "chunks:///_virtual/AutoLightEffect%20.ts",
+  "file": "AutoLightEffect .ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 4665
+ },
+ {
+  "name": "chunks:///_virtual/BaseEventDispatcher.ts",
+  "file": "BaseEventDispatcher.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./EventDispatcher.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2292
+ },
+ {
+  "name": "chunks:///_virtual/BgCtrCom.ts",
+  "file": "BgCtrCom.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzDataManager.ts",
+   "./AbMgr.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2525
+ },
+ {
+  "name": "chunks:///_virtual/CalculatedInfo.ts",
+  "file": "CalculatedInfo.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 804
+ },
+ {
+  "name": "chunks:///_virtual/CCNodePool.ts",
+  "file": "CCNodePool.ts.js",
+  "deps": [
+   "cc",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1365
+ },
+ {
+  "name": "chunks:///_virtual/CCPoolManager.ts",
+  "file": "CCPoolManager.ts.js",
+  "deps": [
+   "cc",
+   "./CCNodePool.ts",
+   "./SelfPool.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1708
+ },
+ {
+  "name": "chunks:///_virtual/ChuiziCom.ts",
+  "file": "ChuiziCom.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzPoolManager.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3766
+ },
+ {
+  "name": "chunks:///_virtual/CityConfig.ts",
+  "file": "CityConfig.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 66370
+ },
+ {
+  "name": "chunks:///_virtual/CloudManager.ts",
+  "file": "CloudManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzDataManager.ts",
+   "./GbzSdkManager.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 11463
+ },
+ {
+  "name": "chunks:///_virtual/CloudMgr.ts",
+  "file": "CloudMgr.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzPoolManager.ts",
+   "./ReferenceMgr.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2719
+ },
+ {
+  "name": "chunks:///_virtual/CocosUtils.ts",
+  "file": "CocosUtils.ts.js",
+  "deps": [
+   "cc",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 8211
+ },
+ {
+  "name": "chunks:///_virtual/CusReport.ts",
+  "file": "CusReport.ts.js",
+  "deps": [
+   "cc",
+   "./GlobalXZ.ts",
+   "./GbzDataManager.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3028
+ },
+ {
+  "name": "chunks:///_virtual/DataManager.ts",
+  "file": "DataManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 6634
+ },
+ {
+  "name": "chunks:///_virtual/DebugLog.ts",
+  "file": "DebugLog.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 692
+ },
+ {
+  "name": "chunks:///_virtual/DecryptUtil.ts",
+  "file": "DecryptUtil.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1604
+ },
+ {
+  "name": "chunks:///_virtual/DragFruit.ts",
+  "file": "DragFruit.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1228
+ },
+ {
+  "name": "chunks:///_virtual/EventDispatcher.ts",
+  "file": "EventDispatcher.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./Handler.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 6880
+ },
+ {
+  "name": "chunks:///_virtual/expJson.ts",
+  "file": "expJson.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./ReferenceLayMgr.ts",
+   "./ReferenceMgr.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 21108
+ },
+ {
+  "name": "chunks:///_virtual/FruitBookComp.ts",
+  "file": "FruitBookComp.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./CityConfig.ts",
+   "./GbzDataManager.ts",
+   "./GbzResManager.ts",
+   "./ScrollListItem.ts",
+   "./GbzEnum.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 5556
+ },
+ {
+  "name": "chunks:///_virtual/FruitComp.ts",
+  "file": "FruitComp.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./FruitConfig.ts",
+   "./StreakComp.ts",
+   "./HoleComp.ts",
+   "./GameMgr.ts",
+   "./GbzPoolManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzEnum.ts",
+   "./GbzAudioManager.ts",
+   "./GbzSdkManager.ts",
+   "./SOUtil.ts",
+   "./GameMsg.ts",
+   "./GbzInstance.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 31562
+ },
+ {
+  "name": "chunks:///_virtual/FruitConfig.ts",
+  "file": "FruitConfig.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1257
+ },
+ {
+  "name": "chunks:///_virtual/FruitMgr.ts",
+  "file": "FruitMgr.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 830
+ },
+ {
+  "name": "chunks:///_virtual/FruitPositionCalculator.ts",
+  "file": "FruitPositionCalculator.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 372
+ },
+ {
+  "name": "chunks:///_virtual/GameCreatJS.ts",
+  "file": "GameCreatJS.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2752
+ },
+ {
+  "name": "chunks:///_virtual/GameLanucher.ts",
+  "file": "GameLanucher.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 925
+ },
+ {
+  "name": "chunks:///_virtual/GameMgr.ts",
+  "file": "GameMgr.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./FruitComp.ts",
+   "./HoleComp.ts",
+   "./ReferenceMgr.ts",
+   "./GbzFruitDownLayer.ts",
+   "./ReferenceLayMgr.ts",
+   "./FruitConfig.ts",
+   "./CalculatedInfo.ts",
+   "./GbzDataManager.ts",
+   "./localData.ts",
+   "./GbzEnum.ts",
+   "./GbzMainLayer.ts",
+   "./GbzInstance.ts",
+   "./GbzPoolManager.ts",
+   "./SOUtil.ts",
+   "./GbzSdkManager.ts",
+   "./GbzResManager.ts",
+   "./ReportHelper.ts",
+   "./PkManager.ts",
+   "./GbzAudioManager.ts",
+   "./Tool2.ts",
+   "./CityConfig.ts",
+   "./JointGearMgr.ts",
+   "./ScoreLvMgr.ts",
+   "./GameMsg.ts",
+   "./LayoutRectSafe.ts",
+   "./ViewFPS.ts",
+   "./DebugLog.ts",
+   "./ChuiziCom.ts",
+   "./WxIAAMgr.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 78158
+ },
+ {
+  "name": "chunks:///_virtual/GameMsg.ts",
+  "file": "GameMsg.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1184
+ },
+ {
+  "name": "chunks:///_virtual/GbzAudioManager.ts",
+  "file": "GbzAudioManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzDataManager.ts",
+   "./GbzResManager.ts",
+   "./AudioEngine.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 7621
+ },
+ {
+  "name": "chunks:///_virtual/GbzAviseLayer.ts",
+  "file": "GbzAviseLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzInstance.ts",
+   "./GbzSdkManager.ts",
+   "./SOUtil.ts",
+   "./GbzEnum.ts",
+   "./DebugLog.ts",
+   "./GbzBaselayer.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 4298
+ },
+ {
+  "name": "chunks:///_virtual/GbzBaselayer.ts",
+  "file": "GbzBaselayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2106
+ },
+ {
+  "name": "chunks:///_virtual/GbzCarMoveLayer.ts",
+  "file": "GbzCarMoveLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./CityConfig.ts",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 4608
+ },
+ {
+  "name": "chunks:///_virtual/GbzDataManager.ts",
+  "file": "GbzDataManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzEnum.ts",
+   "./ReportHelper.ts",
+   "./GbzInstance.ts",
+   "./GbzResManager.ts",
+   "./GbzSdkManager.ts",
+   "./SOUtil.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 16974
+ },
+ {
+  "name": "chunks:///_virtual/GbzEnum.ts",
+  "file": "GbzEnum.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 24840
+ },
+ {
+  "name": "chunks:///_virtual/GbzExitLayer.ts",
+  "file": "GbzExitLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzSdkManager.ts",
+   "./ReportHelper.ts",
+   "./GameMgr.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./WxIAAMgr.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 6323
+ },
+ {
+  "name": "chunks:///_virtual/GbzFadeManager.ts",
+  "file": "GbzFadeManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzInstance.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2307
+ },
+ {
+  "name": "chunks:///_virtual/GbzFansLayer.ts",
+  "file": "GbzFansLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./DebugLog.ts",
+   "./GbzInstance.ts",
+   "./GbzSdkManager.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./GlobalXZ.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2961
+ },
+ {
+  "name": "chunks:///_virtual/GbzFruitBookLayer.ts",
+  "file": "GbzFruitBookLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GridLayerListView.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./GbzSdkManager.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 4423
+ },
+ {
+  "name": "chunks:///_virtual/GbzFruitDownLayer.ts",
+  "file": "GbzFruitDownLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzPoolManager.ts",
+   "./GbzSdkManager.ts",
+   "./GameMgr.ts",
+   "./GbzEnum.ts",
+   "./FruitConfig.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 7783
+ },
+ {
+  "name": "chunks:///_virtual/GbzGameManager.ts",
+  "file": "GbzGameManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzPoolManager.ts",
+   "./GbzEnum.ts",
+   "./GlobalXZ.ts",
+   "./ReportHelper.ts",
+   "./GbzInstance.ts",
+   "./TickCntlr.ts",
+   "./GameMgr.ts",
+   "./GbzResManager.ts",
+   "./GbzSdkManager.ts",
+   "./WxIAAMgr.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 10313
+ },
+ {
+  "name": "chunks:///_virtual/GbzGetItemLayer.ts",
+  "file": "GbzGetItemLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzBaselayer.ts",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzSdkManager.ts",
+   "./GameMgr.ts",
+   "./GbzEnum.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 6466
+ },
+ {
+  "name": "chunks:///_virtual/GbzGetRewLayer.ts",
+  "file": "GbzGetRewLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzPoolManager.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./GbzTTAddtableLayer.ts",
+   "./GbzTTcblLayer.ts",
+   "./GbzTTRequestLayer.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3647
+ },
+ {
+  "name": "chunks:///_virtual/GbzIndex.ts",
+  "file": "GbzIndex.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./CityConfig.ts",
+   "./GbzEnum.ts",
+   "./GameMsg.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzResManager.ts",
+   "./GbzSdkManager.ts",
+   "./SOUtil.ts",
+   "./WxIAAMgr.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 7430
+ },
+ {
+  "name": "chunks:///_virtual/GbzInstance.ts",
+  "file": "GbzInstance.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 758
+ },
+ {
+  "name": "chunks:///_virtual/GbzLoadingLayer.ts",
+  "file": "GbzLoadingLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzDataManager.ts",
+   "./GbzBaselayer.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2744
+ },
+ {
+  "name": "chunks:///_virtual/GbzLoseFullLayer.ts",
+  "file": "GbzLoseFullLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzSdkManager.ts",
+   "./GbzToastManager.ts",
+   "./ReportHelper.ts",
+   "./GameMgr.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./WxIAAMgr.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 7856
+ },
+ {
+  "name": "chunks:///_virtual/GbzMainLayer.ts",
+  "file": "GbzMainLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GameMsg.ts",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzPoolManager.ts",
+   "./GbzSdkManager.ts",
+   "./GbzToastManager.ts",
+   "./SOUtil.ts",
+   "./Tool2.ts",
+   "./GameMgr.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./ReferenceMgr.ts",
+   "./LevelConfig.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 12714
+ },
+ {
+  "name": "chunks:///_virtual/GbzMenuLayer.ts",
+  "file": "GbzMenuLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GameMsg.ts",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzPoolManager.ts",
+   "./GbzSdkManager.ts",
+   "./SOUtil.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./GbzToastManager.ts",
+   "./WxIAAMgr.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 16842
+ },
+ {
+  "name": "chunks:///_virtual/GbzPoolManager.ts",
+  "file": "GbzPoolManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2091
+ },
+ {
+  "name": "chunks:///_virtual/GbzPropSpecialLayer.ts",
+  "file": "GbzPropSpecialLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzSdkManager.ts",
+   "./GameMgr.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 6474
+ },
+ {
+  "name": "chunks:///_virtual/GbzRankLayer.ts",
+  "file": "GbzRankLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzSdkManager.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./GridLayerListView.ts",
+   "./RankDataComp.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 15285
+ },
+ {
+  "name": "chunks:///_virtual/GbzResManager.ts",
+  "file": "GbzResManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzPoolManager.ts",
+   "./GbzDataManager.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 11993
+ },
+ {
+  "name": "chunks:///_virtual/GbzResurgenceLayer.ts",
+  "file": "GbzResurgenceLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzSdkManager.ts",
+   "./ReportHelper.ts",
+   "./GameMgr.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3299
+ },
+ {
+  "name": "chunks:///_virtual/GbzSdkManager.ts",
+  "file": "GbzSdkManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./MD5.ts",
+   "./GbzEnum.ts",
+   "./GbzTTAddtableLayer.ts",
+   "./GbzTTcblLayer.ts",
+   "./GameMsg.ts",
+   "./GlobalXZ.ts",
+   "./ReportHelper.ts",
+   "./HwPlatform.ts",
+   "./WxTTPlatform.ts",
+   "./SOUtil.ts",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzResManager.ts",
+   "./GbzToastManager.ts",
+   "./WxIAAMgr.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 25642
+ },
+ {
+  "name": "chunks:///_virtual/GbzSettingLayer.ts",
+  "file": "GbzSettingLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GameMsg.ts",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzSdkManager.ts",
+   "./SOUtil.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 4935
+ },
+ {
+  "name": "chunks:///_virtual/GbzThemeLayer.ts",
+  "file": "GbzThemeLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzResManager.ts",
+   "./GbzSdkManager.ts",
+   "./SOUtil.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 10015
+ },
+ {
+  "name": "chunks:///_virtual/GbzToastManager.ts",
+  "file": "GbzToastManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 4517
+ },
+ {
+  "name": "chunks:///_virtual/GbzTTAddtableLayer.ts",
+  "file": "GbzTTAddtableLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzResManager.ts",
+   "./GbzSdkManager.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2908
+ },
+ {
+  "name": "chunks:///_virtual/GbzTTcblLayer.ts",
+  "file": "GbzTTcblLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzResManager.ts",
+   "./GbzSdkManager.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3017
+ },
+ {
+  "name": "chunks:///_virtual/GbzTTRequestLayer.ts",
+  "file": "GbzTTRequestLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzResManager.ts",
+   "./GbzSdkManager.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2967
+ },
+ {
+  "name": "chunks:///_virtual/GbzUIManager.ts",
+  "file": "GbzUIManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzEnum.ts",
+   "./GameMsg.ts",
+   "./SOUtil.ts",
+   "./GbzInstance.ts",
+   "./GbzPoolManager.ts",
+   "./GbzResManager.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 7250
+ },
+ {
+  "name": "chunks:///_virtual/GbzUtils.ts",
+  "file": "GbzUtils.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 5423
+ },
+ {
+  "name": "chunks:///_virtual/GbzWin2Layer.ts",
+  "file": "GbzWin2Layer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./CityConfig.ts",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzResManager.ts",
+   "./GbzSdkManager.ts",
+   "./GbzToastManager.ts",
+   "./GameMgr.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 11632
+ },
+ {
+  "name": "chunks:///_virtual/GbzWinLayer.ts",
+  "file": "GbzWinLayer.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts",
+   "./GbzResManager.ts",
+   "./GbzSdkManager.ts",
+   "./SOUtil.ts",
+   "./GbzEnum.ts",
+   "./GbzBaselayer.ts",
+   "./GbzThemeLayer.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 12548
+ },
+ {
+  "name": "chunks:///_virtual/GlobalXZ.ts",
+  "file": "GlobalXZ.ts.js",
+  "deps": [
+   "cc",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 50324
+ },
+ {
+  "name": "chunks:///_virtual/gridInfo.ts",
+  "file": "gridInfo.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 539
+ },
+ {
+  "name": "chunks:///_virtual/GridLayerListView.ts",
+  "file": "GridLayerListView.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GridListView.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 4164
+ },
+ {
+  "name": "chunks:///_virtual/GridListView.ts",
+  "file": "GridListView.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./ScrollListItem.ts",
+   "./CCPoolManager.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 16066
+ },
+ {
+  "name": "chunks:///_virtual/GridManager.ts",
+  "file": "GridManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./ReferenceMgr.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3938
+ },
+ {
+  "name": "chunks:///_virtual/Handler.ts",
+  "file": "Handler.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2093
+ },
+ {
+  "name": "chunks:///_virtual/HoleComp.ts",
+  "file": "HoleComp.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./CalculatedInfo.ts",
+   "./ReferenceLayMgr.ts",
+   "./GameMgr.ts",
+   "./GbzPoolManager.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 4137
+ },
+ {
+  "name": "chunks:///_virtual/HwPlatform.ts",
+  "file": "HwPlatform.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./SOUtil.ts",
+   "./AdPlatformBase.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 10230
+ },
+ {
+  "name": "chunks:///_virtual/IceFollow.ts",
+  "file": "IceFollow.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1471
+ },
+ {
+  "name": "chunks:///_virtual/index.mjs",
+  "file": "index.mjs.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 120362
+ },
+ {
+  "name": "chunks:///_virtual/IPool.ts",
+  "file": "IPool.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 354
+ },
+ {
+  "name": "chunks:///_virtual/JDPlatform.ts",
+  "file": "JDPlatform.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./AdPlatformBase.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3555
+ },
+ {
+  "name": "chunks:///_virtual/JointGearMgr.ts",
+  "file": "JointGearMgr.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./FruitComp.ts",
+   "./GbzDataManager.ts",
+   "./ReferenceMgr.ts",
+   "./GbzPoolManager.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 14439
+ },
+ {
+  "name": "chunks:///_virtual/JumpLvBtn.ts",
+  "file": "JumpLvBtn.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzDataManager.ts",
+   "./GbzInstance.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3771
+ },
+ {
+  "name": "chunks:///_virtual/LabelUp.ts",
+  "file": "LabelUp.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3090
+ },
+ {
+  "name": "chunks:///_virtual/LayoutIMy.ts",
+  "file": "LayoutIMy.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 21647
+ },
+ {
+  "name": "chunks:///_virtual/LayoutRectSafe.ts",
+  "file": "LayoutRectSafe.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 6449
+ },
+ {
+  "name": "chunks:///_virtual/LevelConfig.ts",
+  "file": "LevelConfig.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./LvConfig1.ts",
+   "./LvConfig1_easy.ts",
+   "./LvConfig3.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 4083
+ },
+ {
+  "name": "chunks:///_virtual/localData.ts",
+  "file": "localData.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1405
+ },
+ {
+  "name": "chunks:///_virtual/logoCom.ts",
+  "file": "logoCom.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GlobalXZ.ts",
+   "./SOUtil.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2762
+ },
+ {
+  "name": "chunks:///_virtual/LvConfig1_easy.ts",
+  "file": "LvConfig1_easy.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 29484
+ },
+ {
+  "name": "chunks:///_virtual/LvConfig1.ts",
+  "file": "LvConfig1.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 30106
+ },
+ {
+  "name": "chunks:///_virtual/LvConfig2.ts",
+  "file": "LvConfig2.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 27700
+ },
+ {
+  "name": "chunks:///_virtual/LvConfig3.ts",
+  "file": "LvConfig3.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 31068
+ },
+ {
+  "name": "chunks:///_virtual/MD5.ts",
+  "file": "MD5.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 7800
+ },
+ {
+  "name": "chunks:///_virtual/NavigateBtn.ts",
+  "file": "NavigateBtn.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzSdkManager.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3360
+ },
+ {
+  "name": "chunks:///_virtual/PiaoEff.ts",
+  "file": "PiaoEff.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzDataManager.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2215
+ },
+ {
+  "name": "chunks:///_virtual/PkManager.ts",
+  "file": "PkManager.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzSdkManager.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1654
+ },
+ {
+  "name": "chunks:///_virtual/RandTool.ts",
+  "file": "RandTool.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./TxList.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3110
+ },
+ {
+  "name": "chunks:///_virtual/RankDataComp.ts",
+  "file": "RankDataComp.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GbzDataManager.ts",
+   "./GbzResManager.ts",
+   "./ScrollListItem.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 4471
+ },
+ {
+  "name": "chunks:///_virtual/ReferenceLayMgr.ts",
+  "file": "ReferenceLayMgr.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./FruitConfig.ts",
+   "./CalculatedInfo.ts",
+   "./GridManager.ts",
+   "./ReferenceMgr.ts",
+   "./GbzPoolManager.ts",
+   "./GbzDataManager.ts",
+   "./GameMgr.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 54749
+ },
+ {
+  "name": "chunks:///_virtual/ReferenceMgr.ts",
+  "file": "ReferenceMgr.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./FruitConfig.ts",
+   "./LevelConfig.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 23111
+ },
+ {
+  "name": "chunks:///_virtual/ReportHelper.ts",
+  "file": "ReportHelper.ts.js",
+  "deps": [
+   "cc",
+   "./CusReport.ts",
+   "./GlobalXZ.ts",
+   "./GbzDataManager.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 5901
+ },
+ {
+  "name": "chunks:///_virtual/RTQueue.ts",
+  "file": "RTQueue.ts.js",
+  "deps": [
+   "cc",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1374
+ },
+ {
+  "name": "chunks:///_virtual/ScoreLvMgr.ts",
+  "file": "ScoreLvMgr.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2969
+ },
+ {
+  "name": "chunks:///_virtual/ScrollListItem.ts",
+  "file": "ScrollListItem.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1569
+ },
+ {
+  "name": "chunks:///_virtual/SelfPool.ts",
+  "file": "SelfPool.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1369
+ },
+ {
+  "name": "chunks:///_virtual/SOUtil.ts",
+  "file": "SOUtil.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./LabelUp.ts",
+   "./EventDispatcher.ts",
+   "./GbzUtils.ts",
+   "./GbzInstance.ts",
+   "./GbzPoolManager.ts",
+   "./GbzResManager.ts",
+   "./RandTool.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 15051
+ },
+ {
+  "name": "chunks:///_virtual/start-scene",
+  "file": "start-scene.js",
+  "deps": [
+   "./CityConfig.ts",
+   "./AbMgr.ts",
+   "./CusReport.ts",
+   "./DataManager.ts",
+   "./DecryptUtil.ts",
+   "./GameMsg.ts",
+   "./GbzIndex.ts",
+   "./GbzUtils.ts",
+   "./GlobalXZ.ts",
+   "./JumpLvBtn.ts",
+   "./LayoutRectSafe.ts",
+   "./ReportHelper.ts",
+   "./ScoreLvMgr.ts",
+   "./GridLayerListView.ts",
+   "./GridListView.ts",
+   "./ScrollListItem.ts",
+   "./CCNodePool.ts",
+   "./CCPoolManager.ts",
+   "./IPool.ts",
+   "./SelfPool.ts",
+   "./AdPlatformBase.ts",
+   "./CloudManager.ts",
+   "./HwPlatform.ts",
+   "./JDPlatform.ts",
+   "./WxTTPlatform.ts",
+   "./BaseEventDispatcher.ts",
+   "./EventDispatcher.ts",
+   "./Handler.ts",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzFadeManager.ts",
+   "./GbzGameManager.ts",
+   "./GbzInstance.ts",
+   "./GbzPoolManager.ts",
+   "./GbzResManager.ts",
+   "./GbzSdkManager.ts",
+   "./GbzToastManager.ts",
+   "./GbzUIManager.ts",
+   "./PkManager.ts",
+   "./CocosUtils.ts",
+   "./DebugLog.ts",
+   "./RTQueue.ts",
+   "./RandTool.ts",
+   "./SOUtil.ts",
+   "./TickCntlr.ts",
+   "./TxList.ts",
+   "./GameLanucher.ts",
+   "./GbzEnum.ts",
+   "./LayoutIMy.ts",
+   "./autoGame.ts",
+   "./AudioEngine.ts",
+   "./AutoLightEffect%20.ts",
+   "./BgCtrCom.ts",
+   "./ChuiziCom.ts",
+   "./CloudMgr.ts",
+   "./LabelUp.ts",
+   "./NavigateBtn.ts",
+   "./PiaoEff.ts",
+   "./VibrateCom.ts",
+   "./VideoShareCom.ts",
+   "./ViewFPS.ts",
+   "./logoCom.ts",
+   "./Tool2.ts",
+   "./expJson.ts",
+   "./localData.ts",
+   "./FruitComp.ts",
+   "./HoleComp.ts",
+   "./JointGearMgr.ts",
+   "./FruitConfig.ts",
+   "./GridManager.ts",
+   "./LevelConfig.ts",
+   "./ReferenceLayMgr.ts",
+   "./ReferenceMgr.ts",
+   "./LvConfig1.ts",
+   "./LvConfig1_easy.ts",
+   "./LvConfig2.ts",
+   "./LvConfig3.ts",
+   "./CalculatedInfo.ts",
+   "./gridInfo.ts",
+   "./IceFollow.ts",
+   "./StreakComp.ts",
+   "./DragFruit.ts",
+   "./GameCreatJS.ts",
+   "./FruitBookComp.ts",
+   "./FruitMgr.ts",
+   "./FruitPositionCalculator.ts",
+   "./GameMgr.ts",
+   "./RankDataComp.ts",
+   "./GbzAviseLayer.ts",
+   "./GbzBaselayer.ts",
+   "./GbzCarMoveLayer.ts",
+   "./GbzExitLayer.ts",
+   "./GbzFansLayer.ts",
+   "./GbzFruitBookLayer.ts",
+   "./GbzFruitDownLayer.ts",
+   "./GbzGetItemLayer.ts",
+   "./GbzGetRewLayer.ts",
+   "./GbzLoadingLayer.ts",
+   "./GbzLoseFullLayer.ts",
+   "./GbzMainLayer.ts",
+   "./GbzMenuLayer.ts",
+   "./GbzPropSpecialLayer.ts",
+   "./GbzRankLayer.ts",
+   "./GbzResurgenceLayer.ts",
+   "./GbzSettingLayer.ts",
+   "./GbzTTAddtableLayer.ts",
+   "./GbzTTRequestLayer.ts",
+   "./GbzTTcblLayer.ts",
+   "./GbzThemeLayer.ts",
+   "./GbzWin2Layer.ts",
+   "./GbzWinLayer.ts",
+   "./WxIAAMgr.ts",
+   "./index.mjs",
+   "./MD5.ts",
+   "./TestMgr.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 870
+ },
+ {
+  "name": "chunks:///_virtual/StreakComp.ts",
+  "file": "StreakComp.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./FruitConfig.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1668
+ },
+ {
+  "name": "chunks:///_virtual/TestMgr.ts",
+  "file": "TestMgr.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3292
+ },
+ {
+  "name": "chunks:///_virtual/TickCntlr.ts",
+  "file": "TickCntlr.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./ReportHelper.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1514
+ },
+ {
+  "name": "chunks:///_virtual/Tool2.ts",
+  "file": "Tool2.ts.js",
+  "deps": [
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1987
+ },
+ {
+  "name": "chunks:///_virtual/TxList.ts",
+  "file": "TxList.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 1793
+ },
+ {
+  "name": "chunks:///_virtual/VibrateCom.ts",
+  "file": "VibrateCom.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./DebugLog.ts",
+   "./GbzSdkManager.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2239
+ },
+ {
+  "name": "chunks:///_virtual/VideoShareCom.ts",
+  "file": "VideoShareCom.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./GameMsg.ts",
+   "./GbzDataManager.ts",
+   "./SOUtil.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 2448
+ },
+ {
+  "name": "chunks:///_virtual/ViewFPS.ts",
+  "file": "ViewFPS.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./RTQueue.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 3085
+ },
+ {
+  "name": "chunks:///_virtual/WxIAAMgr.ts",
+  "file": "WxIAAMgr.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./index.mjs",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 19538
+ },
+ {
+  "name": "chunks:///_virtual/WxTTPlatform.ts",
+  "file": "WxTTPlatform.ts.js",
+  "deps": [
+   "./rollupPluginModLoBabelHelpers.js",
+   "cc",
+   "./MD5.ts",
+   "./GbzTTRequestLayer.ts",
+   "./GlobalXZ.ts",
+   "./GbzAudioManager.ts",
+   "./GbzDataManager.ts",
+   "./GbzResManager.ts",
+   "./GbzSdkManager.ts",
+   "./GbzToastManager.ts",
+   "./SOUtil.ts",
+   "./AdPlatformBase.ts",
+   "./LevelConfig.ts",
+   "./WxIAAMgr.ts",
+   "./DebugLog.ts"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 48038
+ },
+ {
+  "name": "virtual:///prerequisite-imports/start-scene",
+  "file": "virtual____prerequisite-imports_start-scene.js",
+  "deps": [
+   "chunks:///_virtual/start-scene"
+  ],
+  "scriptId": null,
+  "className": null,
+  "bytes": 318
+ }
+]
