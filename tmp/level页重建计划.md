@@ -1,6 +1,7 @@
 # Level 页面重建计划
 
-> 状态：执行中；第 0、1 步已完成，等待第 2 步指示  
+> 状态：执行中；第 0、1 步已于 2026-10-17 重做并经人工真实点击验收通过（3 轮 Home <-> Level 往返正常）；
+> 当前等待第 2 步指示。证据梳理见 `tmp/level页逻辑梳理.md`。  
 > 创建日期：2026-10-16  
 > 最近更新：2026-10-16  
 > 目标工程：Cocos Creator 3.8.8，设计分辨率 750 x 1334  
@@ -54,7 +55,10 @@ gameNew / Canvas
 
 ### 2.3 已回溯的关卡生成代码
 
-`tmp/recovered-level-layout.js` 已恢复以下内容：
+> 2026-10-17 核对：生成器文件实际为 `tmp/gen.js`（CommonJS，generateLevel(level, options)）；
+> 早期生成的 level-1/level-2 seed 样例 JSON 当前已不在 tmp 下，第 3 步迁移时重新生成并固化。
+
+`tmp/gen.js`（文档早期称 recovered-level-layout.js）已恢复以下内容：
 
 - 普通、简单、困难三档参数。
 - 按关卡号生成水果类型、数量、阶段和缩放。
@@ -124,7 +128,7 @@ Win / Lose -> Restart / Next / Home
 
 ### 第 0 步：建立 Level 基线和调试开关
 
-状态：`[x] 已完成（2026-10-16）`
+状态：`[x] 已完成（2026-10-17 重做并验收）`
 
 实现范围：
 
@@ -151,9 +155,17 @@ Win / Lose -> Restart / Next / Home
 - 明确关闭恢复场景中默认启用的透明输入拦截层 `UIFade` 和 `BlackInput`，恢复真实按钮点击。
 - 已记录基线遗留项：Creator 3.8.8 自带声明文件有 88 条项目外诊断；恢复预制体引用的 `materialAttacked`、`lightMaterial` 两份原版自定义材质缺失。两项均非本步骤引入，当前不影响静态页面导航。
 
+完成记录（2026-10-17 重做）：
+
+- 参数入口仍为 `assets/scripts/level/LevelLaunchConfig.ts`（单例 `LevelLaunchConfig.options`，支持 `override()` 注入），默认第 1 关、normal、种子 `20261016`。
+- 调试节点隐藏与拦截层关闭改由 `assets/scripts/nav/GameNavigator.ts` 统一负责：进入 Level 时隐藏 `btn_Win`、`jumpLv`、`linearDamping`，`onLoad` 关闭 `Canvas/UIFade` 与 `Canvas/BlackInput`。
+- 碰撞矩阵基线：`settings/v2/packages/project.json` 已含 fruit(2)/wall(4)/obst(8)/clickFruit(16)/guardrail(32)，本步未改动。
+- 预制体基线：Home 根 `GbzMenuLayer`（750x1334，开始按钮路径 `main/btn_start`，300x140）；Level 由 `GbzLvCommon`（玩法层 750x1334）+ `GbzMainLayer`（HUD，退出按钮 `btn_exit`）组成，UUID 绑定已固化到场景 Canvas 上的 GameNavigator。
+- 遗留缺失材质报错（`materialAttacked`、`lightMaterial`）仍在，不影响静态导航，后续玩法步骤再处理。
+
 ### 第 1 步：首页进入静态 Level 页面
 
-状态：`[x] 已完成（2026-10-16）`
+状态：`[x] 已完成（2026-10-17 重做并验收）`
 
 实现范围：
 
@@ -185,6 +197,15 @@ Win / Lose -> Restart / Next / Home
 - 在 Apple iPhone 14 Pro 和 Apple iPad 10.2 预览规格下完成真实点击验证。
 - 连续执行 3 轮 Home -> Level -> Home：Home 始终为 1 个 `GbzMenuLayer`，Level 始终为 2 个节点 `GbzLvCommon`、`GbzMainLayer`，没有重复实例。
 - 当前 Level 仍使用预制体默认关卡文案和静态 HUD，不生成水果；关卡号、目标和进度的校准属于第 2 步。
+
+完成记录（2026-10-17 重做）：
+
+- 导航从 Bootstrap 抽离为独立组件 `assets/scripts/nav/GameNavigator.ts`，挂在场景 Canvas；`ShuiguoGameBootstrap.showHome()` 改为委托给它，Loading 结束链路不变。
+- GameNavigator 在 Inspector 绑定 `stage=Canvas/MAIN/Stage`、`homePrefab=GbzMenuLayer`、`levelCommonPrefab=GbzLvCommon`、`levelHudPrefab=GbzMainLayer`；场景组件和 Prefab 引用已保存进 `gameNew.scene`，无 MissingScript。
+- 点击 `GbzMenuLayer/main/btn_start`（TOUCH_END）卸载 Home，按 `GbzLvCommon` 在下、`GbzMainLayer` 在上的顺序实例化 Level；`GbzMainLayer/btn_exit` 直接 `backHome()` 销毁 Level 并重建 Home。
+- `navigating` 锁 + `levelCommon` 非空守卫双重防连点；Home 实例只建一次并缓存，Level 返回时销毁置空，保证同一时刻只有一套页面。
+- 验收：预览（iPhone 14 Pro 模拟规格）中由人工真实点击完成 3 轮 Home -> Level -> Home 往返，Level 背景/HUD/主场地/底部收集区正常显示，无重复实例、无控制台新增报错，进入时输出 `[LevelLaunch] level=1 difficulty=normal seed=20261016`。
+- iPad/宽屏规格本轮未重新人工点验，留待第 2 步校准静态 UI 时一起覆盖；本步未改任何预制体布局与 Widget。
 
 ### 第 2 步：校准 Level 静态 UI 和初始状态
 
@@ -233,13 +254,19 @@ Win / Lose -> Restart / Next / Home
 
 ### 第 4 步：实例化水果并还原第 1 关画面
 
+> 源码修正（2026-10-17）：原版第 1 关是 12 个水果的教学关，不是 4 个草莓。
+> GameMgr.firstLevel：firstLevelIDS=[[9,9,9,9],[1,1,1,1],[2,2,2,2]] 三行四列，
+> 定位点 firstLevel/pos1..3/pos1..4，含手指引导与两轮教学，fruitTotalNum=12。
+> 4 水果最小闭环只作为开发自测布局，正式第 1 关须按 firstLevel 还原。
+
 状态：`[ ] 未开始`
 
 实现范围：
 
 - 建立 1 至 33 类型到水果预制体的映射和对象池。
 - 将生成结果中的类型、坐标、缩放、阶段、状态写入水果实例。
-- 第 1 关先一次性生成 4 个 `fruit1`，挂载到 `GbzLvCommon/game/fruits`。
+- 开发自测可先用 4 个同类水果；正式第 1 关按 firstLevelIDS 生成 12 个
+  （fruit9/fruit1/fruit2 各 4），挂载到 `firstLevel/pos*` 而不是 `game/fruits`。
 - 为每个实例绑定稳定 ID，便于日志、点击和回收定位。
 - 生成阶段暂时冻结或暂停物理，先验证视觉和坐标。
 
@@ -554,4 +581,3 @@ Loading -> Home -> 开始游戏 -> Level
 - 若某一步依赖尚未恢复的关键规则，先拆成“可确认部分”和“待确认部分”，不能跳过验收直接堆到后续。
 - 若用户在某一步提出视觉或手感调整，该步骤保持未完成，修正并重新验证后再继续。
 - 未经确认，不提前实现后续步骤，确保每次预览都能定位问题来源。
-
