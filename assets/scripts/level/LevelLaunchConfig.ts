@@ -3,6 +3,7 @@
  *
  * 浏览器预览可用查询参数覆盖，例如：
  *   http://localhost:7456/?level=2&difficulty=hard&seed=12345
+ *   http://localhost:7456/?level=10&movedir=2   （第 5 步：强制横向移动场地）
  *
  * 不传时默认：第 1 关、normal、固定种子 20261016，保证多次启动生成结果一致。
  * 微信小游戏环境没有 location，解析失败时一律使用默认值。
@@ -15,6 +16,12 @@ export interface LevelLaunchOptions {
     seed: number;
     /** 开发预览：?autolevel=1 时 Loading 结束直接进 Level，跳过手动点击 */
     autoEnterLevel: boolean;
+    /**
+     * 第 5 步调试用：?movedir=0..3 强制覆盖场地移动方向
+     * （0 静止 / 1 下移 / 2 右移 / 3 左移）。仅覆盖墙体与移动行为，
+     * 不改生成器数据；不传为 null，用关卡参数 moveDir。
+     */
+    moveDirOverride: number | null;
 }
 
 const DEFAULT_LEVEL = 1;
@@ -42,7 +49,14 @@ export class LevelLaunchConfig {
             difficulty: this.parseDifficulty(params.get('difficulty')),
             seed: this.parsePositiveInt(params.get('seed'), DEFAULT_SEED),
             autoEnterLevel: params.get('autolevel') === '1',
+            moveDirOverride: this.parseMoveDir(params.get('movedir')),
         };
+    }
+
+    private static parseMoveDir(raw: string | null): number | null {
+        if (raw === null) return null;
+        const value = Number.parseInt(raw, 10);
+        return value >= 0 && value <= 3 ? value : null;
     }
 
     private static readQuery(): URLSearchParams {

@@ -1,0 +1,109 @@
+{
+  "level": 1,
+  "difficulty": "normal",
+  "parameters": {
+    "typeArr": [
+      [
+        1
+      ]
+    ],
+    "countArr": [
+      [
+        4
+      ]
+    ],
+    "scaleExp": 1,
+    "moveDir": 1,
+    "itemLayout": false,
+    "itemConnet": false,
+    "holeItemTypeArr": [],
+    "randomBox": 0,
+    "woodenObs": 0,
+    "obsCount": 0,
+    "iceCount": 0,
+    "level": 1,
+    "difficulty": "normal",
+    "levelCycle": 0,
+    "totalFruitCount": 4
+  },
+  "layout": {
+    "width": 750,
+    "height": 1334,
+    "minX": -375,
+    "maxX": 375,
+    "minY": 35.674,
+    "bottomY": 35.674,
+    "maxY": 650,
+    "itemRadius": 55
+  },
+  "fruits": [
+    {
+      "id": 0,
+      "queueIndex": 0,
+      "type": 1,
+      "stage": 0,
+      "position": {
+        "x": -203.4551623124366,
+        "y": 49.49406786496532
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 1,
+      "queueIndex": 1,
+      "type": 1,
+      "stage": 0,
+      "position": {
+        "x": -80.17737367424817,
+        "y": 61.58885240605373
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 2,
+      "queueIndex": 2,
+      "type": 1,
+      "stage": 0,
+      "position": {
+        "x": 185.00924821976577,
+        "y": 55.2427665403814
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 3,
+      "queueIndex": 3,
+      "type": 1,
+      "stage": 0,
+      "position": {
+        "x": 82.88117811334712,
+        "y": 76.13887000178309
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    }
+  ],
+  "obstacles": [],
+  "woodenObstacles": [],
+  "randomBoxes": [],
+  "blackHoles": []
+}

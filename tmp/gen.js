@@ -46,6 +46,7 @@
  * @property {number} minX 布局有效区域的左边界；水果中心还会按自身半径向内收缩。
  * @property {number} maxX 布局有效区域的右边界；水果中心还会按自身半径向内收缩。
  * @property {number} minY 布局有效区域的下边界。
+ * @property {number} bottomY 水果堆放起始 Y（原版 _bottomY=boundaryLine.y=35.674）。
  * @property {number} maxY 布局有效区域的上边界。
  * @property {number} itemRadius 从原包保留的参考半径，默认 55；当前黑洞容量公式固定使用原包值 55。
  */
@@ -99,8 +100,9 @@
  * @typedef {Object} LevelParameters
  * @property {number[][]} typeArr 三阶段水果类型表；typeArr[阶段][索引] 是水果类型。
  * @property {number[][]} countArr 三阶段水果数量表；与 typeArr 同位置一一对应。
- * @property {number} scaleExp 本关统一缩放系数，已体现在 FruitData.scale/radius 中。
- * @property {number} moveDir 水果移动方向：0 无移动、1 默认、2 向左、3 向右。
+ * @property {number} scaleExp 本关堆放密度系数（不缩单个水果的 scale/radius）。
+ * @property {number} moveDir 水果移动方向（同原版 FruitConfig.MoveDirection）：
+ *           0 NONE、1 DOWN、2 RIGHT、3 LEFT。
  * @property {boolean} itemLayout 是否启用特殊道具布局；尾号 6 关卡会启用。
  * @property {boolean} itemConnet 原包保留的拼写，表示是否启用水果连接玩法。
  * @property {number[][]} holeItemTypeArr 每个黑洞所分配的水果类型序列。
@@ -142,9 +144,9 @@
 
 const MOVE_DIRECTION = Object.freeze({
   NONE: 0,
-  DEFAULT: 1,
-  LEFT: 2,
-  RIGHT: 3,
+  DOWN: 1,
+  RIGHT: 2,
+  LEFT: 3,
 });
 
 const DIFFICULTY = Object.freeze({
@@ -618,9 +620,12 @@ const FRUIT_GEOMETRY = deepFreeze({
 const DEFAULT_LAYOUT = Object.freeze({
   width: 750,
   height: 1334,
-  minX: -368,
-  maxX: 368,
-  minY: -560,
+  minX: -375,
+  maxX: 375,
+  // 原版 ReferenceLayMgr：水果从 boundaryLine.y（Widget 对齐后 35.674）向上堆放，
+  // 不会出生在下方漏斗砖墙区域。
+  minY: 35.674,
+  bottomY: 35.674,
   maxY: 650,
   itemRadius: 55,
 });
@@ -700,7 +705,7 @@ function baseLevelInfo() {
     typeArr: [],
     countArr: [],
     scaleExp: 1,
-    moveDir: MOVE_DIRECTION.DEFAULT,
+    moveDir: MOVE_DIRECTION.NONE,
     itemLayout: false,
     itemConnet: false, // 原包字段就是这个拼写，为保持数据兼容而不做更名。
     holeItemTypeArr: [],
@@ -715,7 +720,7 @@ function getMaxFruitType(requested, useAlternateSkin) {
   return Math.min(useAlternateSkin ? 28 : 33, requested);
 }
 
-function getLevelTotal(level, cfg, specialDigitTwo) {
+function getLevelTotal(level, cfg, digit, specialDigitTwo) {
   let cap30To99 = specialDigitTwo && cfg.num100Base1_2 != null
     ? cfg.num100Base1_2
     : cfg.num100Base1;
@@ -723,7 +728,10 @@ function getLevelTotal(level, cfg, specialDigitTwo) {
     ? cfg.num100Base3_2
     : cfg.num100Base3;
 
-  if (level < 10) return cfg.num10Base + cfg.num10Add * (level - 3);
+  if (level < 10) {
+    if (digit === 4 || digit === 7 || digit === 8 || digit === 9) return cfg.num10Base;
+    return cfg.num10Base + cfg.num10Add * (level - 3);
+  }
   if (level > 10 && level < 30) return cfg.num30Base + cfg.num30Add * (level - 11);
   if (level > 30 && level < 100) {
     return Math.min(
@@ -791,8 +799,10 @@ function buildLevel2(info, cfg, rng, useAlternateSkin, byteDanceMode) {
   if (byteDanceMode) {
     info.typeArr.push(range(1, 10));
     info.countArr.push(new Array(10).fill(4));
+    info.moveDir = MOVE_DIRECTION.NONE;
     return;
   }
+  info.moveDir = MOVE_DIRECTION.DOWN;
 
   let created = 0;
   const targets = [cfg.oneCreatreN, cfg.twoCreatreN, cfg.allCreateN];
@@ -932,6 +942,7 @@ function generateLevelParameters(level, options = {}) {
   if (level === 1) {
     info.typeArr.push([1]);
     info.countArr.push([4]);
+    info.moveDir = MOVE_DIRECTION.DOWN;
     return attachParameterMetadata(info, level, difficulty, cycle);
   }
 
@@ -961,7 +972,7 @@ function generateLevelParameters(level, options = {}) {
   if (digit === 4) {
     cfg = config.lv4Config;
     multiplyFromStage = 1;
-    info.moveDir = MOVE_DIRECTION.LEFT;
+    info.moveDir = MOVE_DIRECTION.RIGHT;
   } else if (digit === 7) {
     cfg = config.lv7Config;
     multiplyFromStage = 1;
@@ -974,7 +985,7 @@ function generateLevelParameters(level, options = {}) {
   } else if (digit === 9) {
     cfg = config.lv9Config;
     multiplyFromStage = 1;
-    info.moveDir = MOVE_DIRECTION.RIGHT;
+    info.moveDir = MOVE_DIRECTION.LEFT;
   } else {
     cfg = config.lv2_3_5Config;
     multiplyFromStage = 2;
@@ -994,7 +1005,7 @@ function generateLevelParameters(level, options = {}) {
     }
   }
 
-  const total = getLevelTotal(level, cfg, digit === 2);
+  const total = getLevelTotal(level, cfg, digit, digit === 2);
   buildStages(level, total, cfg, {
     info,
     rng,
@@ -1043,6 +1054,20 @@ function legacySwapShuffle(items, rng) {
   for (let index = 0; index < items.length; index += 1) {
     const other = randomInt(0, items.length - 1, rng);
     [items[index], items[other]] = [items[other], items[index]];
+  }
+  return items;
+}
+
+/**
+ * 原版 ReferenceLayMgr.shuffleArray：从尾向头的 Fisher-Yates，
+ * 每次与 [0, index] 闭区间内的随机项交换。阶段水果展开后使用该打乱。
+ */
+function fisherYatesShuffle(items, rng) {
+  for (let index = items.length - 1; index > 0; index -= 1) {
+    const other = randomInt(0, index, rng);
+    const temp = items[index];
+    items[index] = items[other];
+    items[other] = temp;
   }
   return items;
 }
@@ -1108,12 +1133,12 @@ function findFruitPosition(radius, placed, bounds, rng, preferredY) {
   };
 }
 
-function getFruitGeometry(type, scaleExp) {
+function getFruitGeometry(type) {
   const source = FRUIT_GEOMETRY[type] || { radius: 80, scale: 0.5, particleType: 0 };
   return {
     sourceRadius: source.radius,
-    scale: source.scale * scaleExp,
-    radius: source.radius * source.scale * scaleExp,
+    scale: source.scale,
+    radius: source.radius * source.scale,
     particleType: source.particleType,
   };
 }
@@ -1121,32 +1146,62 @@ function getFruitGeometry(type, scaleExp) {
 function generateFruitLayout(levelInfo, options = {}) {
   const rng = options.rng || Math.random;
   const bounds = { ...DEFAULT_LAYOUT, ...(options.layout || {}) };
-  const queue = legacySwapShuffle(expandFruitQueue(levelInfo), rng);
   const fruits = [];
+  const { typeArr, countArr, moveDir, scaleExp } = levelInfo;
+  const halfHeight = bounds.height / 2;
 
-  for (let index = 0; index < queue.length; index += 1) {
-    const queued = queue[index];
-    const geometry = getFruitGeometry(queued.type, levelInfo.scaleExp);
-    const position = findFruitPosition(
-      geometry.radius,
-      fruits,
-      bounds,
-      rng,
-      options.preferredY,
-    );
-    fruits.push({
-      id: index,
-      queueIndex: index,
-      type: queued.type,
-      stage: queued.stage,
-      position,
-      radius: geometry.radius,
-      sourceRadius: geometry.sourceRadius,
-      scale: geometry.scale,
-      particleType: geometry.particleType,
-      status: "normal",
-      thawHits: 0,
-    });
+  // 原版 ReferenceLayMgr.genLvMapData/initItems：每个阶段一条水平带，
+  // 从 _bottomY（boundaryLine.y）开始向上堆叠；带高 = 数量*PI*55^2*scaleExp/gameW。
+  // 阶段内先展开类型再 Fisher-Yates 打乱，避让使用同一套 1.25/1.0625/1.05 margin。
+  let bandMaxY = 0;
+  for (let stage = 0; stage < typeArr.length; stage += 1) {
+    const types = typeArr[stage];
+    const counts = countArr[stage] || [];
+    const stageTypes = [];
+    for (let typeIndex = 0; typeIndex < types.length; typeIndex += 1) {
+      for (let amount = 0; amount < (counts[typeIndex] || 0); amount += 1) {
+        stageTypes.push(types[typeIndex]);
+      }
+    }
+    fisherYatesShuffle(stageTypes, rng);
+
+    let stageBounds = bounds;
+    if (moveDir === 0 || moveDir === 1) {
+      const bandMinY = bandMaxY === 0 ? bounds.bottomY : bandMaxY;
+      const bandHeight =
+        (stageTypes.length * Math.PI * bounds.itemRadius * bounds.itemRadius * scaleExp) / bounds.width;
+      bandMaxY =
+        moveDir === 1
+          ? bandMinY + bandHeight
+          : typeArr.length === 1
+            ? halfHeight - 140
+            : Math.min(bandMinY + bandHeight, halfHeight - 140);
+      stageBounds = { ...bounds, minY: bandMinY, maxY: bandMaxY };
+    }
+
+    for (const type of stageTypes) {
+      const geometry = getFruitGeometry(type);
+      const position = findFruitPosition(
+        geometry.radius,
+        fruits,
+        stageBounds,
+        rng,
+        options.preferredY,
+      );
+      fruits.push({
+        id: fruits.length,
+        queueIndex: fruits.length,
+        type,
+        stage,
+        position,
+        radius: geometry.radius,
+        sourceRadius: geometry.sourceRadius,
+        scale: geometry.scale,
+        particleType: geometry.particleType,
+        status: "normal",
+        thawHits: 0,
+      });
+    }
   }
   return fruits;
 }
@@ -1212,7 +1267,10 @@ function generateLevel(level, options = {}) {
   const sharedOptions = { ...options, rng, layout };
   const parameters = generateLevelParameters(level, sharedOptions);
   const fruits = generateFruitLayout(parameters, sharedOptions);
-  applyIce(fruits, parameters.iceCount, layout, rng);
+  // 冰冻/障碍分布按水果实际堆放的纵向范围（带顶可能超出屏幕，属原版设计）。
+  const occupiedMaxY = fruits.reduce((top, fruit) => Math.max(top, fruit.position.y), layout.bottomY);
+  const verticalLayout = { ...layout, minY: layout.bottomY, maxY: Math.max(layout.maxY, occupiedMaxY) };
+  applyIce(fruits, parameters.iceCount, verticalLayout, rng);
 
   return {
     level,
@@ -1220,7 +1278,7 @@ function generateLevel(level, options = {}) {
     parameters,
     layout,
     fruits,
-    obstacles: generateObstacles(parameters.obsCount, layout, rng),
+    obstacles: generateObstacles(parameters.obsCount, verticalLayout, rng),
     woodenObstacles: Array.from({ length: parameters.woodenObs }, (_, id) => ({ id })),
     randomBoxes: Array.from({ length: parameters.randomBox }, (_, id) => ({ id })),
     blackHoles: buildBlackHoles(parameters),
@@ -1237,8 +1295,11 @@ function validateLevel(levelData) {
     if (!Number.isFinite(fruit.position.x) || !Number.isFinite(fruit.position.y)) {
       errors.push(`fruit ${fruit.id} has an invalid position`);
     }
-    if (fruit.position.x < layout.minX - 1 || fruit.position.x > layout.maxX + 1) {
-      errors.push(`fruit ${fruit.id} is outside horizontal bounds`);
+    // 下移关水果带按数量向上堆叠，顶部水果允许超出屏幕（原版无上限）；
+    // 只需保证不出生在下方漏斗区、不超出左右边界。
+    if (fruit.position.x < layout.minX - 1 || fruit.position.x > layout.maxX + 1
+      || fruit.position.y < layout.minY - 1) {
+      errors.push(`fruit ${fruit.id} is outside layout bounds`);
     }
   }
   if (parameters.iceCount > 0) {
@@ -1259,6 +1320,7 @@ module.exports = {
   createSeededRandom,
   expandFruitQueue,
   findFruitPosition,
+  fisherYatesShuffle,
   generateFruitLayout,
   generateLevel,
   generateLevelParameters,
@@ -1282,4 +1344,3 @@ if (require.main === module) {
     firstFiveFruits: sample.fruits.slice(0, 5),
   }, null, 2));
 }
-

@@ -1,6 +1,9 @@
 import { _decorator, Component, find, instantiate, Node, Prefab } from 'cc';
 import { LevelLaunchConfig } from '../level/LevelLaunchConfig';
 import { LevelView } from '../level/LevelView';
+import { LevelSession } from '../level/LevelSession';
+import { FruitSpawner } from '../level/fruit/FruitSpawner';
+import { LevelPlayfield } from '../level/LevelPlayfield';
 
 const { ccclass, property } = _decorator;
 
@@ -29,6 +32,7 @@ export class GameNavigator extends Component {
     private levelCommon: Node | null = null;
     private levelHud: Node | null = null;
     private navigating = false;
+    private levelSession: LevelSession | null = null;
 
     public onLoad(): void {
         // 恢复场景默认带的透明输入拦截层当前没有任何过场逻辑，先关闭以保证真实点击
@@ -62,7 +66,14 @@ export class GameNavigator extends Component {
                 return;
             }
             const cfg = LevelLaunchConfig.options;
+            this.levelSession = LevelSession.create();
+            const p = this.levelSession.data.parameters;
             console.log(`[LevelLaunch] level=${cfg.level} difficulty=${cfg.difficulty} seed=${cfg.seed}`);
+            console.log(`[LevelGen] 第 ${cfg.level} 关共 ${this.levelSession.data.fruits.length} 个水果；`
+                + `阶段=${p.typeArr.map((types, s) => p.countArr[s].reduce((a, b) => a + b, 0)).join('/')}，`
+                + `moveDir=${p.moveDir}，scaleExp=${p.scaleExp}，`
+                + `障碍=${p.obsCount}，木板=${p.woodenObs}，随机盒=${p.randomBox}，`
+                + `黑洞=${this.levelSession.data.blackHoles.length}，冰冻=${p.iceCount}`);
 
             if (this.home) {
                 this.home.destroy();
@@ -71,7 +82,12 @@ export class GameNavigator extends Component {
 
             this.levelCommon = instantiate(this.levelCommonPrefab);
             this.stage.addChild(this.levelCommon);
-            this.levelCommon.addComponent(LevelView);
+            const levelView = this.levelCommon.addComponent(LevelView);
+            levelView.bindLevelData(this.levelSession.data);
+            const fruitSpawner = this.levelCommon.addComponent(FruitSpawner);
+            levelView.bindInitialGoal(fruitSpawner.spawn(this.levelSession.data));
+            const playfield = this.levelCommon.addComponent(LevelPlayfield);
+            playfield.enter(this.levelSession.data, fruitSpawner);
 
             this.levelHud = instantiate(this.levelHudPrefab);
             this.stage.addChild(this.levelHud);
@@ -126,6 +142,7 @@ export class GameNavigator extends Component {
     }
 
     private clearLevel(): void {
+        this.levelSession = null;
         if (this.levelHud) {
             this.levelHud.destroy();
             this.levelHud = null;

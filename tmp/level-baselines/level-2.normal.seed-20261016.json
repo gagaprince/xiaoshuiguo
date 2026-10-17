@@ -1,0 +1,2989 @@
+{
+  "level": 2,
+  "difficulty": "normal",
+  "parameters": {
+    "typeArr": [
+      [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        2,
+        4,
+        1
+      ],
+      [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        3,
+        4,
+        6,
+        8,
+        11,
+        6,
+        9,
+        12,
+        1,
+        9,
+        7,
+        12,
+        7,
+        3,
+        4,
+        14,
+        12,
+        3,
+        11,
+        4,
+        4
+      ],
+      [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        2,
+        6,
+        22,
+        9,
+        7,
+        8,
+        9,
+        11,
+        21,
+        22
+      ]
+    ],
+    "countArr": [
+      [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      [
+        2,
+        2,
+        4,
+        2,
+        2,
+        2,
+        4,
+        2,
+        2,
+        4,
+        4,
+        2,
+        4,
+        2,
+        4,
+        4,
+        4,
+        4,
+        4,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ]
+    ],
+    "scaleExp": 1,
+    "moveDir": 1,
+    "itemLayout": false,
+    "itemConnet": false,
+    "holeItemTypeArr": [],
+    "randomBox": 0,
+    "woodenObs": 0,
+    "obsCount": 0,
+    "iceCount": 0,
+    "level": 2,
+    "difficulty": "normal",
+    "levelCycle": 0,
+    "totalFruitCount": 174
+  },
+  "layout": {
+    "width": 750,
+    "height": 1334,
+    "minX": -375,
+    "maxX": 375,
+    "minY": 35.674,
+    "bottomY": 35.674,
+    "maxY": 650,
+    "itemRadius": 55
+  },
+  "fruits": [
+    {
+      "id": 0,
+      "queueIndex": 0,
+      "type": 2,
+      "stage": 0,
+      "position": {
+        "x": -234.9470370580703,
+        "y": 148.84978111345973
+      },
+      "radius": 38.0304,
+      "sourceRadius": 80,
+      "scale": 0.47538,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 1,
+      "queueIndex": 1,
+      "type": 2,
+      "stage": 0,
+      "position": {
+        "x": 251.29984295195868,
+        "y": 53.71834757265671
+      },
+      "radius": 38.0304,
+      "sourceRadius": 80,
+      "scale": 0.47538,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 2,
+      "queueIndex": 2,
+      "type": 4,
+      "stage": 0,
+      "position": {
+        "x": 8.482205811981771,
+        "y": 66.7408936807711
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 3,
+      "queueIndex": 3,
+      "type": 3,
+      "stage": 0,
+      "position": {
+        "x": 120.1650893808823,
+        "y": 155.06243584130385
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 4,
+      "queueIndex": 4,
+      "type": 1,
+      "stage": 0,
+      "position": {
+        "x": -323.37772477066335,
+        "y": 223.06698933050797
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 5,
+      "queueIndex": 5,
+      "type": 4,
+      "stage": 0,
+      "position": {
+        "x": -88.48972064080459,
+        "y": 227.20236449817756
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 6,
+      "queueIndex": 6,
+      "type": 2,
+      "stage": 0,
+      "position": {
+        "x": 309.9424680487849,
+        "y": 197.1978703561888
+      },
+      "radius": 38.0304,
+      "sourceRadius": 80,
+      "scale": 0.47538,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 7,
+      "queueIndex": 7,
+      "type": 5,
+      "stage": 0,
+      "position": {
+        "x": -124.67667561592009,
+        "y": 116.96491188437176
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 8,
+      "queueIndex": 8,
+      "type": 1,
+      "stage": 0,
+      "position": {
+        "x": 178.31300501591602,
+        "y": 257.95676355783166
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 9,
+      "queueIndex": 9,
+      "type": 6,
+      "stage": 0,
+      "position": {
+        "x": -308.7873575340316,
+        "y": 66.98374043152218
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 10,
+      "queueIndex": 10,
+      "type": 6,
+      "stage": 0,
+      "position": {
+        "x": 139.90578588379373,
+        "y": 47.27726545626752
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 11,
+      "queueIndex": 11,
+      "type": 1,
+      "stage": 0,
+      "position": {
+        "x": 15.394662003597318,
+        "y": 232.97781268923856
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 12,
+      "queueIndex": 12,
+      "type": 1,
+      "stage": 0,
+      "position": {
+        "x": -206.03096915858512,
+        "y": 243.83142616184165
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 13,
+      "queueIndex": 13,
+      "type": 3,
+      "stage": 0,
+      "position": {
+        "x": -174.142744139757,
+        "y": 47.91953880511453
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 14,
+      "queueIndex": 14,
+      "type": 2,
+      "stage": 0,
+      "position": {
+        "x": -39.52962914042695,
+        "y": 151.53309484111105
+      },
+      "radius": 38.0304,
+      "sourceRadius": 80,
+      "scale": 0.47538,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 15,
+      "queueIndex": 15,
+      "type": 4,
+      "stage": 0,
+      "position": {
+        "x": -74.71969907553446,
+        "y": 40.0838031420014
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 16,
+      "queueIndex": 16,
+      "type": 5,
+      "stage": 0,
+      "position": {
+        "x": 327.130609721723,
+        "y": 113.7656170963856
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 17,
+      "queueIndex": 17,
+      "type": 4,
+      "stage": 0,
+      "position": {
+        "x": 231.4326756192686,
+        "y": 140.2528370964535
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 18,
+      "queueIndex": 18,
+      "type": 3,
+      "stage": 1,
+      "position": {
+        "x": 0.8595576718479379,
+        "y": 956.4740200310375
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 19,
+      "queueIndex": 19,
+      "type": 14,
+      "stage": 1,
+      "position": {
+        "x": -175.25265614192188,
+        "y": 555.3259068481394
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 20,
+      "queueIndex": 20,
+      "type": 4,
+      "stage": 1,
+      "position": {
+        "x": 264.09040431115375,
+        "y": 349.3004209615521
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 21,
+      "queueIndex": 21,
+      "type": 2,
+      "stage": 1,
+      "position": {
+        "x": -106.41274237807693,
+        "y": 841.2249453794127
+      },
+      "radius": 38.0304,
+      "sourceRadius": 80,
+      "scale": 0.47538,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 22,
+      "queueIndex": 22,
+      "type": 8,
+      "stage": 1,
+      "position": {
+        "x": 262.37142828943206,
+        "y": 979.3774883291178
+      },
+      "radius": 37.529999999999994,
+      "sourceRadius": 75,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 23,
+      "queueIndex": 23,
+      "type": 7,
+      "stage": 1,
+      "position": {
+        "x": -305.5068386651392,
+        "y": 971.0470378282034
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 24,
+      "queueIndex": 24,
+      "type": 14,
+      "stage": 1,
+      "position": {
+        "x": 69.46329706937632,
+        "y": 483.20469205618895
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 25,
+      "queueIndex": 25,
+      "type": 3,
+      "stage": 1,
+      "position": {
+        "x": 169.84787048925722,
+        "y": 1022.024909415202
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 26,
+      "queueIndex": 26,
+      "type": 11,
+      "stage": 1,
+      "position": {
+        "x": -110.07114790726499,
+        "y": 464.9906054124506
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 27,
+      "queueIndex": 27,
+      "type": 12,
+      "stage": 1,
+      "position": {
+        "x": -58.086590947427055,
+        "y": 1082.4421410536488
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 5,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 28,
+      "queueIndex": 28,
+      "type": 1,
+      "stage": 1,
+      "position": {
+        "x": 183.04152814847322,
+        "y": 901.4390329042517
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 29,
+      "queueIndex": 29,
+      "type": 12,
+      "stage": 1,
+      "position": {
+        "x": -308.3755783494521,
+        "y": 474.54218565448014
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 5,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 30,
+      "queueIndex": 30,
+      "type": 12,
+      "stage": 1,
+      "position": {
+        "x": -228.90477004878193,
+        "y": 1049.3053054831191
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 5,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 31,
+      "queueIndex": 31,
+      "type": 1,
+      "stage": 1,
+      "position": {
+        "x": 251.1253195490753,
+        "y": 801.9606297546902
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 32,
+      "queueIndex": 32,
+      "type": 11,
+      "stage": 1,
+      "position": {
+        "x": 149.28985711898628,
+        "y": 684.5743040103521
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 33,
+      "queueIndex": 33,
+      "type": 9,
+      "stage": 1,
+      "position": {
+        "x": -95.68690916646014,
+        "y": 363.097103875334
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 34,
+      "queueIndex": 34,
+      "type": 3,
+      "stage": 1,
+      "position": {
+        "x": 50.302381212667,
+        "y": 1147.226368936138
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 35,
+      "queueIndex": 35,
+      "type": 6,
+      "stage": 1,
+      "position": {
+        "x": -286.4852762043779,
+        "y": 642.043922974709
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 36,
+      "queueIndex": 36,
+      "type": 4,
+      "stage": 1,
+      "position": {
+        "x": 3.2081478421354745,
+        "y": 391.36053306802
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 37,
+      "queueIndex": 37,
+      "type": 9,
+      "stage": 1,
+      "position": {
+        "x": 309.03233497755593,
+        "y": 1110.6888228906068
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 38,
+      "queueIndex": 38,
+      "type": 10,
+      "stage": 1,
+      "position": {
+        "x": 284.1330759915306,
+        "y": 706.747102907359
+      },
+      "radius": 40.532399999999996,
+      "sourceRadius": 72,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 39,
+      "queueIndex": 39,
+      "type": 9,
+      "stage": 1,
+      "position": {
+        "x": 54.20910315142186,
+        "y": 663.0346846449343
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 40,
+      "queueIndex": 40,
+      "type": 2,
+      "stage": 1,
+      "position": {
+        "x": 186.7948535570838,
+        "y": 507.02035151378584
+      },
+      "radius": 38.0304,
+      "sourceRadius": 80,
+      "scale": 0.47538,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 41,
+      "queueIndex": 41,
+      "type": 7,
+      "stage": 1,
+      "position": {
+        "x": -235.03677007075282,
+        "y": 1150.1959246804008
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 42,
+      "queueIndex": 42,
+      "type": 4,
+      "stage": 1,
+      "position": {
+        "x": -87.52590988739692,
+        "y": 748.8906548235099
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 43,
+      "queueIndex": 43,
+      "type": 1,
+      "stage": 1,
+      "position": {
+        "x": -319.30878339072973,
+        "y": 840.8027612589228
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 44,
+      "queueIndex": 44,
+      "type": 9,
+      "stage": 1,
+      "position": {
+        "x": 128.8645188511823,
+        "y": 784.9609685403791
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 45,
+      "queueIndex": 45,
+      "type": 9,
+      "stage": 1,
+      "position": {
+        "x": 107.21501593520048,
+        "y": 321.4594007844838
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 46,
+      "queueIndex": 46,
+      "type": 4,
+      "stage": 1,
+      "position": {
+        "x": 56.15762854781889,
+        "y": 866.7382512137287
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 47,
+      "queueIndex": 47,
+      "type": 9,
+      "stage": 1,
+      "position": {
+        "x": 235.73935588417658,
+        "y": 622.192070915094
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 48,
+      "queueIndex": 48,
+      "type": 14,
+      "stage": 1,
+      "position": {
+        "x": 165.41923889172728,
+        "y": 1128.9027203663588
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 49,
+      "queueIndex": 49,
+      "type": 5,
+      "stage": 1,
+      "position": {
+        "x": -210.25580914535297,
+        "y": 888.9542345186062
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 50,
+      "queueIndex": 50,
+      "type": 12,
+      "stage": 1,
+      "position": {
+        "x": 325.54744148559166,
+        "y": 454.23551510552943
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 5,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 51,
+      "queueIndex": 51,
+      "type": 13,
+      "stage": 1,
+      "position": {
+        "x": -49.177967965680125,
+        "y": 556.4132392703526
+      },
+      "radius": 41.802164999999995,
+      "sourceRadius": 81.5,
+      "scale": 0.51291,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 52,
+      "queueIndex": 52,
+      "type": 8,
+      "stage": 1,
+      "position": {
+        "x": -307.147450534408,
+        "y": 342.85235816884153
+      },
+      "radius": 37.529999999999994,
+      "sourceRadius": 75,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 53,
+      "queueIndex": 53,
+      "type": 11,
+      "stage": 1,
+      "position": {
+        "x": 189.90496106102626,
+        "y": 412.55517094848096
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 54,
+      "queueIndex": 54,
+      "type": 6,
+      "stage": 1,
+      "position": {
+        "x": -215.14719947128847,
+        "y": 399.57483442536295
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 55,
+      "queueIndex": 55,
+      "type": 14,
+      "stage": 1,
+      "position": {
+        "x": -126.83604624755122,
+        "y": 962.8232714630583
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 56,
+      "queueIndex": 56,
+      "type": 6,
+      "stage": 1,
+      "position": {
+        "x": -298.4366299026262,
+        "y": 733.4148373551939
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 57,
+      "queueIndex": 57,
+      "type": 3,
+      "stage": 1,
+      "position": {
+        "x": 26.049336420764746,
+        "y": 774.6878499698885
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 58,
+      "queueIndex": 58,
+      "type": 4,
+      "stage": 1,
+      "position": {
+        "x": -68.04095718820378,
+        "y": 643.8327551358154
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 59,
+      "queueIndex": 59,
+      "type": 8,
+      "stage": 1,
+      "position": {
+        "x": 309.78978335726083,
+        "y": 562.4643524563054
+      },
+      "radius": 37.529999999999994,
+      "sourceRadius": 75,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 60,
+      "queueIndex": 60,
+      "type": 11,
+      "stage": 1,
+      "position": {
+        "x": 62.539690742482264,
+        "y": 571.1731701135704
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 61,
+      "queueIndex": 61,
+      "type": 3,
+      "stage": 1,
+      "position": {
+        "x": -233.07906372497715,
+        "y": 805.1609210850565
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 62,
+      "queueIndex": 62,
+      "type": 10,
+      "stage": 1,
+      "position": {
+        "x": -166.8034706514243,
+        "y": 672.6770010876107
+      },
+      "radius": 40.532399999999996,
+      "sourceRadius": 72,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 63,
+      "queueIndex": 63,
+      "type": 12,
+      "stage": 1,
+      "position": {
+        "x": 110.23892388522216,
+        "y": 952.2857402420261
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 5,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 64,
+      "queueIndex": 64,
+      "type": 3,
+      "stage": 1,
+      "position": {
+        "x": 324.1725913910336,
+        "y": 888.3040240858252
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 65,
+      "queueIndex": 65,
+      "type": 4,
+      "stage": 1,
+      "position": {
+        "x": -320.74502920570825,
+        "y": 1148.8201940982601
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 66,
+      "queueIndex": 66,
+      "type": 4,
+      "stage": 1,
+      "position": {
+        "x": -23.316659071959236,
+        "y": 474.1804431837876
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 67,
+      "queueIndex": 67,
+      "type": 1,
+      "stage": 1,
+      "position": {
+        "x": -147.2972390379025,
+        "y": 1107.7294791198735
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 68,
+      "queueIndex": 68,
+      "type": 12,
+      "stage": 1,
+      "position": {
+        "x": 156.39833889609258,
+        "y": 586.2509568676962
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 5,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 69,
+      "queueIndex": 69,
+      "type": 7,
+      "stage": 1,
+      "position": {
+        "x": -222.08384642712895,
+        "y": 797.5097797272152
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 70,
+      "queueIndex": 70,
+      "type": 13,
+      "stage": 1,
+      "position": {
+        "x": -29.084597790166413,
+        "y": 307.9418286259585
+      },
+      "radius": 41.802164999999995,
+      "sourceRadius": 81.5,
+      "scale": 0.51291,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 71,
+      "queueIndex": 71,
+      "type": 7,
+      "stage": 1,
+      "position": {
+        "x": 77.47172355270885,
+        "y": 1066.8151570932282
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 72,
+      "queueIndex": 72,
+      "type": 12,
+      "stage": 1,
+      "position": {
+        "x": -325.124375,
+        "y": 403.7556423093621
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 5,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 73,
+      "queueIndex": 73,
+      "type": 5,
+      "stage": 1,
+      "position": {
+        "x": 19.970866575332437,
+        "y": 283.75362665061897
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 74,
+      "queueIndex": 74,
+      "type": 7,
+      "stage": 1,
+      "position": {
+        "x": 263.6603303658344,
+        "y": 283.75362665061897
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 75,
+      "queueIndex": 75,
+      "type": 7,
+      "stage": 1,
+      "position": {
+        "x": -300.3431832875761,
+        "y": 1070.602277998024
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 76,
+      "queueIndex": 76,
+      "type": 4,
+      "stage": 1,
+      "position": {
+        "x": -169.47118955870405,
+        "y": 326.8709268896008
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 77,
+      "queueIndex": 77,
+      "type": 8,
+      "stage": 1,
+      "position": {
+        "x": -327.47,
+        "y": 483.41040271151127
+      },
+      "radius": 37.529999999999994,
+      "sourceRadius": 75,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 78,
+      "queueIndex": 78,
+      "type": 11,
+      "stage": 1,
+      "position": {
+        "x": 270.46318457305205,
+        "y": 707.3318522951024
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 79,
+      "queueIndex": 79,
+      "type": 11,
+      "stage": 1,
+      "position": {
+        "x": 228.90446469974222,
+        "y": 283.75362665061897
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 80,
+      "queueIndex": 80,
+      "type": 3,
+      "stage": 1,
+      "position": {
+        "x": 57.114204073445435,
+        "y": 579.9981111825833
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 81,
+      "queueIndex": 81,
+      "type": 4,
+      "stage": 1,
+      "position": {
+        "x": 188.66673481288507,
+        "y": 1130.729952514137
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 82,
+      "queueIndex": 82,
+      "type": 6,
+      "stage": 1,
+      "position": {
+        "x": 226.89120670572783,
+        "y": 795.4309830543885
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 83,
+      "queueIndex": 83,
+      "type": 6,
+      "stage": 1,
+      "position": {
+        "x": -230.20100762259693,
+        "y": 1130.729952514137
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 84,
+      "queueIndex": 84,
+      "type": 6,
+      "stage": 1,
+      "position": {
+        "x": 113.79552845012496,
+        "y": 283.75362665061897
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 85,
+      "queueIndex": 85,
+      "type": 12,
+      "stage": 1,
+      "position": {
+        "x": -17.951780864136563,
+        "y": 488.77801917433663
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 5,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 86,
+      "queueIndex": 86,
+      "type": 3,
+      "stage": 1,
+      "position": {
+        "x": -25.98026715278064,
+        "y": 865.8745556217671
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 87,
+      "queueIndex": 87,
+      "type": 4,
+      "stage": 1,
+      "position": {
+        "x": -325.84589856919155,
+        "y": 564.3149215309754
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 88,
+      "queueIndex": 88,
+      "type": 15,
+      "stage": 2,
+      "position": {
+        "x": -102.79312905284223,
+        "y": 1210.4247650955056
+      },
+      "radius": 40.532399999999996,
+      "sourceRadius": 72,
+      "scale": 0.56295,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 89,
+      "queueIndex": 89,
+      "type": 6,
+      "stage": 2,
+      "position": {
+        "x": -128.61796382648404,
+        "y": 1480.536974476288
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 90,
+      "queueIndex": 90,
+      "type": 3,
+      "stage": 2,
+      "position": {
+        "x": -298.5668542775128,
+        "y": 1926.4762543301586
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 91,
+      "queueIndex": 91,
+      "type": 7,
+      "stage": 2,
+      "position": {
+        "x": 203.08966338317168,
+        "y": 1282.0669588352864
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 92,
+      "queueIndex": 92,
+      "type": 13,
+      "stage": 2,
+      "position": {
+        "x": -300.40023121596,
+        "y": 1485.187739038047
+      },
+      "radius": 41.802164999999995,
+      "sourceRadius": 81.5,
+      "scale": 0.51291,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 93,
+      "queueIndex": 93,
+      "type": 17,
+      "stage": 2,
+      "position": {
+        "x": -159.30680109398193,
+        "y": 1720.694837900424
+      },
+      "radius": 42.9349455,
+      "sourceRadius": 82.7,
+      "scale": 0.519165,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 94,
+      "queueIndex": 94,
+      "type": 10,
+      "stage": 2,
+      "position": {
+        "x": -265.0147140955305,
+        "y": 2190.144135617058
+      },
+      "radius": 40.532399999999996,
+      "sourceRadius": 72,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 95,
+      "queueIndex": 95,
+      "type": 15,
+      "stage": 2,
+      "position": {
+        "x": 40.36126283990632,
+        "y": 1367.0553108767842
+      },
+      "radius": 40.532399999999996,
+      "sourceRadius": 72,
+      "scale": 0.56295,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 96,
+      "queueIndex": 96,
+      "type": 6,
+      "stage": 2,
+      "position": {
+        "x": 124.4641175137408,
+        "y": 2124.6602492622114
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 97,
+      "queueIndex": 97,
+      "type": 22,
+      "stage": 2,
+      "position": {
+        "x": -61.32638003377281,
+        "y": 1329.9633645258637
+      },
+      "radius": 41.032799999999995,
+      "sourceRadius": 80,
+      "scale": 0.51291,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 98,
+      "queueIndex": 98,
+      "type": 18,
+      "stage": 2,
+      "position": {
+        "x": 210.27564056702522,
+        "y": 2017.2295849820416
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 99,
+      "queueIndex": 99,
+      "type": 7,
+      "stage": 2,
+      "position": {
+        "x": -105.49046872443898,
+        "y": 1849.9113062207548
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 100,
+      "queueIndex": 100,
+      "type": 22,
+      "stage": 2,
+      "position": {
+        "x": -57.42559631239175,
+        "y": 1674.7113133313032
+      },
+      "radius": 41.032799999999995,
+      "sourceRadius": 80,
+      "scale": 0.51291,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 101,
+      "queueIndex": 101,
+      "type": 3,
+      "stage": 2,
+      "position": {
+        "x": -207.66644555865153,
+        "y": 1302.053036768389
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 102,
+      "queueIndex": 102,
+      "type": 7,
+      "stage": 2,
+      "position": {
+        "x": -168.87273893355217,
+        "y": 2027.5834913108338
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 103,
+      "queueIndex": 103,
+      "type": 11,
+      "stage": 2,
+      "position": {
+        "x": 229.146443925305,
+        "y": 1816.4264477499987
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 104,
+      "queueIndex": 104,
+      "type": 14,
+      "stage": 2,
+      "position": {
+        "x": 25.341194565409808,
+        "y": 1753.051517895784
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 105,
+      "queueIndex": 105,
+      "type": 22,
+      "stage": 2,
+      "position": {
+        "x": -53.71207296642291,
+        "y": 2160.6273608972597
+      },
+      "radius": 41.032799999999995,
+      "sourceRadius": 80,
+      "scale": 0.51291,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 106,
+      "queueIndex": 106,
+      "type": 13,
+      "stage": 2,
+      "position": {
+        "x": -198.49062511281568,
+        "y": 1898.629439735876
+      },
+      "radius": 41.802164999999995,
+      "sourceRadius": 81.5,
+      "scale": 0.51291,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 107,
+      "queueIndex": 107,
+      "type": 9,
+      "stage": 2,
+      "position": {
+        "x": 142.98883099401127,
+        "y": 2232.3547125475525
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 108,
+      "queueIndex": 108,
+      "type": 13,
+      "stage": 2,
+      "position": {
+        "x": 277.4359888191087,
+        "y": 1634.6820014791288
+      },
+      "radius": 41.802164999999995,
+      "sourceRadius": 81.5,
+      "scale": 0.51291,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 109,
+      "queueIndex": 109,
+      "type": 3,
+      "stage": 2,
+      "position": {
+        "x": 266.44435891175897,
+        "y": 2122.131723378112
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 110,
+      "queueIndex": 110,
+      "type": 12,
+      "stage": 2,
+      "position": {
+        "x": 163.27459193788587,
+        "y": 1675.2674483590508
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 5,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 111,
+      "queueIndex": 111,
+      "type": 2,
+      "stage": 2,
+      "position": {
+        "x": 146.77301296796202,
+        "y": 1556.0894276858455
+      },
+      "radius": 38.0304,
+      "sourceRadius": 80,
+      "scale": 0.47538,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 112,
+      "queueIndex": 112,
+      "type": 12,
+      "stage": 2,
+      "position": {
+        "x": 321.9708141011398,
+        "y": 1252.6767296448234
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 5,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 113,
+      "queueIndex": 113,
+      "type": 10,
+      "stage": 2,
+      "position": {
+        "x": -311.8648071311431,
+        "y": 1305.9804816245799
+      },
+      "radius": 40.532399999999996,
+      "sourceRadius": 72,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 114,
+      "queueIndex": 114,
+      "type": 8,
+      "stage": 2,
+      "position": {
+        "x": 238.44024647477545,
+        "y": 1457.9175317844474
+      },
+      "radius": 37.529999999999994,
+      "sourceRadius": 75,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 115,
+      "queueIndex": 115,
+      "type": 7,
+      "stage": 2,
+      "position": {
+        "x": 324.7056286683379,
+        "y": 2214.1452611508244
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 116,
+      "queueIndex": 116,
+      "type": 3,
+      "stage": 2,
+      "position": {
+        "x": 174.83698051840923,
+        "y": 1379.9002708587393
+      },
+      "radius": 39.0312,
+      "sourceRadius": 78,
+      "scale": 0.5004,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 117,
+      "queueIndex": 117,
+      "type": 17,
+      "stage": 2,
+      "position": {
+        "x": -25.41225063325328,
+        "y": 2041.7903735028976
+      },
+      "radius": 42.9349455,
+      "sourceRadius": 82.7,
+      "scale": 0.519165,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 118,
+      "queueIndex": 118,
+      "type": 21,
+      "stage": 2,
+      "position": {
+        "x": 51.99682938558885,
+        "y": 1607.6166919133884
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 119,
+      "queueIndex": 119,
+      "type": 23,
+      "stage": 2,
+      "position": {
+        "x": -245.4507753925491,
+        "y": 1802.1449326626976
+      },
+      "radius": 39.313926,
+      "sourceRadius": 82.7,
+      "scale": 0.47538,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 120,
+      "queueIndex": 120,
+      "type": 1,
+      "stage": 2,
+      "position": {
+        "x": -275.09505235843255,
+        "y": 1647.8079253014496
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 121,
+      "queueIndex": 121,
+      "type": 19,
+      "stage": 2,
+      "position": {
+        "x": 102.0757911469621,
+        "y": 1946.1804012469865
+      },
+      "radius": 38.937374999999996,
+      "sourceRadius": 75,
+      "scale": 0.519165,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 122,
+      "queueIndex": 122,
+      "type": 19,
+      "stage": 2,
+      "position": {
+        "x": 301.5633558252981,
+        "y": 1734.2333551089368
+      },
+      "radius": 38.937374999999996,
+      "sourceRadius": 75,
+      "scale": 0.519165,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 123,
+      "queueIndex": 123,
+      "type": 5,
+      "stage": 2,
+      "position": {
+        "x": 264.9004436169538,
+        "y": 1907.998719633297
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 124,
+      "queueIndex": 124,
+      "type": 18,
+      "stage": 2,
+      "position": {
+        "x": -7.581267981920405,
+        "y": 1508.7772954482507
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 125,
+      "queueIndex": 125,
+      "type": 7,
+      "stage": 2,
+      "position": {
+        "x": 33.999721419586876,
+        "y": 1260.409079032197
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 126,
+      "queueIndex": 126,
+      "type": 19,
+      "stage": 2,
+      "position": {
+        "x": -229.7923280798928,
+        "y": 1403.8578935203889
+      },
+      "radius": 38.937374999999996,
+      "sourceRadius": 75,
+      "scale": 0.519165,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 127,
+      "queueIndex": 127,
+      "type": 22,
+      "stage": 2,
+      "position": {
+        "x": -149.7143915897466,
+        "y": 2201.417036408674
+      },
+      "radius": 41.032799999999995,
+      "sourceRadius": 80,
+      "scale": 0.51291,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 128,
+      "queueIndex": 128,
+      "type": 2,
+      "stage": 2,
+      "position": {
+        "x": 41.60563558753432,
+        "y": 1855.9673423648899
+      },
+      "radius": 38.0304,
+      "sourceRadius": 80,
+      "scale": 0.47538,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 129,
+      "queueIndex": 129,
+      "type": 2,
+      "stage": 2,
+      "position": {
+        "x": -140.33533526200654,
+        "y": 1588.3563805495648
+      },
+      "radius": 38.0304,
+      "sourceRadius": 80,
+      "scale": 0.47538,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 130,
+      "queueIndex": 130,
+      "type": 11,
+      "stage": 2,
+      "position": {
+        "x": 322.782922242885,
+        "y": 1986.3177792764127
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 131,
+      "queueIndex": 131,
+      "type": 5,
+      "stage": 2,
+      "position": {
+        "x": 19.586568585161558,
+        "y": 2235.204935803881
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 132,
+      "queueIndex": 132,
+      "type": 11,
+      "stage": 2,
+      "position": {
+        "x": -311.74911349054145,
+        "y": 2033.6095556579824
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 133,
+      "queueIndex": 133,
+      "type": 14,
+      "stage": 2,
+      "position": {
+        "x": 319.41598838518837,
+        "y": 1820.9331178170269
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 134,
+      "queueIndex": 134,
+      "type": 20,
+      "stage": 2,
+      "position": {
+        "x": -214.14100421082148,
+        "y": 1542.0029629539342
+      },
+      "radius": 40.34475,
+      "sourceRadius": 64.5,
+      "scale": 0.6255,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 135,
+      "queueIndex": 135,
+      "type": 18,
+      "stage": 2,
+      "position": {
+        "x": 281.3886928707399,
+        "y": 1534.119243178981
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 136,
+      "queueIndex": 136,
+      "type": 17,
+      "stage": 2,
+      "position": {
+        "x": 266.8080982799371,
+        "y": 1358.6837871027876
+      },
+      "radius": 42.9349455,
+      "sourceRadius": 82.7,
+      "scale": 0.519165,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 137,
+      "queueIndex": 137,
+      "type": 16,
+      "stage": 2,
+      "position": {
+        "x": 99.41770558018686,
+        "y": 1450.5091475075697
+      },
+      "radius": 40.938975,
+      "sourceRadius": 77,
+      "scale": 0.531675,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 138,
+      "queueIndex": 138,
+      "type": 7,
+      "stage": 2,
+      "position": {
+        "x": 109.26808394156689,
+        "y": 1302.256862748211
+      },
+      "radius": 39.875625,
+      "sourceRadius": 75,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 139,
+      "queueIndex": 139,
+      "type": 17,
+      "stage": 2,
+      "position": {
+        "x": 125.1776160260975,
+        "y": 1787.2653329417744
+      },
+      "radius": 42.9349455,
+      "sourceRadius": 82.7,
+      "scale": 0.519165,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 140,
+      "queueIndex": 140,
+      "type": 4,
+      "stage": 2,
+      "position": {
+        "x": -100.54582213289868,
+        "y": 1948.7629050358819
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 141,
+      "queueIndex": 141,
+      "type": 16,
+      "stage": 2,
+      "position": {
+        "x": -128.65810298574064,
+        "y": 1391.653911357995
+      },
+      "radius": 40.938975,
+      "sourceRadius": 77,
+      "scale": 0.531675,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 142,
+      "queueIndex": 142,
+      "type": 15,
+      "stage": 2,
+      "position": {
+        "x": 226.4896369892271,
+        "y": 2228.251430442707
+      },
+      "radius": 40.532399999999996,
+      "sourceRadius": 72,
+      "scale": 0.56295,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 143,
+      "queueIndex": 143,
+      "type": 8,
+      "stage": 2,
+      "position": {
+        "x": 179.60727220408154,
+        "y": 1921.4234800065155
+      },
+      "radius": 37.529999999999994,
+      "sourceRadius": 75,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 144,
+      "queueIndex": 144,
+      "type": 9,
+      "stage": 2,
+      "position": {
+        "x": -326.4106986303138,
+        "y": 1790.9281021944819
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 145,
+      "queueIndex": 145,
+      "type": 9,
+      "stage": 2,
+      "position": {
+        "x": 261.50563416946375,
+        "y": 1193.7775892400557
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 146,
+      "queueIndex": 146,
+      "type": 1,
+      "stage": 2,
+      "position": {
+        "x": -178.95077243194174,
+        "y": 2113.5738490112485
+      },
+      "radius": 39.49407,
+      "sourceRadius": 77,
+      "scale": 0.51291,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 147,
+      "queueIndex": 147,
+      "type": 2,
+      "stage": 2,
+      "position": {
+        "x": -26.081980391329523,
+        "y": 1420.4462396072172
+      },
+      "radius": 38.0304,
+      "sourceRadius": 80,
+      "scale": 0.47538,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 148,
+      "queueIndex": 148,
+      "type": 15,
+      "stage": 2,
+      "position": {
+        "x": 85.08571036754364,
+        "y": 2035.223914078646
+      },
+      "radius": 40.532399999999996,
+      "sourceRadius": 72,
+      "scale": 0.56295,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 149,
+      "queueIndex": 149,
+      "type": 8,
+      "stage": 2,
+      "position": {
+        "x": -322.5164811615572,
+        "y": 1399.1988943194428
+      },
+      "radius": 37.529999999999994,
+      "sourceRadius": 75,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 150,
+      "queueIndex": 150,
+      "type": 11,
+      "stage": 2,
+      "position": {
+        "x": 89.09853703509772,
+        "y": 1170.729952514137
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 151,
+      "queueIndex": 151,
+      "type": 16,
+      "stage": 2,
+      "position": {
+        "x": 90.05578088564964,
+        "y": 2220.4437242893164
+      },
+      "radius": 40.938975,
+      "sourceRadius": 77,
+      "scale": 0.531675,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 152,
+      "queueIndex": 152,
+      "type": 10,
+      "stage": 2,
+      "position": {
+        "x": 39.452519026745236,
+        "y": 1170.729952514137
+      },
+      "radius": 40.532399999999996,
+      "sourceRadius": 72,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 153,
+      "queueIndex": 153,
+      "type": 18,
+      "stage": 2,
+      "position": {
+        "x": -322.8714854759565,
+        "y": 2117.5294437100183
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 154,
+      "queueIndex": 154,
+      "type": 6,
+      "stage": 2,
+      "position": {
+        "x": -264.3876923254917,
+        "y": 1730.6682272569687
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 155,
+      "queueIndex": 155,
+      "type": 4,
+      "stage": 2,
+      "position": {
+        "x": 274.53099759749443,
+        "y": 1543.964148023695
+      },
+      "radius": 37.323585,
+      "sourceRadius": 78,
+      "scale": 0.4785075,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 156,
+      "queueIndex": 156,
+      "type": 19,
+      "stage": 2,
+      "position": {
+        "x": 121.28118021585652,
+        "y": 1675.9937608352484
+      },
+      "radius": 38.937374999999996,
+      "sourceRadius": 75,
+      "scale": 0.519165,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 157,
+      "queueIndex": 157,
+      "type": 9,
+      "stage": 2,
+      "position": {
+        "x": -127.70369541790194,
+        "y": 1566.5420488291884
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 158,
+      "queueIndex": 158,
+      "type": 23,
+      "stage": 2,
+      "position": {
+        "x": -5.415761502270129,
+        "y": 1946.1672568392453
+      },
+      "radius": 39.313926,
+      "sourceRadius": 82.7,
+      "scale": 0.47538,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 159,
+      "queueIndex": 159,
+      "type": 11,
+      "stage": 2,
+      "position": {
+        "x": -60.655498514795,
+        "y": 1760.9915787120533
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 160,
+      "queueIndex": 160,
+      "type": 13,
+      "stage": 2,
+      "position": {
+        "x": -198.29348749340164,
+        "y": 1469.5788397587664
+      },
+      "radius": 41.802164999999995,
+      "sourceRadius": 81.5,
+      "scale": 0.51291,
+      "particleType": 6,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 161,
+      "queueIndex": 161,
+      "type": 20,
+      "stage": 2,
+      "position": {
+        "x": -219.16439084011958,
+        "y": 2115.0127059763236
+      },
+      "radius": 40.34475,
+      "sourceRadius": 64.5,
+      "scale": 0.6255,
+      "particleType": 3,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 162,
+      "queueIndex": 162,
+      "type": 8,
+      "stage": 2,
+      "position": {
+        "x": 327.47,
+        "y": 1170.729952514137
+      },
+      "radius": 37.529999999999994,
+      "sourceRadius": 75,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 163,
+      "queueIndex": 163,
+      "type": 11,
+      "stage": 2,
+      "position": {
+        "x": 30.90624287204062,
+        "y": 1170.729952514137
+      },
+      "radius": 36.7794,
+      "sourceRadius": 70,
+      "scale": 0.52542,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 164,
+      "queueIndex": 164,
+      "type": 9,
+      "stage": 2,
+      "position": {
+        "x": -4.31136775622339,
+        "y": 1830.9838212537566
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 165,
+      "queueIndex": 165,
+      "type": 16,
+      "stage": 2,
+      "position": {
+        "x": 236.3543883659696,
+        "y": 1746.9217665600236
+      },
+      "radius": 40.938975,
+      "sourceRadius": 77,
+      "scale": 0.531675,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 166,
+      "queueIndex": 166,
+      "type": 6,
+      "stage": 2,
+      "position": {
+        "x": -35.63584858599016,
+        "y": 1170.729952514137
+      },
+      "radius": 42.22125,
+      "sourceRadius": 75,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 167,
+      "queueIndex": 167,
+      "type": 9,
+      "stage": 2,
+      "position": {
+        "x": 152.83631901511188,
+        "y": 1218.406858991121
+      },
+      "radius": 35.94123,
+      "sourceRadius": 67.6,
+      "scale": 0.531675,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 168,
+      "queueIndex": 168,
+      "type": 22,
+      "stage": 2,
+      "position": {
+        "x": 59.4645713627192,
+        "y": 1170.729952514137
+      },
+      "radius": 41.032799999999995,
+      "sourceRadius": 80,
+      "scale": 0.51291,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 169,
+      "queueIndex": 169,
+      "type": 10,
+      "stage": 2,
+      "position": {
+        "x": -50.20083352944657,
+        "y": 1170.729952514137
+      },
+      "radius": 40.532399999999996,
+      "sourceRadius": 72,
+      "scale": 0.56295,
+      "particleType": 4,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 170,
+      "queueIndex": 170,
+      "type": 21,
+      "stage": 2,
+      "position": {
+        "x": 141.2598196251779,
+        "y": 2220.4437242893164
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 171,
+      "queueIndex": 171,
+      "type": 21,
+      "stage": 2,
+      "position": {
+        "x": 267.1104948040523,
+        "y": 1170.729952514137
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 172,
+      "queueIndex": 172,
+      "type": 22,
+      "stage": 2,
+      "position": {
+        "x": 36.75137561167219,
+        "y": 2146.74308261455
+      },
+      "radius": 41.032799999999995,
+      "sourceRadius": 80,
+      "scale": 0.51291,
+      "particleType": 2,
+      "status": "normal",
+      "thawHits": 0
+    },
+    {
+      "id": 173,
+      "queueIndex": 173,
+      "type": 21,
+      "stage": 2,
+      "position": {
+        "x": -225.03389977533175,
+        "y": 2209.404311804939
+      },
+      "radius": 42.534,
+      "sourceRadius": 85,
+      "scale": 0.5004,
+      "particleType": 0,
+      "status": "normal",
+      "thawHits": 0
+    }
+  ],
+  "obstacles": [],
+  "woodenObstacles": [],
+  "randomBoxes": [],
+  "blackHoles": []
+}

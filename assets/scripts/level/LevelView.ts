@@ -1,5 +1,6 @@
 import { _decorator, Component, Label, Node, Sprite } from 'cc';
 import { LevelLaunchConfig } from './LevelLaunchConfig';
+import { LevelData } from './generator/LevelTypes';
 
 const { ccclass } = _decorator;
 
@@ -31,6 +32,18 @@ export class LevelView extends Component {
     private dirtectionTip: Node | null = null;
     private fullTip: Node | null = null;
     private leaderTip: Node | null = null;
+    private levelData: LevelData | null = null;
+    private goalOverride: number | null = null;
+
+    /** 第 3 步：绑定生成器产出的关卡纯数据；必须在 start（首帧）前调用。 */
+    public bindLevelData(data: LevelData): void {
+        this.levelData = data;
+    }
+
+    /** 第 4 步：第 1 关等特例真实水果总数与生成器数据不同，由 FruitSpawner 提供。 */
+    public bindInitialGoal(total: number): void {
+        this.goalOverride = total;
+    }
 
     public onLoad(): void {
         this.labFruit = this.findLabel('game/fruitTextBg/labFruit');
@@ -47,9 +60,22 @@ export class LevelView extends Component {
 
     public start(): void {
         this.applyInitialState();
-        this.setLevel(LevelLaunchConfig.options.level);
-        this.setGoalRemain(this.readDebugNumber('uigoal', 0));
-        this.setProgress(this.readDebugNumber('uiprogress', 0) / 100);
+        const level = this.levelData?.level ?? LevelLaunchConfig.options.level;
+        this.setLevel(level);
+
+        if (this.levelData) {
+            // 正式链路：剩余目标初始化为本关水果总数；进度为 0。
+            this.setGoalRemain(this.goalOverride ?? this.levelData.fruits.length);
+            this.setProgress(0);
+        } else {
+            // 无生成数据时（独立预览）允许用调试参数临时填数。
+            this.setGoalRemain(this.readDebugNumber('uigoal', 0));
+            this.setProgress(this.readDebugNumber('uiprogress', 0) / 100);
+        }
+
+        // ?uiprogress 仍可在真实关卡上覆盖进度，便于 UI 三档验收。
+        const debugProgress = this.readDebugNumber('uiprogress', -1);
+        if (debugProgress >= 0) this.setProgress(debugProgress / 100);
     }
 
     /** 关卡号文案，原版格式为“第 N 关”；城市/关卡名小字待 CityConfig 接入后再填。 */

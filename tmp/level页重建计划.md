@@ -1,9 +1,9 @@
 # Level 页面重建计划
 
-> 状态：执行中；第 0、1、2 步已于 2026-10-17 完成并验收（第 2 步含 0/50/100% 进度三档与
-> iPhone 14 Pro / iPad 10.2 两规格截图验证）；当前等待第 3 步指示。证据梳理见 `tmp/level页逻辑梳理.md`。  
+> 状态：执行中；第 0～5 步已完成（第 0～4 步人肉验收；第 5 步已自动截图验证
+> 174 水果稳定性与四个移动方向，等待人肉验收）。证据梳理见 `tmp/level页逻辑梳理.md`。  
 > 创建日期：2026-10-16  
-> 最近更新：2026-10-16  
+> 最近更新：2026-10-17  
 > 目标工程：Cocos Creator 3.8.8，设计分辨率 750 x 1334  
 > 实施约定：后续严格按本文步骤推进；每完成一步，先预览并由人工验收，再进入下一步。
 
@@ -56,7 +56,8 @@ gameNew / Canvas
 ### 2.3 已回溯的关卡生成代码
 
 > 2026-10-17 核对：生成器文件实际为 `tmp/gen.js`（CommonJS，generateLevel(level, options)）；
-> 早期生成的 level-1/level-2 seed 样例 JSON 当前已不在 tmp 下，第 3 步迁移时重新生成并固化。
+> 第 3 步已迁移为 `assets/scripts/level/generator/LevelGenerator.ts`，基准样例固化在
+> `tmp/level-baselines/level-{1,2}.normal.seed-20261016.json`。
 
 `tmp/gen.js`（文档早期称 recovered-level-layout.js）已恢复以下内容：
 
@@ -243,7 +244,7 @@ Win / Lose -> Restart / Next / Home
 
 ### 第 3 步：迁移并验证关卡生成器
 
-状态：`[ ] 未开始`
+状态：`[x] 已完成（2026-10-17）`
 
 实现范围：
 
@@ -264,6 +265,18 @@ Win / Lose -> Restart / Next / Home
 - 连续生成一批代表性关卡时不出现奇数配量、越界坐标或重复 ID。
 - 木板和随机盒子的未知字段继续明确标记为待恢复，不伪造坐标。
 
+完成记录（2026-10-17）：
+
+- 新增 `assets/scripts/level/generator/LevelTypes.ts`（Point/FruitData/LevelParameters/LevelData/GenerateLevelOptions 等纯数据类型）与 `assets/scripts/level/generator/LevelGenerator.ts`（`tmp/gen.js` 的带类型迁移，约 1100 行）；算法、数值常量、随机流程逐行保留，迁移中不改任何公式。
+- 公开 API：`generateLevel(level, options)`、`validateLevel(data)`、`generateLevelParameters`、`createSeededRandom` 等；rng 仍为依赖注入（`seed` 或 `rng`），开发期固定种子可复现。
+- `validateLevel` 在原校验（总数一致、坐标有限、X 越界、冰冻数量）基础上补齐第 3 步要求：每种水果类型必须为偶数、类型 1～33、Y 边界、ID 唯一、radius/scale 为正、冰冻 thawHits、障碍数量与变体、尾号 0 关黑洞及分配数量一致。
+- 新增 `assets/scripts/level/LevelSession.ts`：按 `LevelLaunchConfig` 生成并校验 LevelData 的最小会话；`GameNavigator.showLevel()` 进关时创建会话并 `levelView.bindLevelData(data)`，返回首页时随 Level 一起释放。
+- 运行链路：`LevelView` 绑定真实数据后，`labFruit` 初始为 `fruits.length`（剩余目标=总数）、进度 0；控制台输出 `[LevelGen] 第 N 关共 M 个水果；阶段=…；moveDir/scaleExp/障碍/木板/随机盒/黑洞/冰冻` 摘要。`?uiprogress` 仍可临时覆盖进度做 UI 验收。
+- 基准与回归：固化 `tmp/level-baselines/level-1.normal.seed-20261016.json`（4 个）、`level-2...json`（174 个）；一键脚本 `node tmp/verify-level-generator.cjs` 会先编译 TS，再对比基准，并在 level 1～120 × normal/easy/hard × 4 组种子共 1440 组用例上做 TS 版与 `tmp/gen.js` 的逐字段深度对比 + 校验，结果全部通过（0 diff、0 invalid）。
+- 预览验收（`?autolevel=1&level=N`）：第 1 关显示“第 1 关 / 剩余 4 / 0 %”，日志 `共 4 个水果；阶段=4`；第 2 关显示“第 2 关 / 剩余 174 / 0 %”，日志 `共 174 个水果；阶段=18/70/86`；均无报错，且不实例化水果。
+- 待恢复项保持不伪造：木板/随机盒仍只输出数量占位（`woodenObstacles/randomBoxes` 的 `{id}`），无坐标朝向；黑洞计数/传送精确行为未补；`labLevel copy` 城市名与进度填充贴图仍待城市主题系统。
+- 类型迁移备注：FruitData.stage、ObstacleData.variant 使用 number 而非字面量联合，避免给逐行保留的 JS 实现引入人为收窄；`deepFreeze` 用 `Object.keys` 遍历以兼容当前 lib target。
+
 ### 第 4 步：实例化水果并还原第 1 关画面
 
 > 源码修正（2026-10-17）：原版第 1 关是 12 个水果的教学关，不是 4 个草莓。
@@ -271,7 +284,7 @@ Win / Lose -> Restart / Next / Home
 > 定位点 firstLevel/pos1..3/pos1..4，含手指引导与两轮教学，fruitTotalNum=12。
 > 4 水果最小闭环只作为开发自测布局，正式第 1 关须按 firstLevel 还原。
 
-状态：`[ ] 未开始`
+状态：`[x] 已完成（2026-10-17，人肉验收）`
 
 实现范围：
 
@@ -293,9 +306,36 @@ Win / Lose -> Restart / Next / Home
 - 退出或重开后旧水果全部回收，不叠加、不泄漏事件。
 - 本步点击水果无反应，属于预期。
 
+完成记录（2026-10-17）：
+
+- 新增 `assets/scripts/level/fruit/FruitPrefabMap.ts`：1～33 类型→预制体 UUID 映射
+  （UUID 取自 assets/fruits/fruitN.prefab.meta）、物理分组常量
+  （fruit=1 / wall=2 / obst=3 / clickFruit=4 / guardrail=5，以
+  settings/v2/packages/project.json collisionGroups 为准）、
+  `DEFAULT_FRUIT_SCALE=0.68`（原版 curThemeType=2 的 setfruitScale 固定值）。
+- 新增 `FruitFactory.ts`：按 UUID `assetManager.loadAny` 懒加载+缓存+并发去重，
+  `preload(types)`；池接口（acquire/release）按对象池形态预留，当前直接销毁。
+- 新增 `FruitEntity.ts`（@ccclass('FruitEntity')）：字段 id/pairId/fruitType(kind)/
+  stage/radius/isCanTouch；setup 写缩放并把 RigidBody2D 置 group=fruit、Static；
+  `unfreeze()` 预留给第 5 步解冻物理。
+- 新增 `FruitSpawner.ts`（挂 GbzLvCommon 根，GameNavigator.showLevel 时 addComponent）：
+  第 1 关按 firstLevelIDS=[[9×4],[1×4],[2×4]] 挂到 game/firstLevel/pos1..3/pos1..4，
+  pos2/pos3 初始 y=height/2+500=1167 屏外（第四轮教学才移入，属原版设计）；
+  其余关按生成器 FruitData 挂 game/fruits，坐标/缩放/stage/冰冻 kind 取生成结果；
+  spawn() 返回真实总数（第 1 关 12）供 LevelView.bindInitialGoal。
+- GameNavigator 进关时 addComponent(FruitSpawner) 并 spawn(data)；
+  退出/重开随 levelCommon 子树整体销毁，spawned 数组 onDestroy 兜底 clear。
+- 大坑修复：恢复出的 33 个水果预制体根节点 `_layer=2`（GIZMOS，子包遗留），
+  不在场景相机 visibility 内导致"水果逻辑存在但完全不渲染"。双层修复：
+  (1) 33 个 prefab 文件 `_layer` 批量改为 33554432（UI_2D）并 refresh-asset
+  （library 导入缓存已确认更新）；(2) FruitSpawner.syncLayer 递归同步子树 layer 兜底。
+- 人肉验收（全新 cb 标签页，Home→开始游戏 常规路径）：第 1 关中央显示第 1 行 4 个草莓
+  （菱形四点 (0,23)/(±66,83)/(0,149)，scale 0.68），剩余 12、0%，无报错；
+  autolevel 路径同画面。第 2、3 行屏外为教学设计。
+
 ### 第 5 步：启用主场地物理和移动方向
 
-状态：`[ ] 未开始`
+状态：`[x] 已完成（2026-10-17，自动验证通过，待人肉验收）`
 
 实现范围：
 
@@ -315,6 +355,113 @@ Win / Lose -> Restart / Next / Home
 - 第 1 关运行 60 秒无水果越界。
 - 第 2 关完成生成后无持续抖动、爆炸式弹飞或明显卡顿。
 - 物理参数调整记录到本文，避免后续无法复现。
+
+完成记录（2026-10-17）：
+
+- 新增 `assets/scripts/level/LevelPlayfield.ts`（挂 GbzLvCommon 根，GameNavigator
+  进关时 addComponent 并 enter），对齐原版 GameMgr 的物理子集；
+  扩展 `FruitEntity.ts`（圆形碰撞体/刚体参数/保护期动画/checkBound 表现/autoDrop），
+  `FruitSpawner.ts` 增加 `spawnComplete` Promise 与 `entities` 访问器。
+- 碰撞分组结论（用 wxrestore 解码原包
+  `subpackages/game/import/0d/0d785ed53.json` 实证）：原包预制体中**所有墙体**
+  RigidBody2D.group 都是默认 0（DEFAULT），只有 left/right 在 initWall 运行时切到
+  DEFAULT(0) 或 guardrail(5)。碰撞矩阵维持 project.json 现状：
+  DEFAULT=19(碰 DEFAULT/fruit/clickFruit)、fruit=31、wall=2(仅 fruit)、
+  obst=18、clickFruit=59、guardrail=16(仅 clickFruit)；世界重力 (0,-10)。
+  分组索引：DEFAULT=0 / fruit=1 / wall=2 / obst=3 / clickFruit=4 / guardrail=5
+  （注意 FruitConfig.RB_GROUPS 的 1/2/4/8/16/32 是 2.x 风格位掩码，3.8 的
+  RigidBody2D.group 要用索引，已在 FruitPrefabMap.FRUIT_PHYSICS_GROUP 转换）。
+- 水果碰撞体（对齐 FruitComp.init）：实例化后禁用预制体 PolygonCollider2D，
+  新增 CircleCollider2D（radius=UITransform.width/2，density=1、friction=0、
+  restitution=0、非 sensor）；174 体同关时圆碰撞显著更稳。
+- 生成保护期（对齐 FruitComp.anim/setRigType）：水果 scale 0 +
+  Dynamic(gravityScale=0, allowSleep=true, bullet=false)，播放 1.3s backOut
+  弹出动画（重叠轻微分离），结束统一 Static；刚体 zeroVelocity/angularDamping=0/
+  linearDamping=0；点击下落时才 Dynamic(gravityScale=13, allowSleep=false,
+  bullet=true，第 6 步用）。
+- initWall/hideWall 逐 case 移植（arrangeType 0 静止/1 下移/2 右移/3 左移）：
+  0=四边墙全显且 line 隐藏；1=仅 left/right（生成后再隐藏 top/bottom）；
+  2=line 在 x=+305、right=DEFAULT、left=guardrail、top/bottom 显；3=镜像 line=-305；
+  left/right 初始位置 ±(375+100)=±475（与预制体一致）。
+- 场地移动（非物理，单 tween 驱动 setPosition，Static 刚体随节点变换）：
+  下移关 fruitDown 每 1s 尝试，条件"最高水果 ≥ halfH-250(417) 且最低水果距
+  boundaryLine.y+10 空隙 >20"才整体下移，时长 max(0.4, S/600)，isDowning 加锁，
+  第 1 关不调度；左右移关开局 fruitMove(true) 向 line 靠拢（最近距离>baseY=120
+  才移，时长 max(0.15, e/1050)），后续每次点击步进 7px 的入口已预留
+  （fruitMove(false)，第 6 步接）。
+- checkBound/fruitDrop 移植：右移关 x<-345、左移关 x>345 的护栏外侧水果压暗
+  （UIOpacity 125 + 色值 65，isCanTouch=false），其余正常；|x-line.x|<50 的水果
+  autoDrop：保持 fruit 分组、Dynamic(gravityScale=13, bullet) 自动落入漏斗。
+  本步不绑触摸、不入槽、不配对。
+- 调试开关：LevelLaunchConfig 增加 `?movedir=0..3`（横向关 4/9 生成器数据表为空，
+  用 level=10 的 40 水果布局覆盖方向来验收；仅影响墙体/移动，不改生成数据）。
+  代表关：moveDir 0→第 10 关、1→第 1/2 关、2/3 生成器无数据。
+- 顺带修复：FruitPrefabMap 的 UUID 表有 3 处抄写错误（fruit15 截断、
+  fruit16 漏字符、fruit20 段错位），已改为从 33 个 prefab.meta 重新生成并逐个
+  核对 library 文件存在；FruitFactory.preload 改 allSettled 容错、
+  FruitSpawner 单个水果加载失败只跳过该水果不中断整关（原 bug 会导致第 2 关
+  水果全不显示并 404）。
+- 自动验证（autolevel 新 cb 标签页截图）：第 1 关 4 草莓 Static 稳定；
+  第 2 关 174 水果全部显示、布局整齐、间隔 20s 两帧完全一致、FPS 60 无报错；
+  movedir=2 右移：line 右侧、右侧水果 autoDrop 落入漏斗后静止；movedir=3 左移镜像；
+  moveDir=0 静止：四边墙、line 隐藏、40 水果不动。tsc 项目代码 0 诊断。
+- 物理参数（便于复现）：世界重力 (0,-10)；水果重力倍率 13（仅点击/自动下落）；
+  碰撞体 density=1 / friction=0 / restitution=0；linearDamping=0、angularDamping=0；
+  保护期 1.3s backOut；下移判定 halfH-250、步进阈值 20、S/600（下限 0.4s）；
+  横移步距 7、靠拢基准 120、e/1050（下限 0.15s）、步进 0.1s；越线阈值 |dx|<50；
+  护栏外侧阈值 ±(halfW-30)。
+- 人肉验收修正（2026-10-17）：第 2 关大量水果出生在下方漏斗砖墙内侧。根因是
+  生成器在整屏 `minY=-560..maxY=650` 全随机撒点，而原版
+  ReferenceLayMgr.genLvMapData 是从 `_bottomY=boundaryLine.y`（Widget 对齐后
+  35.674）向上按阶段带状堆放。已按原版重写 `generateFruitLayout`
+  （`LevelGenerator.ts` 与 `tmp/gen.js` 同步）：
+  - `LayoutConfig` 增加 `bottomY`，`DEFAULT_LAYOUT.minY/bottomY=35.674`；
+  - 每阶段一条水平带，带高 `N*PI*55^2*scaleExp/gameW`；DOWN 关逐带累加，
+    NONE 关单阶段带顶=halfH-140、多阶段 `min(累加值, halfH-140)`，
+    LEFT/RIGHT 暂保持全范围（GridManager 横带未移植，数据表为空）；
+  - 阶段展开后的打乱由整队列交换改为原版 `shuffleArray` 的 Fisher-Yates
+    （尾向、与 [0,i] 闭区间交换）；
+  - 冰冻/障碍分布改用实际水果纵向范围 `[bottomY, max(650, 实际最高)]`；
+  - validate 放宽水果 maxY（带顶允许超出屏顶，原版设计靠 fruitDown 下移），
+    仅保留 x 边界与 y≥minY 校验。
+  回归：重新冻结 level-1/2 基线，`node tmp/verify-level-generator.cjs`
+  1440 组 TS↔JS 逐字段 0 diff、validate 全过；L2 预览最低水果 y≈40，
+  漏斗砖墙内无水果，20s 稳定 FPS 60；L1 教学布局不受影响。
+- 人肉验收修正二（2026-10-17，两个问题）：
+  - **左右移关越线水果水平飞出屏幕**：原版 `GameMgr.hideWall` 对**所有**
+    arrangeType 都执行 `bottomWall.active=false`（仅 arrangeType=1 额外隐藏
+    top），之前只在下移关隐藏 bottom，导致 autoDrop 水果落到 y=-7 的 bottom
+    大板上被支撑、在 friction=0 表面水平滑走。已改为无条件隐藏 bottom；
+    `?movedir=2/3` 实测越线水果垂直落入中央漏斗并在槽口堆积。
+  - **水果贴边出屏**：原版 `getPos` 的 x 范围是逐水果
+    `[-halfW + r + 7, halfW - r - 7]`，之前 `DEFAULT_LAYOUT.minX/maxX`
+    预扣成 ±368 又在 findFruitPosition 内再加 r+7，等于多扣/少扣错位。
+    已改回 ±375（750 宽），x 范围完全交由 findFruitPosition 按水果半径
+    计算；兜底 clamp 与原版 `-s+r+10 / s-r-10` 一致。
+  - **几何链核对结论**：原包 prefab（subpackages/fruits，UUID 与
+    FruitPrefabMap 相同）根 UITransform 即 133~171 宽，与重建工程一致；
+    运行时视觉半径 = width/2 * originalPt.scale ≈ 38~40，摆放碰撞半径
+    `R*S` 也是同一值，水果大小本来就与原版一致（"偏大"观感主要来自出界
+    与重叠）。注意 scaleExp=0.9 只影响带状堆放密度，**不缩单个水果**；
+    `getFruitGeometry` 已去掉 scaleExp 乘法。
+  - **第 1 关缩放修正**：默认皮肤 useSkinId=0 时 setfruitScale 用
+    originalPt.scale（教学关同理），之前误用主题 2 的固定 0.68；
+    spawnFirstLevel 改用 `getFruitNodeScale(type)` 逐类型取值。
+  - **数量公式修正**：原版 ReferenceMgr.initLvCfg 在 level<10 时，
+    尾数 4/7/8/9 直接取 `num10Base` 不做 num10Add 递增（第 9 关=180），
+    只有 1/2/3/5 用 `num10Base + num10Add*(t-3)`；之前 lv9 算出 228、
+    lv4/7/8 为 NaN→0 水果。已按尾数区分。
+  - **MOVE_DIRECTION 枚举对齐原版**：NONE=0/DOWN=1/RIGHT=2/LEFT=3
+    （之前本地标签 LEFT/RIGHT 反了，数值语义巧合正确，已改名并在
+    L1/L2/L4/L9 显式赋值，避免第 6 步踩坑）。
+  - 回归：再次重冻结 level-1/2 基线（x 范围有意变化），
+    `node tmp/verify-level-generator.cjs` 1440 组 0 diff、validate 全过；
+    L4=102/RIGHT、L7=160、L8=170、L9=180/LEFT、L10=42/NONE 均与原包
+    公式吻合；tsc 0 诊断；临时 dropdbg 覆盖层已全部移除。
+  - 已知遗留（不影响第 5 步验收）：左右移关原版用 GridManager 屏幕外
+    纵向分区（getPos2/getPos3、parts）初始堆放，目前仍是全宽带状堆放 +
+    开局 fruitMove(true) 靠拢；斜坡 hitPower 内向力（125±20）未移植，
+    实测靠斜坡几何+重力已能汇入中央，第 6 步入槽验收时再决定是否补。
 
 ### 第 6 步：点击水果并进入下方收集区
 
