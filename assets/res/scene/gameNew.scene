@@ -4833,6 +4833,10 @@
       "__uuid__": "bca03022-8e0f-409c-bfc6-ebcc5284083d",
       "__expectedType__": "cc.Prefab"
     },
+    "winPrefab": {
+      "__uuid__": "d0dd4351-6733-4b91-92e9-cc1604b15ac1",
+      "__expectedType__": "cc.Prefab"
+    },
     "_id": "04GCNiBVxHDoHxhZBxxp8U"
   },
   {

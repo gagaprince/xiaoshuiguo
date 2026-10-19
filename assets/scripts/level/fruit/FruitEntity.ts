@@ -37,6 +37,8 @@ export interface FruitInputHost {
     onFruitClicked(entity: FruitEntity): void;
     /** 水果接触 floor/btnFirstWall/btnSecondWall，进入下方收集区。 */
     onFruitSettled(entity: FruitEntity): void;
+    /** 两个同类型水果物理接触且满足配对条件（对齐 FruitComp.checkID 的 F 分支）。 */
+    onFruitMatch(self: FruitEntity, other: FruitEntity): void;
 }
 
 export interface FruitEntityInit {
@@ -84,6 +86,8 @@ export class FruitEntity extends Component {
     public inCheckBox = false;
     /** 已越过 canCheck.y，可参与第 7 步配对（原版 isCanCheck）。 */
     public canCheckPassed = false;
+    /** 已锁定到一对消除中（原版 isCollider），防止同一水果重复结算。 */
+    public isCollider = false;
     /** 点击下落时的重力倍率（原版固定 13，世界重力 -10）。 */
     public readonly gravityScale = 13;
     public readonly restitution = 0;
@@ -110,6 +114,7 @@ export class FruitEntity extends Component {
         this.isInSlot = false;
         this.inCheckBox = false;
         this.canCheckPassed = false;
+        this.isCollider = false;
         this.boardScale = scale;
 
         this.baseWidth = this.node.getComponent(UITransform)?.width ?? 100;
@@ -218,14 +223,34 @@ export class FruitEntity extends Component {
 
     /** 原版 checkID 在 POST_SOLVE 里对 floor/btnFirstWall/btnSecondWall 的入槽分支。 */
     private onPostSolve(_self: Collider2D, other: Collider2D): void {
+        const otherEntity = other.node.getComponent(FruitEntity);
+        if (otherEntity) {
+            this.tryPair(otherEntity);
+            return;
+        }
+        if (this.isCollider) return;
         const name = other.node.name;
         if (name === 'floor' || name === 'btnFirstWall' || name === 'btnSecondWall') {
             this.markSettled();
         }
     }
 
+    /**
+     * 原版 FruitComp.checkID 的同类型配对判定（POST_SOLVE 水果间接触）：
+     * 双方都越过 canCheck，或至少一方已入槽时，同 pairId 即可配对。
+     */
+    private tryPair(other: FruitEntity): void {
+        if (this.isCollider || other.isCollider || this.pairId !== other.pairId) return;
+        if (this.pairId <= 0) return;
+        const bothPassedCanCheck = this.canCheckPassed && other.canCheckPassed;
+        const oneInSlot = this.isInSlot || other.isInSlot;
+        if (!bothPassedCanCheck && !oneInSlot) return;
+        if (this.fruitType !== 0 || other.fruitType !== 0) return;
+        this.host?.onFruitMatch(this, other);
+    }
+
     private markSettled(): void {
-        if (this.isInSlot) return;
+        if (this.isInSlot || this.isCollider) return;
         this.isInSlot = true;
         this.host?.onFruitSettled(this);
     }
@@ -309,6 +334,71 @@ export class FruitEntity extends Component {
         this.isTouch = true;
         this.isAutoDrop = true;
         this.setRigType(ERigidBody2DType.Dynamic, this.gravityScale, true);
+    }
+
+    /**
+     * 第 7 步：锁定为消除中（原版 checkID F 分支：双方速度清零、isCollider=true）。
+     * 同步清零速度，物理关闭延迟到下一帧（接触回调期间 world 已锁定，
+     * 同帧销毁/改 Static 会让 box2d 代理状态错乱，与 hideCollider scheduleOnce 一致）。
+     */
+    public lockForElimination(): void {
+        this.isCollider = true;
+        if (this.body) {
+            this.body.linearVelocity = new Vec2(0, 0);
+            this.body.angularVelocity = 0;
+        }
+        this.scheduleOnce(() => {
+            if (!this.node.isValid) return;
+            if (this.circleCollider?.enabled) {
+                this.circleCollider.sensor = true;
+                this.circleCollider.enabled = false;
+            }
+            if (this.body) {
+                this.body.gravityScale = 0;
+                this.body.allowSleep = true;
+                this.body.bullet = false;
+                this.body.angularVelocity = 0;
+                this.body.linearVelocity = new Vec2(0, 0);
+                this.body.angularDamping = 0;
+                this.body.linearDamping = 0;
+                this.body.enabledContactListener = false;
+                this.body.type = ERigidBody2DType.Static;
+            }
+        }, 0);
+    }
+
+    /**
+     * 第 7 步：原版 GameMgr.fruitTween 的基础动画（粒子/音效留给表现步骤）。
+     * 0.12+0.12 缩放回弹（u -> u+0.1 -> u），0.24s 后上浮 50（quadOut），
+     * 再 0.4s quadIn 飞入篮子坐标，到达后回调（控制器负责回收节点）。
+     * targetLocal 已由控制器换算为本节点父坐标系下的位置。
+     */
+    public playEliminationTween(targetLocal: Vec3, onArrive: () => void): void {
+        const node = this.node;
+        const sprite = node.getComponent(Sprite);
+        if (sprite) sprite.color = new Color(255, 255, 255, 255);
+        Tween.stopAllByTarget(node);
+
+        const u = node.scale.x;
+        const enlarged = u + 0.1;
+        const rise = new Vec3(node.position.x, node.position.y + 50, 0);
+
+        tween(node)
+            .to(0.12, { scale: new Vec3(enlarged, enlarged, 1) })
+            .to(0.12, { scale: new Vec3(u, u, 1) })
+            .start();
+
+        tween(node)
+            .delay(0.24)
+            .to(0.2, { position: rise, scale: new Vec3(enlarged, enlarged, 1) }, { easing: 'quadOut' })
+            .to(0.4, { position: targetLocal }, { easing: 'quadIn' })
+            .call(() => {
+                if (node.isValid) {
+                    Tween.stopAllByTarget(node);
+                    onArrive();
+                }
+            })
+            .start();
     }
 
     /**

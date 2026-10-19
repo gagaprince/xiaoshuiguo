@@ -4,6 +4,8 @@ import { LevelView } from '../level/LevelView';
 import { LevelSession } from '../level/LevelSession';
 import { FruitSpawner } from '../level/fruit/FruitSpawner';
 import { LevelPlayfield } from '../level/LevelPlayfield';
+import { COLLECTION_EVENT_FRUIT_ARRIVED } from '../level/CollectionController';
+import { WinLayer } from '../level/WinLayer';
 
 const { ccclass, property } = _decorator;
 
@@ -28,11 +30,17 @@ export class GameNavigator extends Component {
     @property({ type: Prefab, tooltip: '关卡 HUD GbzMainLayer' })
     public levelHudPrefab: Prefab = null;
 
+    @property({ type: Prefab, tooltip: '胜利层 GbzWin2Layer' })
+    public winPrefab: Prefab = null;
+
     private home: Node | null = null;
     private levelCommon: Node | null = null;
     private levelHud: Node | null = null;
+    private winLayer: Node | null = null;
     private navigating = false;
     private levelSession: LevelSession | null = null;
+    private levelView: LevelView | null = null;
+    private playfield: LevelPlayfield | null = null;
 
     public onLoad(): void {
         // 恢复场景默认带的透明输入拦截层当前没有任何过场逻辑，先关闭以保证真实点击
@@ -83,11 +91,19 @@ export class GameNavigator extends Component {
             this.levelCommon = instantiate(this.levelCommonPrefab);
             this.stage.addChild(this.levelCommon);
             const levelView = this.levelCommon.addComponent(LevelView);
+            this.levelView = levelView;
             levelView.bindLevelData(this.levelSession.data);
             const fruitSpawner = this.levelCommon.addComponent(FruitSpawner);
-            levelView.bindInitialGoal(fruitSpawner.spawn(this.levelSession.data));
+            this.levelSession.bindGoal(fruitSpawner.spawn(this.levelSession.data));
+            levelView.bindInitialGoal(this.levelSession.totalGoal);
             const playfield = this.levelCommon.addComponent(LevelPlayfield);
+            this.playfield = playfield;
             playfield.enter(this.levelSession.data, fruitSpawner);
+            playfield.collectionController?.events.on(
+                COLLECTION_EVENT_FRUIT_ARRIVED,
+                this.onFruitArrived,
+                this,
+            );
 
             this.levelHud = instantiate(this.levelHudPrefab);
             this.stage.addChild(this.levelHud);
@@ -97,6 +113,45 @@ export class GameNavigator extends Component {
         } finally {
             this.navigating = false;
         }
+    }
+
+    /** 第 8 步：每个水果飞入篮筐后递减目标，最后一个到达时弹胜利层（原版 checkWin 时机）。 */
+    private onFruitArrived(): void {
+        if (!this.levelSession || !this.levelView) return;
+        const result = this.levelSession.recordCollected();
+        this.levelView.setGoalRemain(result.remain);
+        this.levelView.setProgress(result.progress);
+        if (result.cleared) this.showWinLayer();
+    }
+
+    /** 第 8 步：胜利只触发一次；锁输入、隐 HUD、挂最小可用 GbzWin2Layer。 */
+    private showWinLayer(): void {
+        if (this.winLayer) return;
+        if (!this.stage || !this.winPrefab) {
+            console.warn('[GameNavigator] win prefab/stage missing');
+            return;
+        }
+        this.playfield?.lockInput();
+        if (this.levelHud) this.levelHud.active = false;
+
+        const level = this.levelSession?.data.level ?? LevelLaunchConfig.options.level;
+        const node = instantiate(this.winPrefab);
+        const win = node.addComponent(WinLayer);
+        win.setup({
+            onNext: () => this.gotoLevel(level + 1),
+            onReplay: () => this.gotoLevel(level),
+            onHome: () => this.backHome(),
+        });
+        this.stage.addChild(node);
+        this.winLayer = node;
+    }
+
+    /** 胜利层出口：销毁当前关卡后以新关卡号重建（重玩即同号）。 */
+    private gotoLevel(level: number): void {
+        if (this.navigating) return;
+        LevelLaunchConfig.override({ level });
+        this.clearLevel();
+        this.showLevel();
     }
 
     public backHome(): void {
@@ -142,7 +197,15 @@ export class GameNavigator extends Component {
     }
 
     private clearLevel(): void {
+        const collection = this.playfield?.collectionController ?? null;
+        collection?.events.off(COLLECTION_EVENT_FRUIT_ARRIVED, this.onFruitArrived, this);
+        this.playfield = null;
+        this.levelView = null;
         this.levelSession = null;
+        if (this.winLayer) {
+            this.winLayer.destroy();
+            this.winLayer = null;
+        }
         if (this.levelHud) {
             this.levelHud.destroy();
             this.levelHud = null;

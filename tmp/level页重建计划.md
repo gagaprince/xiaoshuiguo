@@ -1,8 +1,8 @@
 # Level 页面重建计划
 
-> 状态：执行中；第 0～6 步已完成并人肉验收（2026-10-17）。证据梳理见 `tmp/level页逻辑梳理.md`。  
+> 状态：执行中；第 0～7 步已完成并人肉验收（第 0～6 步 2026-10-17；第 7 步 2026-10-19）。证据梳理见 `tmp/level页逻辑梳理.md`。  
 > 创建日期：2026-10-16  
-> 最近更新：2026-10-17  
+> 最近更新：2026-10-19  
 > 目标工程：Cocos Creator 3.8.8，设计分辨率 750 x 1334  
 > 实施约定：后续严格按本文步骤推进；每完成一步，先预览并由人工验收，再进入下一步。
 
@@ -517,7 +517,7 @@ Win / Lose -> Restart / Next / Home
 
 ### 第 7 步：两个相同水果配对并消除
 
-状态：`[ ] 未开始`
+状态：`[x] 已完成（2026-10-19，自动回归 + 人肉验收通过）`
 
 实现范围：
 
@@ -537,6 +537,32 @@ Win / Lose -> Restart / Next / Home
 - 一对水果只结算一次。
 - 消除过程中继续点击不会破坏队列。
 - 不同类型水果不会错误配对；相同类型后续到达时能正确匹配。
+
+完成记录（2026-10-19，自动点击回归）：
+
+- 新增 `CollectionController.ts`：对齐原版 GameMgr 的 fruitsInSlotComp/addInSlotFruit/
+  checkID F 分支/fruitTween/recycleFruit 基础链。`addSettled` 去重入槽；
+  `tryMatch` 做 isCollider 双锁/pairId 校验，保证一对只结算一次；
+  消除开始即 fruitSplice 摘除槽位，随后按原版时序播 fruitTween
+  （0.12 放大 0.1 -> 0.12 回弹 -> delay 0.24 -> 0.2 上浮放大 -> 0.4 quadIn
+  飞 basket01），到达后 basket01/02 各 0.15×1.2 弹跳、销毁节点；
+  左右移关注入 pairArrived 回调执行 fruitMove(true)+fruitMove(false) 靠拢。
+- `FruitEntity`：新增 isCollider 锁定与 lockForElimination（清零速度后
+  scheduleOnce(0) 关 collider/转 Static，避开 world locked）；
+  tryPair 严格对齐原版：双方 isTouch 且越过 canCheck.y（isCanCheck 语义，
+  未点击的 Static 场上水果永不参与），或至少一方 isInSlot，且 pairId 相同、
+  均为普通水果才发起配对；消除数量经事件
+  `COLLECTION_EVENT_PAIR_ELIMINATED` 派发（第 8 步 UI/会话层订阅）。
+- 修了一个消除后必现崩溃：水果 destroy 后 spawner.entities 内组件 node
+  置空，fruitMove/checkBoundAll 遍历读属性报错；统一 isAlive
+  （entity.isValid && node.isValid）判活。
+- 回归证据：第 1 关 150ms 极速连点两个草莓 -> touch×2、tryMatch×1（入槽分支）、
+  arrived×2，场上恰剩 2 个；L10 右移关自动下落的同类型水果越过 canCheck 后
+  正确配对（tryMatch×2、arrived×4，逐水果仅一次），不同类型槽内共存不消除；
+  多次消除全程 JS errors=0（修复前为 26 条 isValid 崩溃）；
+  `verify-level-generator.cjs` 1440 组全绿；tsc 0 诊断。
+- 已知遗留（后续步骤）：连消音效/粒子/发光、篮筐图标外的进度 UI、
+  槽内容量统计（第 9 步）。
 
 ### 第 8 步：目标、进度与胜利闭环
 

@@ -1,10 +1,11 @@
-import { _decorator, Collider2D, Component, Node, Tween, UITransform, Widget, tween } from 'cc';
+import { _decorator, Collider2D, Component, Node, Tween, UITransform, Vec3, Widget, tween } from 'cc';
 import { LevelLaunchConfig } from './LevelLaunchConfig';
 import { LevelData } from './generator/LevelTypes';
 import { FruitEntity, FruitInputHost } from './fruit/FruitEntity';
 import { FruitSpawner } from './fruit/FruitSpawner';
 import { FRUIT_PHYSICS_GROUP } from './fruit/FruitPrefabMap';
 import { applyNodePhysicsGroup, ensurePhysics2DMatrix, setNodePhysicsGroup } from './Physics2DGroups';
+import { CollectionController } from './CollectionController';
 
 const { ccclass } = _decorator;
 
@@ -55,14 +56,23 @@ export class LevelPlayfield extends Component implements FruitInputHost {
     private bottomWall: Node | null = null;
     private canCheckWall: Node | null = null;
     private boundaryLine: Node | null = null;
+    /** 第 1 关教学三行（game/firstLevel/pos1..3）。 */
+    private firstLevelRoot: Node | null = null;
+    /** 第 1 关点击计数（原版 GameMgr.clickCount，第 4 次移入后两行）。 */
+    private firstLevelClickCount = 0;
     /** 场地是否已可操作（对齐原版 ENUM_STATUS.RUN，UNRUN 期间点击无效）。 */
     private running = false;
-    /** 已落入下方收集区的水果（原版 fruitsInSlotComp，第 7 步配对用）。 */
-    private readonly inSlotEntities: FruitEntity[] = [];
+    /** 第 7 步：收集区与配对消除控制器。 */
+    private collection: CollectionController | null = null;
 
     /** 进入场地：配置墙体 -> 等水果实例化 -> 生成保护期动画 -> 启动方向移动。 */
     public enter(data: LevelData, spawner: FruitSpawner): void {
         void this.run(data, spawner);
+    }
+
+    /** 收集区控制器（第 8 步 UI/会话层订阅消除事件用）。 */
+    public get collectionController(): CollectionController | null {
+        return this.collection;
     }
 
     private async run(data: LevelData, spawner: FruitSpawner): Promise<void> {
@@ -79,6 +89,17 @@ export class LevelPlayfield extends Component implements FruitInputHost {
         ensurePhysics2DMatrix();
 
         this.cacheWallNodes();
+        this.collection = this.node.getComponent(CollectionController) ?? this.node.addComponent(CollectionController);
+        this.collection.bind(
+            this.node,
+            this.arrangeType === 2 || this.arrangeType === 3
+                ? () => {
+                      // 原版 fruitTween 结尾：消除后先靠拢再向分界线步进 7px。
+                      this.fruitMove(true);
+                      this.fruitMove(false);
+                  }
+                : null,
+        );
         // 先把全部场地碰撞体统一刷成 DEFAULT（即时重建 fixture filter），
         // 随后 initWall 再把护栏侧 left/right 改成 guardrail。
         this.refreshWallGroups();
@@ -127,6 +148,7 @@ export class LevelPlayfield extends Component implements FruitInputHost {
         this.bottomWall = walls?.getChildByName('bottom') ?? null;
         this.canCheckWall = walls?.getChildByName('canCheck') ?? null;
         this.boundaryLine = this.node.getChildByPath('game/boundaryLine');
+        this.firstLevelRoot = this.node.getChildByPath('game/firstLevel');
     }
 
     /** FruitInputHost：canCheck 传感器 y（节点本地坐标，预制体 -144）。 */
@@ -138,16 +160,57 @@ export class LevelPlayfield extends Component implements FruitInputHost {
         return this.running;
     }
 
+    /** 第 8 步：胜利后锁定全场输入（对齐原版 checkWin 后 gameState=isPaused/UNRUN）。 */
+    public lockInput(): void {
+        this.running = false;
+    }
+
+    /** 消除回收后 spawner.entities 仍保留组件，但 node 引用已置空；遍历前统一判活。 */
+    private static isAlive(entity: FruitEntity): boolean {
+        return entity.isValid && entity.node?.isValid === true;
+    }
+
     /** FruitInputHost：点击水果后，下移关立即整体下移一步（原版 GameMgr.fruitDown）。 */
     public onFruitClicked(_entity: FruitEntity): void {
+        if (this.level === 1) {
+            this.firstLevelClickCount += 1;
+            if (this.firstLevelClickCount === 4) this.startFirstLevelRound2();
+        }
         if (this.level !== 1 && this.arrangeType === 1) this.fruitDown();
+    }
+
+    /**
+     * 第 1 关教学（原版 GameMgr.firsrLevelRound2）：第 4 次点击后，
+     * 屏外的 pos2/pos3 两行用 2s tween 移到第 1 行高度。
+     * 手指引导本轮不做（后续教学表现步骤），移入后这些水果直接可点。
+     */
+    private startFirstLevelRound2(): void {
+        const root = this.firstLevelRoot;
+        const row0 = root?.children[0];
+        if (!root || !row0 || root.children.length < 3 || !this.spawner) return;
+        for (let rowIndex = 1; rowIndex < root.children.length; rowIndex += 1) {
+            const row = root.children[rowIndex];
+            const target = new Vec3(row.position.x, row0.position.y, 0);
+            tween(row).to(2, { position: target }).start();
+        }
+        for (const entity of this.spawner.entities) {
+            if (!LevelPlayfield.isAlive(entity)) continue;
+            if (entity.node.parent === root.children[1] || entity.node.parent === root.children[2]) {
+                entity.markBoardTouchable();
+            }
+        }
     }
 
     /** FruitInputHost：水果接触 floor/btnFirstWall/btnSecondWall，进入收集区。 */
     public onFruitSettled(entity: FruitEntity): void {
-        if (this.inSlotEntities.indexOf(entity) < 0) this.inSlotEntities.push(entity);
+        this.collection?.addSettled(entity);
         // 原版 setLastTouchFruit(f,true) 后左右移关重新向分界线靠拢。
         if (this.arrangeType === 2 || this.arrangeType === 3) this.fruitMove(true);
+    }
+
+    /** FruitInputHost：同类型水果物理接触满足条件时配对消除。 */
+    public onFruitMatch(self: FruitEntity, other: FruitEntity): void {
+        this.collection?.tryMatch(self, other);
     }
 
     /**
@@ -267,7 +330,7 @@ export class LevelPlayfield extends Component implements FruitInputHost {
         let minY = Infinity;
         let maxY = -Infinity;
         for (const entity of this.spawner.entities) {
-            if (!entity.node.isValid || entity.isTouch) continue;
+            if (!LevelPlayfield.isAlive(entity) || entity.isTouch) continue;
             const y = entity.node.position.y;
             if (y < minY) minY = y;
             if (y > maxY) maxY = y;
@@ -329,7 +392,7 @@ export class LevelPlayfield extends Component implements FruitInputHost {
         const lineX = this.line?.position.x ?? 0;
         let nearest = 5000;
         for (const entity of this.spawner?.entities ?? []) {
-            if (entity.isTouch) continue;
+            if (!LevelPlayfield.isAlive(entity) || entity.isTouch) continue;
             const d = Math.abs(entity.node.position.x - lineX);
             if (d < nearest) nearest = d;
         }
@@ -343,14 +406,14 @@ export class LevelPlayfield extends Component implements FruitInputHost {
     private shiftFruits(dx: number, dy: number, duration: number, done: (() => void) | null, tag: number): void {
         const items: ShiftItem[] = [];
         for (const entity of this.spawner?.entities ?? []) {
-            if (!entity.node.isValid || entity.isTouch) continue;
+            if (!LevelPlayfield.isAlive(entity) || entity.isTouch) continue;
             items.push({ entity, x: entity.node.position.x, y: entity.node.position.y });
         }
         const driver = { offset: 0 };
         const t = tween(driver).to(duration, { offset: 1 }, {
             onUpdate: () => {
                 for (const item of items) {
-                    if (item.entity.node.isValid) {
+                    if (LevelPlayfield.isAlive(item.entity)) {
                         item.entity.node.setPosition(item.x + dx * driver.offset, item.y + dy * driver.offset);
                     }
                 }
@@ -370,7 +433,7 @@ export class LevelPlayfield extends Component implements FruitInputHost {
         if (!this.spawner) return;
         const lineX = this.line?.position.x ?? 0;
         for (const entity of this.spawner.entities) {
-            if (!entity.node.isValid) continue;
+            if (!LevelPlayfield.isAlive(entity)) continue;
             if (this.arrangeType === 0 || this.arrangeType === 1) {
                 entity.markBoardTouchable();
                 continue;
