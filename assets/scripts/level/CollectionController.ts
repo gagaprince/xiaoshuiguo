@@ -17,6 +17,13 @@ export interface FruitArrivedDetail {
 
 export const COLLECTION_EVENT_FRUIT_ARRIVED = 'fruit-arrived';
 
+/** 第 9 步事件：一个新水果落入收集区（原版 addInSlotFruit 入列后做容量判定）。 */
+export interface FruitSettledDetail {
+    pairId: number;
+}
+
+export const COLLECTION_EVENT_FRUIT_SETTLED = 'fruit-settled';
+
 /**
  * 下方收集区与配对消除的控制器（对齐原版 GameMgr 的 fruitsInSlotComp/
  * addInSlotFruit/checkID F 分支/fruitTween/recycleFruit 的基础逻辑）。
@@ -47,7 +54,10 @@ export class CollectionController extends Component {
 
     /** 原版 addInSlotFruit 的去重入槽。 */
     public addSettled(entity: FruitEntity): void {
-        if (this.inSlotEntities.indexOf(entity) < 0) this.inSlotEntities.push(entity);
+        if (this.inSlotEntities.indexOf(entity) < 0) {
+            this.inSlotEntities.push(entity);
+            this.events.emit(COLLECTION_EVENT_FRUIT_SETTLED, { pairId: entity.pairId } as FruitSettledDetail);
+        }
     }
 
     public get slotCount(): number {
@@ -62,8 +72,8 @@ export class CollectionController extends Component {
 
         a.lockForElimination();
         b.lockForElimination();
-        this.removeFromSlot(a);
-        this.removeFromSlot(b);
+        // 原版：配对水果在 fruitTween 到达回收时才 fruitSplice 出槽，
+        // 飞行期间仍占容量（第 9 步溢出判定依赖此时机）。
 
         a.playEliminationTween(this.basketLocalFor(a), () => this.onFruitArrived(a));
         b.playEliminationTween(this.basketLocalFor(b), () => this.onFruitArrived(b));
@@ -71,14 +81,20 @@ export class CollectionController extends Component {
         this.events.emit(COLLECTION_EVENT_PAIR_ELIMINATED, { pairId: a.pairId } as PairEliminatedDetail);
     }
 
-    /** 原版 fruitSplice：消除动画一开始就从槽位列表摘除（水果总表由生成器持有）。 */
+    /** 原版 fruitSplice：水果到达篮筐回收时从槽位列表摘除。 */
     private removeFromSlot(entity: FruitEntity): void {
         const index = this.inSlotEntities.indexOf(entity);
         if (index >= 0) this.inSlotEntities.splice(index, 1);
     }
 
+    /** 当前槽内水果（含飞行中的已配对水果，对齐原版 fruitsInSlotComp）；过滤已销毁残留。 */
+    public get slotEntities(): FruitEntity[] {
+        return this.inSlotEntities.filter(entity => entity.isValid && entity.node?.isValid === true);
+    }
+
     /** 原版 fruitTween 结尾：篮子弹跳 + 回收节点（音效/粒子在表现步骤补）。 */
     private onFruitArrived(entity: FruitEntity): void {
+        this.removeFromSlot(entity);
         this.playBasketTween();
         // 原版顺序：basketTween -> updateFruitText（递减/胜利判定）-> fruitMove -> recycleFruit。
         this.events.emit(COLLECTION_EVENT_FRUIT_ARRIVED, { pairId: entity.pairId } as FruitArrivedDetail);

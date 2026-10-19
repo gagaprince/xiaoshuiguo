@@ -8,7 +8,9 @@ import {
     ERigidBody2DType,
     EventTouch,
     IPhysics2DContact,
+    instantiate,
     Node,
+    Prefab,
     PolygonCollider2D,
     RigidBody2D,
     Size,
@@ -101,6 +103,8 @@ export class FruitEntity extends Component {
     private inputBound = false;
     private baseWidth = 0;
     private baseHeight = 0;
+    /** 第 11 步：随机盒外壳节点（CalculatedInfo.type=2 时挂在水果下）。 */
+    private boxShell: Node | null = null;
 
     public setup(init: FruitEntityInit, scale: number): void {
         this.id = init.id;
@@ -123,8 +127,39 @@ export class FruitEntity extends Component {
         this.body = this.node.getComponent(RigidBody2D);
         if (this.body) this.body.group = FRUIT_PHYSICS_GROUP.FRUIT;
         this.applyAppearance(false);
+        // 第 11 步：随机盒先隐藏真水果贴图，外壳由 attachBoxShell 在预制体加载后挂上。
+        if (this.fruitType === 2) {
+            this.node.getComponent(Sprite)!.enabled = false;
+        }
         this.node.setScale(new Vec3(0, 0, 1));
         this.setRigType(ERigidBody2DType.Static, 0, true);
+    }
+
+    /**
+     * 第 11 步：挂上 blackBox 外壳（对齐 FruitComp.setFruitType case 2）。
+     * 外壳相对水果节点的缩放 = 0.55 / fruitScale，使最终视觉固定为 0.55 倍。
+     */
+    public attachBoxShell(prefab: Prefab): void {
+        if (this.fruitType !== 2 || this.boxShell) return;
+        const shell = instantiate(prefab);
+        this.node.addChild(shell);
+        shell.setPosition(0, 0, 0);
+        shell.angle = 0;
+        const shellScale = 0.55 / Math.max(0.0001, this.boardScale);
+        shell.setScale(new Vec3(shellScale, shellScale, 1));
+        this.boxShell = shell;
+    }
+
+    /** 第 11 步：随机盒开盖（对齐 FruitComp.unlockFruit 的盒分支）。 */
+    public unlockBlackBox(): void {
+        if (this.fruitType !== 2) return;
+        this.fruitType = 0;
+        if (this.boxShell) {
+            this.boxShell.destroy();
+            this.boxShell = null;
+        }
+        const sprite = this.node.getComponent(Sprite);
+        if (sprite) sprite.enabled = true;
     }
 
     /**
@@ -185,6 +220,10 @@ export class FruitEntity extends Component {
         const host = this.host;
         if (!host || !this.isTouch) return;
         this.canCheckPassed = this.node.position.y <= host.canCheckY;
+        // 第 11 步：随机盒点击下落、越过 canCheck 线即开盖露出真水果（FruitComp.update）。
+        if (this.fruitType === 2 && this.boxShell && this.canCheckPassed) {
+            this.unlockBlackBox();
+        }
     }
 
     /** 原版 FruitComp.onBeginContact。 */
@@ -193,6 +232,8 @@ export class FruitEntity extends Component {
         other: Collider2D,
         _contact: IPhysics2DContact | null,
     ): void {
+        // 原版所有接触回调都先判 ENUM_STATUS.RUN；胜负锁定后不再入槽/配对。
+        if (!this.host?.isInputActive()) return;
         switch (other.node.name) {
             case 'canCheck':
                 this.inCheckBox = true;
@@ -223,30 +264,50 @@ export class FruitEntity extends Component {
 
     /** 原版 checkID 在 POST_SOLVE 里对 floor/btnFirstWall/btnSecondWall 的入槽分支。 */
     private onPostSolve(_self: Collider2D, other: Collider2D): void {
+        if (!this.host?.isInputActive()) return;
         const otherEntity = other.node.getComponent(FruitEntity);
         if (otherEntity) {
-            this.tryPair(otherEntity);
+            this.handleFruitContact(otherEntity);
             return;
         }
         if (this.isCollider) return;
         const name = other.node.name;
         if (name === 'floor' || name === 'btnFirstWall' || name === 'btnSecondWall') {
+            // 原版 checkID 墙体分支先 unlockFruit 再 addInSlotFruit（兜底开盖）。
+            this.unlockBlackBox();
             this.markSettled();
         }
+    }
+
+    /**
+     * 原版 FruitComp.checkID 的水果间接触分支（POST_SOLVE）：
+     * 1. 双方越过 canCheck 或一方已入槽，同 pairId -> 配对消除；
+     * 2. 双方都未入槽 -> 什么都不做（返回）；
+     * 3. 自己还没入槽、对方已入槽 -> 自己也入槽占容量。
+     * 第 3 条是满载判定的关键：水果在桶内叠高时，只有最底层能碰到
+     * floor/btnFirstWall/btnSecondWall，上层水果靠接触已入槽水果计入槽位。
+     */
+    private handleFruitContact(other: FruitEntity): void {
+        if (this.tryPair(other)) return;
+        if (this.isInSlot || !other.isInSlot) return;
+        if (this.isCollider || other.isCollider) return;
+        this.markSettled();
     }
 
     /**
      * 原版 FruitComp.checkID 的同类型配对判定（POST_SOLVE 水果间接触）：
      * 双方都越过 canCheck，或至少一方已入槽时，同 pairId 即可配对。
      */
-    private tryPair(other: FruitEntity): void {
-        if (this.isCollider || other.isCollider || this.pairId !== other.pairId) return;
-        if (this.pairId <= 0) return;
+    /** @returns 是否已触发配对（触发后跳过同次接触的其余分支）。 */
+    private tryPair(other: FruitEntity): boolean {
+        if (this.isCollider || other.isCollider) return false;
+        if (this.pairId <= 0 || this.pairId !== other.pairId) return false;
         const bothPassedCanCheck = this.canCheckPassed && other.canCheckPassed;
         const oneInSlot = this.isInSlot || other.isInSlot;
-        if (!bothPassedCanCheck && !oneInSlot) return;
+        if (!bothPassedCanCheck && !oneInSlot) return false;
         if (this.fruitType !== 0 || other.fruitType !== 0) return;
         this.host?.onFruitMatch(this, other);
+        return true;
     }
 
     private markSettled(): void {
@@ -376,7 +437,10 @@ export class FruitEntity extends Component {
     public playEliminationTween(targetLocal: Vec3, onArrive: () => void): void {
         const node = this.node;
         const sprite = node.getComponent(Sprite);
-        if (sprite) sprite.color = new Color(255, 255, 255, 255);
+        if (sprite) {
+            Tween.stopAllByTarget(sprite);
+            sprite.color = new Color(255, 255, 255, 255);
+        }
         Tween.stopAllByTarget(node);
 
         const u = node.scale.x;
@@ -399,6 +463,40 @@ export class FruitEntity extends Component {
                 }
             })
             .start();
+    }
+
+    /**
+     * 第 9 步：槽内容量达到危险值（>=colorLimit）时红白呼吸闪烁
+     * （原版 GameMgr.fruitColorTween 的循环版；消除/安全时需主动关闭）。
+     */
+    public flashDanger(on: boolean): void {
+        const sprite = this.node.getComponent(Sprite);
+        if (!sprite) return;
+        Tween.stopAllByTarget(sprite);
+        if (on) {
+            sprite.color = new Color(255, 255, 255, 255);
+            tween(sprite)
+                .to(0.5, { color: new Color(255, 0, 0, 255) }, { easing: 'sineIn' })
+                .to(0.5, { color: new Color(255, 255, 255, 255) }, { easing: 'sineOut' })
+                .union()
+                .repeatForever()
+                .start();
+        } else {
+            sprite.color = new Color(255, 255, 255, 255);
+        }
+    }
+
+    /**
+     * 第 9 步：溢出失败（装不下啦）后槽内水果停止闪烁、变灰、转 Static
+     * （原版 checkLose 里 scheduleOnce(setRigType(Static)) + color(100,100,100)）。
+     */
+    public grayOutForLose(): void {
+        this.flashDanger(false);
+        const sprite = this.node.getComponent(Sprite);
+        if (sprite) sprite.color = new Color(100, 100, 100, 255);
+        this.scheduleOnce(() => {
+            if (this.node.isValid) this.setRigType(ERigidBody2DType.Static);
+        }, 0);
     }
 
     /**

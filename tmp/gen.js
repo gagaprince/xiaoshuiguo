@@ -963,6 +963,8 @@ function generateLevelParameters(level, options = {}) {
     const cfg = config.lv6Config;
     info.itemLayout = true;
     info.randomBox = Math.min(cfg.randomMin, cfg.randomBase + Math.floor(level / cfg.randomScale));
+    // 原版 ReferenceMgr：道具布局关（尾号 6）也是下移关。
+    info.moveDir = MOVE_DIRECTION.DOWN;
     return attachParameterMetadata(info, level, difficulty, cycle);
   }
 
@@ -977,16 +979,20 @@ function generateLevelParameters(level, options = {}) {
     cfg = config.lv7Config;
     multiplyFromStage = 1;
     info.randomBox = Math.min(cfg.randomMin, cfg.randomBase + Math.floor(level / cfg.randomScale));
+    info.moveDir = MOVE_DIRECTION.DOWN;
   } else if (digit === 8) {
     cfg = config.lv8Config;
     multiplyFromStage = 1;
     randomOnly = true;
     info.itemConnet = true;
+    info.moveDir = MOVE_DIRECTION.DOWN;
   } else if (digit === 9) {
     cfg = config.lv9Config;
     multiplyFromStage = 1;
     info.moveDir = MOVE_DIRECTION.LEFT;
   } else {
+    // 原版 ReferenceMgr lv2_3_5 分支末尾统一 moveDir=DOWN。
+    info.moveDir = MOVE_DIRECTION.DOWN;
     cfg = config.lv2_3_5Config;
     multiplyFromStage = 2;
 
@@ -1225,6 +1231,19 @@ function generateObstacles(count, layout, rng) {
  * 冰冻候选水果必须位于队列第 30 项之后，且距离关卡顶部至少 400 个单位。
  * 随机抽取时不放回，因此同一水果不会被重复选中。
  */
+/**
+ * 第 11 步：随机盒（blackBox）分配；盒下真水果类型不变，点击下落越过 canCheck 后开盖。
+ */
+function applyRandomBoxes(fruits, count, rng) {
+  if (count <= 0) return;
+  const remaining = fruits.map((_, index) => index);
+  for (let picked = 0; picked < count && remaining.length > 0; picked += 1) {
+    const index = randomInt(0, remaining.length - 1, rng);
+    const fruitIndex = remaining.splice(index, 1)[0];
+    fruits[fruitIndex].mystery = true;
+  }
+}
+
 function applyIce(fruits, count, layout, rng) {
   const candidates = fruits
     .filter((fruit) => fruit.queueIndex >= 30 && fruit.position.y <= layout.maxY - 400)
@@ -1270,6 +1289,8 @@ function generateLevel(level, options = {}) {
   // 冰冻/障碍分布按水果实际堆放的纵向范围（带顶可能超出屏幕，属原版设计）。
   const occupiedMaxY = fruits.reduce((top, fruit) => Math.max(top, fruit.position.y), layout.bottomY);
   const verticalLayout = { ...layout, minY: layout.bottomY, maxY: Math.max(layout.maxY, occupiedMaxY) };
+  // 原版 ReferenceLayMgr 顺序：水果布局 -> 随机盒标记 -> 黑洞 -> 障碍 -> 冰冻（rng 消费顺序需一致）。
+  applyRandomBoxes(fruits, parameters.randomBox, rng);
   applyIce(fruits, parameters.iceCount, verticalLayout, rng);
 
   return {
@@ -1305,6 +1326,11 @@ function validateLevel(levelData) {
   if (parameters.iceCount > 0) {
     const frozen = fruits.filter((fruit) => fruit.status === "frozen").length;
     if (frozen > parameters.iceCount) errors.push("too many frozen fruits");
+  }
+  if (parameters.randomBox > 0) {
+    const expectedMystery = Math.min(parameters.randomBox, fruits.length);
+    const mystery = fruits.filter((fruit) => fruit.mystery === true).length;
+    if (mystery !== expectedMystery) errors.push(`mystery count mismatch: ${mystery} !== ${expectedMystery}`);
   }
   return { valid: errors.length === 0, errors };
 }

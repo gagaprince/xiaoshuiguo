@@ -4,10 +4,14 @@
  * 浏览器预览可用查询参数覆盖，例如：
  *   http://localhost:7456/?level=2&difficulty=hard&seed=12345
  *   http://localhost:7456/?level=10&movedir=2   （第 5 步：强制横向移动场地）
+ *   http://localhost:7456/?resetprogress=1       （第 10 步：清空关卡进度回第 1 关）
  *
- * 不传时默认：第 1 关、normal、固定种子 20261016，保证多次启动生成结果一致。
+ * 第 10 步起，不传 level 时进入存档当前关（首玩为第 1 关）；
+ * 固定种子 20261016 保证同一关卡多次启动生成结果一致。
  * 微信小游戏环境没有 location，解析失败时一律使用默认值。
  */
+import { LevelProgress } from '../core/LevelProgress';
+
 export type LevelDifficulty = 'normal' | 'easy' | 'hard';
 
 export interface LevelLaunchOptions {
@@ -24,7 +28,6 @@ export interface LevelLaunchOptions {
     moveDirOverride: number | null;
 }
 
-const DEFAULT_LEVEL = 1;
 const DEFAULT_DIFFICULTY: LevelDifficulty = 'normal';
 const DEFAULT_SEED = 20261016;
 
@@ -44,8 +47,10 @@ export class LevelLaunchConfig {
 
     private static resolve(): LevelLaunchOptions {
         const params = this.readQuery();
+        if (params.get('resetprogress') === '1') LevelProgress.reset();
         return {
-            level: this.parsePositiveInt(params.get('level'), DEFAULT_LEVEL),
+            // 显式 ?level= 仅作开发覆盖；正式链路（首页开始按钮）由导航传存档关。
+            level: this.parsePositiveInt(params.get('level'), LevelProgress.currentLevel),
             difficulty: this.parseDifficulty(params.get('difficulty')),
             seed: this.parsePositiveInt(params.get('seed'), DEFAULT_SEED),
             autoEnterLevel: params.get('autolevel') === '1',

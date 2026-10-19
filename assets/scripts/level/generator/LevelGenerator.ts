@@ -851,6 +851,8 @@ function generateLevelParameters(level: number, options: GenerateLevelOptions = 
     const cfg = config.lv6Config;
     info.itemLayout = true;
     info.randomBox = Math.min(cfg.randomMin, cfg.randomBase + Math.floor(level / cfg.randomScale));
+    // 原版 ReferenceMgr：道具布局关（尾号 6）也是下移关。
+    info.moveDir = MOVE_DIRECTION.DOWN;
     return attachParameterMetadata(info, level, difficulty, cycle);
   }
 
@@ -865,16 +867,22 @@ function generateLevelParameters(level: number, options: GenerateLevelOptions = 
     cfg = config.lv7Config;
     multiplyFromStage = 1;
     info.randomBox = Math.min(cfg.randomMin, cfg.randomBase + Math.floor(level / cfg.randomScale));
+    info.moveDir = MOVE_DIRECTION.DOWN;
   } else if (digit === 8) {
     cfg = config.lv8Config;
     multiplyFromStage = 1;
     randomOnly = true;
     info.itemConnet = true;
+    info.moveDir = MOVE_DIRECTION.DOWN;
   } else if (digit === 9) {
     cfg = config.lv9Config;
     multiplyFromStage = 1;
     info.moveDir = MOVE_DIRECTION.LEFT;
   } else {
+    // 原版 ReferenceMgr lv2_3_5 分支末尾统一 moveDir=DOWN：
+    // 尾号 1/2/3/5 的关卡水果都向上堆出屏幕，开局后随 fruitDown 逐步下降。
+    // 此前误用默认 NONE，导致一屏内强行排下全部水果而挤成一团。
+    info.moveDir = MOVE_DIRECTION.DOWN;
     cfg = config.lv2_3_5Config;
     multiplyFromStage = 2;
 
@@ -1119,6 +1127,22 @@ function generateObstacles(count: number, layout: LayoutConfig, rng: () => numbe
 }
 
 /**
+ * 第 11 步：随机盒（blackBox）分配。
+ * 对齐原版 ReferenceLayMgr：水果布局完成后，从全部水果中不放回随机抽取
+ * randomBox 个，把 CalculatedInfo.type 置 2；盒下真水果类型不变（pairId 保留），
+ * 点击下落到 canCheck 线后开盖，才可参与配对。
+ */
+function applyRandomBoxes(fruits: FruitData[], count: number, rng: () => number): void {
+    if (count <= 0) return;
+    const remaining = fruits.map((_, index) => index);
+    for (let picked = 0; picked < count && remaining.length > 0; picked += 1) {
+        const index = randomInt(0, remaining.length - 1, rng);
+        const fruitIndex = remaining.splice(index, 1)[0];
+        fruits[fruitIndex].mystery = true;
+    }
+}
+
+/**
  * 冰冻候选水果必须位于队列第 30 项之后，且距离关卡顶部至少 400 个单位。
  * 随机抽取时不放回，因此同一水果不会被重复选中。
  */
@@ -1161,6 +1185,8 @@ export function generateLevel(level: number, options: GenerateLevelOptions = {})
     // 冰冻/障碍分布按水果实际堆放的纵向范围（带顶可能超出屏幕，属原版设计）。
     const occupiedMaxY = fruits.reduce((top, fruit) => Math.max(top, fruit.position.y), layout.bottomY);
     const verticalLayout = { ...layout, minY: layout.bottomY, maxY: Math.max(layout.maxY, occupiedMaxY) };
+    // 原版 ReferenceLayMgr 顺序：水果布局 -> 随机盒标记 -> 黑洞 -> 障碍 -> 冰冻（rng 消费顺序需一致）。
+    applyRandomBoxes(fruits, parameters.randomBox, rng);
     applyIce(fruits, parameters.iceCount, verticalLayout, rng);
 
     return {
@@ -1234,6 +1260,14 @@ export function validateLevel(levelData: LevelData): LevelValidationResult {
     if (parameters.iceCount > 0) {
         const frozen = fruits.filter((fruit) => fruit.status === 'frozen').length;
         if (frozen > parameters.iceCount) errors.push(`too many frozen fruits: ${frozen} > ${parameters.iceCount}`);
+    }
+
+    // digit-6 道具布局关（itemLayout）的网格水果生成尚未恢复，水果数可能为 0，
+    // 此时随机盒无处分配；按实际可分配数量校验，不把既有缺口误判为本步回归。
+    const expectedMystery = Math.min(parameters.randomBox, fruits.length);
+    const mystery = fruits.filter((fruit) => fruit.mystery === true).length;
+    if (mystery !== expectedMystery) {
+        errors.push(`mystery fruit count mismatch: ${mystery} !== ${expectedMystery}`);
     }
 
     if (levelData.level % 10 === 0) {

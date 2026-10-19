@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node, Sprite } from 'cc';
+import { _decorator, Component, Label, Node, Sprite, Tween, UIOpacity, tween } from 'cc';
 import { LevelLaunchConfig } from './LevelLaunchConfig';
 import { LevelData } from './generator/LevelTypes';
 
@@ -87,6 +87,36 @@ export class LevelView extends Component {
     /** 剩余目标水果数；初始为关卡水果总数，每次消除后递减。 */
     public setGoalRemain(remain: number): void {
         if (this.labFruit) this.labFruit.string = `${Math.max(0, Math.round(remain))}`;
+    }
+
+    /**
+     * 第 9 步：game/full 中央提示（装不下啦/消不掉啦）。
+     * 对齐原版 GameMgr.fullTip：0.3s 淡入、摇晃两轮、停 0.5s、0.3s 淡出。
+     */
+    public showFullTip(text: string): void {
+        const tip = this.fullTip;
+        if (!tip) return;
+        const label = tip.children[0]?.getComponent(Label);
+        if (label) label.string = text;
+        tip.active = true;
+        tip.angle = 0;
+        const opacity = tip.getComponent(UIOpacity) ?? tip.addComponent(UIOpacity);
+        opacity.opacity = 0;
+        Tween.stopAllByTarget(tip);
+        Tween.stopAllByTarget(opacity);
+        tween(opacity).to(0.3, { opacity: 255 }).start();
+        const shake = tween(tip)
+            .to(0.1, { angle: 10 })
+            .to(0.1, { angle: 0 })
+            .to(0.1, { angle: -10 })
+            .to(0.1, { angle: 0 });
+        tween(tip)
+            .repeat(2, shake)
+            .delay(0.5)
+            .call(() => {
+                if (tip.isValid) tween(opacity).to(0.3, { opacity: 0 }).start();
+            })
+            .start();
     }
 
     /**

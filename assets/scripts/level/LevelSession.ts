@@ -11,6 +11,10 @@ export class LevelSession {
     private totalGoalValue = 0;
     private remainValue = 0;
     private wonValue = false;
+    /** 原版 GameMgr.slotsNum/colorLimit：初始 3，砸墙/广告扩位时同步 +1（后续步骤）。 */
+    private capacityValue = 3;
+    private lostValue = false;
+    private loseReasonValue: string | null = null;
 
     public constructor(public readonly data: LevelData) {}
 
@@ -47,6 +51,33 @@ export class LevelSession {
 
     public get won(): boolean {
         return this.wonValue;
+    }
+
+    /** 收集区容量（原版 slotsNum，初始 3）。 */
+    public get capacity(): number {
+        return this.capacityValue;
+    }
+
+    public get lost(): boolean {
+        return this.lostValue;
+    }
+
+    /** 失败文案：装不下啦（溢出）/ 消不掉啦（死局）。 */
+    public get loseReason(): string | null {
+        return this.loseReasonValue;
+    }
+
+    /** 砸墙/广告扩位后容量 +1（原版 slotsNum++/colorLimit++；第 9 步预留）。 */
+    public expandCapacity(): void {
+        this.capacityValue += 1;
+    }
+
+    /** 第 9 步：失败只结算一次。 */
+    public markLost(reason: string): boolean {
+        if (this.wonValue || this.lostValue) return false;
+        this.lostValue = true;
+        this.loseReasonValue = reason;
+        return true;
     }
 
     /** FruitSpawner.spawn 返回真实总数后绑定（第 1 关 12，其余为 data.fruits.length）。 */

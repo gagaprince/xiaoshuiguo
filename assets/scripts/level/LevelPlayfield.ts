@@ -6,6 +6,7 @@ import { FruitSpawner } from './fruit/FruitSpawner';
 import { FRUIT_PHYSICS_GROUP } from './fruit/FruitPrefabMap';
 import { applyNodePhysicsGroup, ensurePhysics2DMatrix, setNodePhysicsGroup } from './Physics2DGroups';
 import { CollectionController } from './CollectionController';
+import { ObstacleSpawner } from './ObstacleSpawner';
 
 const { ccclass } = _decorator;
 
@@ -14,6 +15,10 @@ interface ShiftItem {
     x: number;
     y: number;
 }
+
+/** 第 9 步失败文案（原版 overFun 入参）：超过容量 / 已无可行配对。 */
+export const LOSE_REASON_FULL = '装不下啦';
+export const LOSE_REASON_DEADLOCK = '消不掉啦';
 
 /**
  * 第 5 步：主场地物理与移动方向（对齐原版 GameMgr 的物理子集）。
@@ -64,6 +69,12 @@ export class LevelPlayfield extends Component implements FruitInputHost {
     private running = false;
     /** 第 7 步：收集区与配对消除控制器。 */
     private collection: CollectionController | null = null;
+    /** 第 11 步：普通障碍 obs1/2/3 与木板 stake。 */
+    private obstacleSpawner: ObstacleSpawner | null = null;
+    /** 第 9 步：收集区容量（原版 GameMgr.slotsNum，初始 3；砸墙扩位在后续步骤）。 */
+    private readonly slotCapacity = 3;
+    /** 第 9 步：正在红白闪烁的水果（达到危险容量）。 */
+    private readonly flashing = new Set<FruitEntity>();
 
     /** 进入场地：配置墙体 -> 等水果实例化 -> 生成保护期动画 -> 启动方向移动。 */
     public enter(data: LevelData, spawner: FruitSpawner): void {
@@ -111,8 +122,14 @@ export class LevelPlayfield extends Component implements FruitInputHost {
             if (this.node.isValid) this.applyWallFixtures();
         }, 0);
 
+        // 第 11 步：机关与水果并行生成；生成期墙体调整在 prepare 内同步完成。
+        this.obstacleSpawner = this.node.getComponent(ObstacleSpawner)
+            ?? this.node.addComponent(ObstacleSpawner);
+        void this.obstacleSpawner.prepare(data);
+
         await spawner.spawnComplete;
         if (!this.node.isValid) return;
+        this.obstacleSpawner?.finalizeSpawning();
 
         // 生成保护期：全部水果同时播放 backOut 弹出动画（内部 Dynamic g=0 -> Static）。
         await Promise.all(spawner.entities.map(entity => entity.playSpawnAnim()));
@@ -163,6 +180,93 @@ export class LevelPlayfield extends Component implements FruitInputHost {
     /** 第 8 步：胜利后锁定全场输入（对齐原版 checkWin 后 gameState=isPaused/UNRUN）。 */
     public lockInput(): void {
         this.running = false;
+    }
+
+    /**
+     * 第 9 步：容量/死局判定，对齐原版 GameMgr.checkLose + checkSlotLose。
+     * 每次入槽（addInSlotFruit）和每对水果到达回收后（fruitTween 结尾）调用。
+     * 返回失败文案；null 表示继续游戏。
+     */
+    public evaluateLose(): string | null {
+        if (!this.running || !this.collection || !this.spawner) return null;
+
+        const slot = this.collection.slotEntities;
+        const live = this.spawner.entities.filter(LevelPlayfield.isAlive);
+        const count = slot.length;
+        let reason: string | null = null;
+
+        // checkLose：槽内数严格大于容量 -> 装不下啦（第 4 个水果入槽瞬间）。
+        if (count > this.slotCapacity) {
+            reason = LOSE_REASON_FULL;
+        } else if (count >= this.slotCapacity && !this.canMatchInSlot(slot)) {
+            // checkSlotLose：达到容量且槽内无配对，再给两种“救援”机会，
+            // 场上还有能与槽内配对的水果、或场上仍存在任意一对，都不算死。
+            if (!this.hasBoardRescue(live, slot)) reason = LOSE_REASON_DEADLOCK;
+        } else if (
+            count > 0
+            && live.length === slot.length
+            && live.every(entity => entity.isTouch)
+            && !this.canMatchInSlot(slot)
+        ) {
+            // checkSlotLose 尾分支：场上已无未点击水果，剩余水果全在槽内且无法配对。
+            reason = LOSE_REASON_DEADLOCK;
+        }
+
+        this.updateDangerFlash(slot);
+        return reason;
+    }
+
+    /** 第 9 步：失败收尾；溢出时槽内水果变灰转 Static（原版 checkLose 表现）。 */
+    public finalizeLose(reason: string): void {
+        this.lockInput();
+        for (const entity of this.flashing) entity.flashDanger(false);
+        this.flashing.clear();
+        if (reason === LOSE_REASON_FULL && this.collection) {
+            for (const entity of this.collection.slotEntities) entity.grayOutForLose();
+        }
+    }
+
+    /** 槽内是否存在同 pairId 的一对（原版 canMatchInSlot）。 */
+    private canMatchInSlot(slot: readonly FruitEntity[]): boolean {
+        for (let i = 0; i < slot.length; i += 1) {
+            for (let j = i + 1; j < slot.length; j += 1) {
+                if (slot[i].pairId === slot[j].pairId && slot[i].pairId > 0) return true;
+            }
+        }
+        return false;
+    }
+
+    /** 场上（未入槽）水果能否挽救死局：与槽内配对，或场上自身还存在一对。 */
+    private hasBoardRescue(live: readonly FruitEntity[], slot: readonly FruitEntity[]): boolean {
+        const board = live.filter(entity => slot.indexOf(entity) < 0);
+        for (const boardEntity of board) {
+            if (slot.some(slotEntity => slotEntity.pairId === boardEntity.pairId)) return true;
+        }
+        for (let i = 0; i < board.length; i += 1) {
+            for (let j = i + 1; j < board.length; j += 1) {
+                if (board[i].pairId === board[j].pairId) return true;
+            }
+        }
+        return false;
+    }
+
+    /** 危险值反馈：槽内数 >= 容量时红白闪烁，回落后关闭（原版 fruitColorTween）。 */
+    private updateDangerFlash(slot: readonly FruitEntity[]): void {
+        const danger = slot.length >= this.slotCapacity ? new Set<FruitEntity>(slot) : new Set<FruitEntity>();
+        for (const entity of this.flashing) {
+            if (!LevelPlayfield.isAlive(entity)) {
+                this.flashing.delete(entity);
+            } else if (!danger.has(entity)) {
+                entity.flashDanger(false);
+                this.flashing.delete(entity);
+            }
+        }
+        for (const entity of danger) {
+            if (!this.flashing.has(entity)) {
+                entity.flashDanger(true);
+                this.flashing.add(entity);
+            }
+        }
     }
 
     /** 消除回收后 spawner.entities 仍保留组件，但 node 引用已置空；遍历前统一判活。 */

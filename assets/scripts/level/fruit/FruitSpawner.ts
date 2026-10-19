@@ -2,6 +2,7 @@ import { _decorator, Component, instantiate, Node, Prefab, UITransform } from 'c
 import { LevelData } from '../generator/LevelTypes';
 import { FruitEntity } from './FruitEntity';
 import { FruitFactory } from './FruitFactory';
+import { MechanicPrefabs } from '../MechanicPrefabs';
 import { getFruitNodeScale } from '../generator/LevelGenerator';
 
 const { ccclass } = _decorator;
@@ -21,6 +22,16 @@ const { ccclass } = _decorator;
  */
 @ccclass('FruitSpawner')
 export class FruitSpawner extends Component {
+    /**
+     * 第 10 步：普通关每帧实例化预算。
+     * 第 2 关 174 个水果若同帧 instantiate（每个 prefab 含 Sprite/刚体/碰撞体）
+     * 会长时间冻结；按 18 个/帧分批约 10 帧创建完，单帧开销可控。
+     * 物理激活顺序不变：全部实例初始 scale 0 + Static，spawnComplete 后
+     * 才由 LevelPlayfield 统一播放保护期动画（Dynamic g=0 -> Static），
+     * 分帧期间先创建的静态体不会产生位移或碰撞扰动。
+     */
+    private static readonly SPAWN_BATCH_SIZE = 18;
+
     /** 原版 GameMgr.firstLevelIDS：三行四列，类型 9 / 1 / 2。 */
     private static readonly FIRST_LEVEL_IDS: readonly number[][] = [
         [9, 9, 9, 9],
@@ -29,6 +40,7 @@ export class FruitSpawner extends Component {
     ];
 
     private readonly factory = new FruitFactory();
+    private readonly mechanics = new MechanicPrefabs();
     private readonly spawnedNodes: Node[] = [];
     private readonly spawnedEntities: FruitEntity[] = [];
     private nextId = 0;
@@ -116,25 +128,52 @@ export class FruitSpawner extends Component {
         }
 
         await this.factory.preload(data.fruits.map(fruit => fruit.type));
+        const hasMystery = data.fruits.some(fruit => fruit.mystery === true);
+        if (hasMystery) await this.mechanics.preload(['blackBox']);
+        let blackBoxPrefab: Prefab | null = null;
+        if (hasMystery) blackBoxPrefab = await this.mechanics.acquire('blackBox').catch(() => null);
 
-        for (const fruitData of data.fruits) {
+        const beganAt = Date.now();
+        let batches = 0;
+        for (let index = 0; index < data.fruits.length; index += 1) {
+            const fruitData = data.fruits[index];
             const node = await this.createFruit(fruitData.type, {
                 stage: fruitData.stage,
                 scale: fruitData.scale,
                 radius: fruitData.radius,
-                kind: fruitData.status === 'frozen' ? 1 : 0,
+                kind: fruitData.mystery === true ? 2 : (fruitData.status === 'frozen' ? 1 : 0),
+                shellPrefab: blackBoxPrefab,
             });
             if (!this.node.isValid) return;
             if (!node) continue;
             fruitsRoot.addChild(node);
             node.setPosition(fruitData.position.x, fruitData.position.y);
             this.syncLayer(node, fruitsRoot.layer);
+
+            // 每创建一批让出一帧，避免第 2 关等大量水果同帧创建冻结画面。
+            if (
+                (index + 1) % FruitSpawner.SPAWN_BATCH_SIZE === 0
+                && index + 1 < data.fruits.length
+            ) {
+                batches += 1;
+                await this.waitNextFrame();
+                if (!this.node.isValid) return;
+            }
         }
+        console.log(`[FruitSpawner] level ${data.level} spawned ${data.fruits.length} fruits`
+            + ` in ${Date.now() - beganAt}ms across ${batches + 1} batches`);
+    }
+
+    /** async 生成链中让出一帧（scheduleOnce delay 0 在下一帧执行）。 */
+    private waitNextFrame(): Promise<void> {
+        return new Promise<void>(resolve => {
+            this.scheduleOnce(() => resolve(), 0);
+        });
     }
 
     private async createFruit(
         type: number,
-        options: { stage: number; scale: number; radius: number; kind?: 0 | 1 },
+        options: { stage: number; scale: number; radius: number; kind?: 0 | 1 | 2; shellPrefab?: Prefab | null },
     ): Promise<Node | null> {
         let prefab: Prefab;
         try {
@@ -158,6 +197,9 @@ export class FruitSpawner extends Component {
             },
             options.scale,
         );
+        if ((options.kind ?? 0) === 2 && options.shellPrefab) {
+            entity.attachBoxShell(options.shellPrefab);
+        }
         this.spawnedNodes.push(node);
         this.spawnedEntities.push(entity);
         return node;

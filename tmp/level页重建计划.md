@@ -566,7 +566,7 @@ Win / Lose -> Restart / Next / Home
 
 ### 第 8 步：目标、进度与胜利闭环
 
-状态：`[ ] 未开始`
+状态：`[x] 已完成（2026-10-19，人肉验收通过）`
 
 实现范围：
 
@@ -589,7 +589,7 @@ Win / Lose -> Restart / Next / Home
 
 ### 第 9 步：容量、满载与失败闭环
 
-状态：`[ ] 未开始`
+状态：`[x] 已完成（2026-10-19，人肉验收通过）`
 
 实现范围：
 
@@ -611,9 +611,39 @@ Win / Lose -> Restart / Next / Home
 - 失败只触发一次，失败后场内输入锁定。
 - 重试 3 次后节点、计数和对象池均保持正确。
 
+实现记录（2026-10-19，对齐 GameMgr.addInSlotFruit/checkLose/checkSlotLose）：
+
+- 容量模型：`LevelSession` capacity=3（slotsNum/colorLimit 初始 3），
+  `expandCapacity()` 预留给后续砸墙/广告扩位。
+- 事件时机：`CollectionController` 新增 `fruit-settled`（入槽瞬间派发）；
+  配对水果改为到达篮筐才 `removeFromSlot`，飞行期间仍占槽（对齐原版
+  fruitSplice 时机），到达后派发 `fruit-arrived` 并复检死局。
+- 两级判定 `LevelPlayfield.evaluateLose()`：槽内数 >3 -> “装不下啦”；
+  槽内数 ==3 且槽内无配对、场上也无任何可配对救援 -> “消不掉啦”；
+  另有尾分支（全部水果都已点击且全在槽内且无配对）。
+- 危险反馈：槽内数 >=3 时槽内水果红白呼吸闪烁（`FruitEntity.flashDanger`），
+  回落到 3 以下自动关闭；溢出失败时槽内水果变灰并转 Static
+  （`grayOutForLose`）。
+- 提示与弹层：`LevelView.showFullTip` 播 game/full（0.3s 淡入、摇晃两轮、
+  停 0.5s、0.3s 淡出）；新增 `LoseLayer`（挂 GbzLoseFullLayer 预制体），
+  隐藏广告复活 panel 与 btnShare，直接展示 lose_panel：重试 / 回首页，
+  复活 `onRevive` 仅留接口；`GameNavigator.lose()` 负责胜负互斥
+  （outcomeLocked）、锁输入、隐 HUD、挂失败层，clearLevel 统一清理。
+- losePrefab 已在 gameNew.scene 的 GameNavigator 组件上赋值
+  （GbzLoseFullLayer uuid 4cdd4ecd-41b3-460d-8f19-1a1c383c631c）。
+- 验证：tsc 0 诊断；`verify-level-generator.cjs` 1440 组全绿。
+- 联调修复（2026-10-19）：补齐原版 `FruitComp.checkID` 的接触传递入槽
+  分支——下落水果 POST_SOLVE 撞到**已入槽**水果时自身也立即入槽
+  （桶内叠高时只有最底层碰得到 floor/btnFirstWall/btnSecondWall，
+  上层水果靠此条计入容量，否则视觉上堆满圆锥也不判负）；同时给
+  BEGIN_CONTACT/POST_SOLVE 加 RUN 状态守卫，胜负锁定后不再产生
+  入槽/配对（对齐原包 status != UNRUN 前置判断）。
+- 遗留（后续步骤）：砸墙/广告扩位、复活层与广告、challengeCount 统计、
+  分享、失败音效。
+
 ### 第 10 步：关卡推进、存档和第 2 关压力验证
 
-状态：`[ ] 未开始`
+状态：`[x] 已完成（2026-10-19，人肉验收通过）`
 
 实现范围：
 
@@ -622,6 +652,35 @@ Win / Lose -> Restart / Next / Home
 - 实现第 2 关的三阶段生成，避免 174 个水果在同一帧集中创建。
 - 确认对象池复用、批量生成预算和物理激活顺序。
 - 增加开发期“指定关卡/难度/种子”的入口，正式界面保持隐藏。
+
+实现记录（2026-10-19）：
+
+- 新增 `core/LevelProgress.ts`：localStorage key
+  `xiaoshuiguo_progress_v1`，只存 `{level}`（语义同原版
+  GbzDataManager.game_level = 下一个待玩关）。缺档/JSON 损坏/字段非法
+  安全回退第 1 关；存储不可用时降级为仅本次会话生效。
+- 推进时机对齐原版 `GbzGameManager.onGameOver(LAYER_WIN)`：
+  弹胜利层瞬间 `unlockAfterWin(level)`（max 防重玩旧关回退）；
+  失败/重试不改档。首页 `main/btn_start/level/labLevel` 与
+  关卡内 `levelBg/labLevel` 显示同一关卡号（HUD 由 LevelData.level 驱动）。
+- 导航统一：`GameNavigator.showLevel(level?)` 成为唯一入口——首页开始
+  传存档关，下一关/重玩/重试走 gotoLevel，bootstrap autolevel 沿用
+  启动参数（?level= 直链只在自动进入时生效，手动开始始终以存档为准）。
+- 第 2 关分批生成：`FruitSpawner` 普通关按 18 个/帧实例化，批次间
+  scheduleOnce 让出一帧（174 个约 10 帧创建完，带耗时/批次数日志）；
+  实例初始仍为 scale 0 + Static，spawnComplete 后统一播保护期动画，
+  分帧期间无物理扰动；中途退关 await 链随组件销毁安全挂起。
+- 对象池结论：预制体资源缓存（FruitFactory prefabs Map）跨关复用，
+  不重复加载/反序列化；节点实例不做跨关节点池——一关内水果只减不增，
+  池化收益仅在跨关重试，却需要完整重置刚体/碰撞体/接触监听/闪烁等状态，
+  风险高于收益；整关 destroy 保证监听器、定时器、物理对象 100% 回收，
+  冻结问题由分帧预算解决。
+- 开发入口：?level / ?difficulty / ?seed / ?movedir / ?autolevel 保留，
+  新增 ?resetprogress=1 清档回第 1 关；正式界面 dev 节点继续隐藏。
+- 自动验证：tsc 0 诊断；verify-level-generator 1440 组全绿；
+  预览直进第 2 关确认 174 水果完整生成、HUD“第 2 关”、剩余 174；
+  无档时首页显示第 1 关。待人肉：L1 通关推进、首页刷新关卡号、
+  退出重进保持进度、多轮重试无泄漏。
 
 可见效果：
 
@@ -637,7 +696,7 @@ Win / Lose -> Restart / Next / Home
 
 ### 第 11 步：普通障碍、木板和随机盒子
 
-状态：`[ ] 未开始`
+状态：`[ ] 实现完成，待人肉验收（2026-10-19）`
 
 实现范围：
 
@@ -657,6 +716,43 @@ Win / Lose -> Restart / Next / Home
 - 机关不会遮挡 HUD 或生成在场外。
 - 水果不会卡入静态碰撞体后永久无法操作。
 - 未确认的机关规则不得以“看起来差不多”作为完成标准。
+
+实现记录（2026-10-19，证据 ReferenceLayMgr.genLvMapData/genLvMap、
+GameMgr.initLevel/setLeftAndRightBoxWidth、FruitComp.setFruitType/update/
+unlockFruit/checkID）：
+
+- 普通障碍：新增 `ObstacleSpawner`，按生成器 `obstacles[]`（Y 等距条带、
+  X∈[-208,208]、variant 1..3）实例化 obs1/2/3 到 game/obstaclesRoot，
+  scale 0 播 0.8s backOut，物理分组 obst（掩码 18，只碰 fruit/clickFruit），
+  b2 body 次帧 apply；obs3 的 45° 旋转在预制体内，代码不额外转。
+- 木板：数量即布局编码（2/4/6），位置为原版固定公式——6 块
+  (±375,100+278*floor(i/2))、2 块 (0,150+278i)、4 块 (±270,350)，挂
+  game/stakeRoot；代码确认无额外旋转/连接（stake 仅 Static 多边形碰撞体）。
+  6 块时左右墙 BoxCollider 宽 345→水果节点创建完恢复 200；2 块时
+  walls/middleBox（33×28 布局标记，碰撞 offset 5000 无实际阻挡）
+  生成期显示在 (0,100)，完成后隐藏。
+- 随机盒：生成器（TS 与 tmp/gen.js 同步）在水果布局后、冰冻前按原版
+  rng 顺序不放回抽取 randomBox 个水果打 mystery 标记（CalculatedInfo.type=2）；
+  FruitEntity kind=2 时隐藏真水果贴图并挂 blackBox 外壳（0.55/fruitScale），
+  点击下落越过 canCheck 线（update）或碰到 floor/桶壁（checkID 兜底）
+  即开盖，pairId 始终是盒下真水果，未开盖不参与配对。
+- 机关与水果实例化并行，全部水果节点创建后、保护期动画前 finalizeSpawning
+  对齐原版 genLvMap 回调；关卡销毁随 levelCommon 整体回收，无独立监听/定时器。
+- 固定种子测试关（?autolevel=1&level=N&seed=...）：7=5 个随机盒，
+  12=2 块中线木板，22=6 块侧边木板，31=5 个 obs 石头；已截图确认就位。
+- 验证：tsc 0 诊断；verify-level-generator 1440 组全绿（基线条目不涉及
+  mystery 字段，向后兼容）。
+- 已知遗留：尾号 6 的道具布局关（itemLayout，6/16/26…）网格水果生成
+  本步前就是 0 水果（GridManager.InitPart 系列未恢复），随机盒校验按
+  min(randomBox, 水果数) 放行；该类关卡整体在后续专项恢复。
+- 联调修复（2026-10-19，生成器 moveDir 错误）：第 3 关起一进关水果
+  挤成一团的根因是生成器把尾号 1/2/3/5（lv2_3_5 家族）及 6/7/8
+  尾号关的 moveDir 漏设为默认 NONE，而原版 ReferenceMgr 这些分支末尾
+  统一 moveDir=DOWN。NONE 会把三阶段水果压在一屏高（maxY=halfH-140）
+  内强行排布；DOWN 则向上无限堆出屏幕、开局只露出上层，随 fruitDown
+  逐步下降（与第 2 关一致）。已在 TS 与 tmp/gen.js 同步修正，
+  尾号 4=右移、9=左移、0=静止(黑洞关)、1/2/3/5/6/7/8=下移；
+  verify-level-generator 1440 组全绿，预览 L3 排布恢复正常。
 
 ### 第 12 步：冰冻、黑洞、关节和方向特殊关卡
 

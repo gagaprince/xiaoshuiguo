@@ -1,10 +1,16 @@
-import { _decorator, Component, find, instantiate, Node, Prefab } from 'cc';
+import { _decorator, Component, find, instantiate, Label, Node, Prefab } from 'cc';
+import { LevelProgress } from '../core/LevelProgress';
 import { LevelLaunchConfig } from '../level/LevelLaunchConfig';
 import { LevelView } from '../level/LevelView';
 import { LevelSession } from '../level/LevelSession';
 import { FruitSpawner } from '../level/fruit/FruitSpawner';
 import { LevelPlayfield } from '../level/LevelPlayfield';
-import { COLLECTION_EVENT_FRUIT_ARRIVED } from '../level/CollectionController';
+import {
+    COLLECTION_EVENT_FRUIT_ARRIVED,
+    COLLECTION_EVENT_FRUIT_SETTLED,
+} from '../level/CollectionController';
+import { LOSE_REASON_DEADLOCK, LOSE_REASON_FULL } from '../level/LevelPlayfield';
+import { LoseLayer } from '../level/LoseLayer';
 import { WinLayer } from '../level/WinLayer';
 
 const { ccclass, property } = _decorator;
@@ -33,10 +39,16 @@ export class GameNavigator extends Component {
     @property({ type: Prefab, tooltip: '胜利层 GbzWin2Layer' })
     public winPrefab: Prefab = null;
 
+    @property({ type: Prefab, tooltip: '失败层 GbzLoseFullLayer' })
+    public losePrefab: Prefab = null;
+
     private home: Node | null = null;
     private levelCommon: Node | null = null;
     private levelHud: Node | null = null;
     private winLayer: Node | null = null;
+    private loseLayer: Node | null = null;
+    /** 第 9 步：胜负互斥，同一局只结算一次（含最后一对与满载同帧的情况）。 */
+    private outcomeLocked = false;
     private navigating = false;
     private levelSession: LevelSession | null = null;
     private levelView: LevelView | null = null;
@@ -60,18 +72,27 @@ export class GameNavigator extends Component {
                 this.stage.addChild(this.home);
                 this.bindHomeButton();
             }
+            this.updateHomeLevelLabel();
         } finally {
             this.navigating = false;
         }
     }
 
-    public showLevel(): void {
+    /**
+     * 进入关卡。显式传入 level 时覆盖启动参数（首页开始/下一关/重试统一走这里）；
+     * 不传时沿用 LevelLaunchConfig（?level= 调试或 bootstrap autolevel）。
+     */
+    public showLevel(level?: number): void {
         if (this.navigating || this.levelCommon) return;
         this.navigating = true;
+        this.outcomeLocked = false;
         try {
             if (!this.stage || !this.levelCommonPrefab || !this.levelHudPrefab) {
                 console.warn('[GameNavigator] level prefabs or stage missing');
                 return;
+            }
+            if (typeof level === 'number' && level > 0) {
+                LevelLaunchConfig.override({ level: Math.floor(level) });
             }
             const cfg = LevelLaunchConfig.options;
             this.levelSession = LevelSession.create();
@@ -104,6 +125,11 @@ export class GameNavigator extends Component {
                 this.onFruitArrived,
                 this,
             );
+            playfield.collectionController?.events.on(
+                COLLECTION_EVENT_FRUIT_SETTLED,
+                this.onFruitSettled,
+                this,
+            );
 
             this.levelHud = instantiate(this.levelHudPrefab);
             this.stage.addChild(this.levelHud);
@@ -117,16 +143,56 @@ export class GameNavigator extends Component {
 
     /** 第 8 步：每个水果飞入篮筐后递减目标，最后一个到达时弹胜利层（原版 checkWin 时机）。 */
     private onFruitArrived(): void {
-        if (!this.levelSession || !this.levelView) return;
+        if (!this.levelSession || !this.levelView || this.outcomeLocked) return;
         const result = this.levelSession.recordCollected();
         this.levelView.setGoalRemain(result.remain);
         this.levelView.setProgress(result.progress);
-        if (result.cleared) this.showWinLayer();
+        if (result.cleared) {
+            this.showWinLayer();
+            return;
+        }
+        // 原版 fruitTween 结尾：出槽释放容量后复检死局（checkSlotLose）。
+        const reason = this.playfield?.evaluateLose() ?? null;
+        if (reason) this.lose(reason);
+    }
+
+    /** 第 9 步：水果落入收集区瞬间做容量/死局判定（原版 addInSlotFruit）。 */
+    private onFruitSettled(): void {
+        if (this.outcomeLocked) return;
+        const reason = this.playfield?.evaluateLose();
+        if (reason) this.lose(reason);
+    }
+
+    /**
+     * 第 9 步：失败只结算一次。对齐原版 overFun：fullTip 提示与
+     * GbzLoseFullLayer 几乎同时出现，随后锁定全场输入。
+     */
+    private lose(reason: string): void {
+        if (this.outcomeLocked) return;
+        if (!this.levelSession?.markLost(reason)) return;
+        this.outcomeLocked = true;
+        this.playfield?.finalizeLose(reason);
+        this.levelView?.showFullTip(reason);
+        if (this.levelHud) this.levelHud.active = false;
+        if (!this.stage || !this.losePrefab) {
+            console.warn('[GameNavigator] lose prefab/stage missing');
+            return;
+        }
+        const level = this.levelSession?.data.level ?? LevelLaunchConfig.options.level;
+        const node = instantiate(this.losePrefab);
+        const layer = node.addComponent(LoseLayer);
+        layer.setup({
+            onRetry: () => this.gotoLevel(level),
+            onHome: () => this.backHome(),
+        });
+        this.stage.addChild(node);
+        this.loseLayer = node;
     }
 
     /** 第 8 步：胜利只触发一次；锁输入、隐 HUD、挂最小可用 GbzWin2Layer。 */
     private showWinLayer(): void {
-        if (this.winLayer) return;
+        if (this.winLayer || this.outcomeLocked) return;
+        this.outcomeLocked = true;
         if (!this.stage || !this.winPrefab) {
             console.warn('[GameNavigator] win prefab/stage missing');
             return;
@@ -135,6 +201,9 @@ export class GameNavigator extends Component {
         if (this.levelHud) this.levelHud.active = false;
 
         const level = this.levelSession?.data.level ?? LevelLaunchConfig.options.level;
+        // 原版 GbzGameManager.onGameOver(LAYER_WIN)：弹胜利层瞬间 AddCurLv(1) 持久化。
+        const nextLevel = LevelProgress.unlockAfterWin(level);
+        console.log(`[LevelProgress] level ${level} cleared, next level ${nextLevel}`);
         const node = instantiate(this.winPrefab);
         const win = node.addComponent(WinLayer);
         win.setup({
@@ -154,6 +223,13 @@ export class GameNavigator extends Component {
         this.showLevel();
     }
 
+    /** 首页开始按钮上的关卡号 = 存档当前关（原版 btn_start/level/labLevel）。 */
+    private updateHomeLevelLabel(): void {
+        const labNode = this.home?.getChildByPath('main/btn_start/level/labLevel');
+        const label = labNode?.getComponent(Label);
+        if (label) label.string = `${LevelProgress.currentLevel}`;
+    }
+
     public backHome(): void {
         this.showHome();
     }
@@ -170,7 +246,8 @@ export class GameNavigator extends Component {
 
     private onStartClick(): void {
         if (this.navigating) return;
-        this.showLevel();
+        // 正式链路始终从存档关进入；?level= 调试覆盖只对 autolevel/直链生效。
+        this.showLevel(LevelProgress.currentLevel);
     }
 
     private bindLevelButtons(): void {
@@ -199,9 +276,15 @@ export class GameNavigator extends Component {
     private clearLevel(): void {
         const collection = this.playfield?.collectionController ?? null;
         collection?.events.off(COLLECTION_EVENT_FRUIT_ARRIVED, this.onFruitArrived, this);
+        collection?.events.off(COLLECTION_EVENT_FRUIT_SETTLED, this.onFruitSettled, this);
         this.playfield = null;
         this.levelView = null;
         this.levelSession = null;
+        this.outcomeLocked = false;
+        if (this.loseLayer) {
+            this.loseLayer.destroy();
+            this.loseLayer = null;
+        }
         if (this.winLayer) {
             this.winLayer.destroy();
             this.winLayer = null;
