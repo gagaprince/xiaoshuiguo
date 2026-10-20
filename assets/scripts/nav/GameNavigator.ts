@@ -17,6 +17,9 @@ import { LevelHudIntro } from '../level/LevelHudIntro';
 import { CarTransitionLayer } from '../level/CarTransitionLayer';
 import { CityTable } from '../level/CityTable';
 import { GameAudio } from '../audio/GameAudio';
+import { RankLayer } from '../home/RankLayer';
+import { FruitBookLayer } from '../home/FruitBookLayer';
+import { FruitBookState } from '../home/FruitBookState';
 
 /** 第 14 步子任务 3：汽车过关过场预制体（assets/secondary/prefab/Game）。 */
 const CAR_MOVE_PREFAB_UUID = 'a981e4ed-d6a1-4dfb-8671-6f277f4c0e13';
@@ -61,6 +64,10 @@ export class GameNavigator extends Component {
     private resurgenceLayer: Node | null = null;
     /** 第 14 步子任务 3：汽车过关过场层。 */
     private carLayer: Node | null = null;
+    /** 排行榜弹层（首页 btn_rank 打开）。 */
+    private rankLayer: Node | null = null;
+    /** 图鉴弹层（首页 btn_fruitBook 打开）。 */
+    private fruitBookLayer: Node | null = null;
     /** 第 9 步：胜负互斥，同一局只结算一次（含最后一对与满载同帧的情况）。 */
     private outcomeLocked = false;
     private navigating = false;
@@ -393,6 +400,13 @@ export class GameNavigator extends Component {
         } else {
             console.warn('[GameNavigator] main/btn_start not found in home prefab');
         }
+        const btnRank = this.home.getChildByName('btn_rank');
+        btnRank?.on(Node.EventType.TOUCH_END, this.onRankClick, this);
+        const btnFruitBook = this.home.getChildByName('btn_fruitBook');
+        btnFruitBook?.on(Node.EventType.TOUCH_END, this.onFruitBookClick, this);
+        // 原版 fruitBookShow：红点 = fruitBookLastLevel < game_level。
+        const bookBadge = btnFruitBook?.children[0] ?? null;
+        if (bookBadge) bookBadge.active = FruitBookState.hasNew(LevelProgress.currentLevel);
     }
 
     private onStartClick(): void {
@@ -400,6 +414,51 @@ export class GameNavigator extends Component {
         GameAudio.ins.play('ui_click');
         // 正式链路始终从存档关进入；?level= 调试覆盖只对 autolevel/直链生效。
         this.showLevel(LevelProgress.currentLevel);
+    }
+
+    /** 首页 btn_rank：懒加载 GbzRankLayer 排行榜弹层到 Stage。 */
+    private onRankClick(): void {
+        if (this.rankLayer || !this.stage) return;
+        GameAudio.ins.play('ui_click');
+        assetManager.loadAny(RankLayer.prefabUuid, (error, prefab: Prefab) => {
+            if (error || !this.stage || !this.isValid) {
+                console.warn('[GameNavigator] rank prefab load failed', error);
+                return;
+            }
+            const node = instantiate(prefab);
+            GameNavigator.syncLayerRecursive(node, this.stage.layer || Layers.Enum.UI_2D);
+            const layer = node.addComponent(RankLayer);
+            layer.setup(() => {
+                node.destroy();
+                this.rankLayer = null;
+            });
+            this.stage.addChild(node);
+            this.rankLayer = node;
+        });
+    }
+
+    /** 首页 btn_fruitBook：懒加载 GbzFruitBookLayer 图鉴弹层到 Stage。 */
+    private onFruitBookClick(): void {
+        if (this.fruitBookLayer || !this.stage) return;
+        GameAudio.ins.play('ui_click');
+        assetManager.loadAny(FruitBookLayer.prefabUuid, (error, prefab: Prefab) => {
+            if (error || !this.stage || !this.isValid) {
+                console.warn('[GameNavigator] fruit book prefab load failed', error);
+                return;
+            }
+            const node = instantiate(prefab);
+            GameNavigator.syncLayerRecursive(node, this.stage.layer || Layers.Enum.UI_2D);
+            const badge = this.home?.getChildByName('btn_fruitBook')?.children[0] ?? null;
+            const layer = node.addComponent(FruitBookLayer);
+            layer.setup(() => {
+                node.destroy();
+                this.fruitBookLayer = null;
+                // 原版 GbzFruitBookLayer.onDisable：查看后红点消失。
+                if (badge) badge.active = false;
+            });
+            this.stage.addChild(node);
+            this.fruitBookLayer = node;
+        });
     }
 
     private bindLevelButtons(): void {
@@ -454,6 +513,14 @@ export class GameNavigator extends Component {
     }
 
     private clearLevel(): void {
+        if (this.rankLayer) {
+            this.rankLayer.destroy();
+            this.rankLayer = null;
+        }
+        if (this.fruitBookLayer) {
+            this.fruitBookLayer.destroy();
+            this.fruitBookLayer = null;
+        }
         const collection = this.playfield?.collectionController ?? null;
         collection?.events.off(COLLECTION_EVENT_FRUIT_ARRIVED, this.onFruitArrived, this);
         collection?.events.off(COLLECTION_EVENT_FRUIT_SETTLED, this.onFruitSettled, this);

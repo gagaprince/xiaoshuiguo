@@ -1506,6 +1506,120 @@ GbzLvCommon 预制体实测）：
 - 右上角返回首页仍可用。
 ```
 
+## 第 15 步：首页扩展 - 排行榜（世界榜）
+
+```text
+步骤：第 15 步 - 排行榜（GbzRankLayer 世界榜）
+状态：行排版已二次修复，待人肉视觉验收
+行排版修复（cc.deserialize 行模板 dccf7e21 精确取值）：
+- 根因：行底 parent(723x143) 带 scale 0.9，子节点坐标都在缩放下，
+  漏掉 scale 导致整体外扩 11%、奖牌/关卡字被列表遮罩裁切；
+- Label 逐字对齐原版：三标签均居中、lineHeight 40，名字/关卡加粗，
+  名次 LabRank 描边 #775026/2px、宽度 100；关卡框 160 宽；
+- selfData 固定行 y=-342.604（原包 PrefabInstance 覆盖值），
+  不再与列表末行重叠。
+本次改动：
+- 新增 assets/scripts/home/RankNpcData.ts：原版 GbzRankLayer 纯数据逻辑，
+  50 个 NPC + 自己；NPC 关卡 70% 为 2500~4000、30% 为 4001~5000；
+  三套名字池（前缀+后缀/赵钱孙李…+小名/特殊称号）逐字照搬反混淆源码，
+  去重重试 10 次后追加随机数；头像取 fruitStr 前 28 项；
+  localStorage（xiaoshuiguo_rank_names_v1/_date_v1）持久化，
+  跨天每个 NPC +1~4 关重排；自己 level=当前关-1，达第 50 名线才入榜，
+  50 名外底部固定行显示“99+ 自己 N关”。
+- 新增 assets/scripts/home/RankHeadIcons.ts：28 个排行榜头像水果的
+  SpriteFrame UUID 映射（f9941 子资源，从 png.meta 提取）。
+- 新增 assets/scripts/home/RankRow.ts：原包行模板 dccf7e21 工程未迁入，
+  按 cc.deserialize 还原的结构/坐标/字号/颜色在代码中建行：
+  行底别人/z自己（sliced 723x143）、奖牌 75x88（前三名）或名次
+  （fs40 #fde060）、头像框 90x90+水果头 75x75、名字（fs30 #6a4a37）、
+  关卡（fs30 #8d1c8f，“N关”）。
+- 新增 assets/scripts/home/RankLayer.ts：复用原 GbzRankLayer.prefab
+  （tab/底板/ScrollView 均在）；剔除失效的 GridLayerListView 与按钮
+  MissingScript，content 改原生 VERTICAL Layout（CONTAINER、行距 10、
+  上下 padding 20）；tab 切换 btnWordShow/btnFriendShow；
+  好友榜为微信开放数据域能力，Web 显示“好友榜为微信功能/请在微信中
+  查看”占位；关闭走遮罩/btn_Close + ui_click，setRank/hideGameClub
+  等微信 API 跳过；wordRank 下补建缺失的 selfData 固定行（y=-292）。
+- GameNavigator.ts：bindHomeButton 追加根节点 btn_rank；
+  onRankClick 懒加载 a6317380… 面板 prefab 到 Stage（同步 UI_2D layer），
+  关闭即销毁；clearLevel 兜底销毁。
+- 资源修复：别人.png/z自己.png 的 f9941 userData 补九宫格 border
+  （左50/上25/右30/下25，原图 184x134：左侧米色名次列固定、粉色中段
+  横向拉伸），恢复原包 SLICED 表现。
+原版依据：tmp/recovered-src/readable/GbzRankLayer.ts.js（名字池/
+  getRandomLevel/updateNPCLevels/processPlayerData/selfDataFun/tab 切换）、
+  RankDataComp.ts.js（行字段与奖牌/行底切换）、GameMgr.ts.js fruitStr
+  前 28 项；行模板结构来自原包打包 JSON 的 cc.deserialize 反序列化。
+预览入口：首页点击 btn_rank 排行榜按钮。
+验证结果：临时 ?tmprank=1&tmpranktab=friend 钩子自动验证：
+  50 条 NPC、降序 sorted=true、名字 unique=true、关卡区间 rangeOk=true、
+  selfRowActive=true、content 50 个行节点、前三名名字/关卡日志正确、
+  tab 切好友榜 wordActive=false/friendActive=true/tip=true、
+  layer=UI_2D(33554432)；过滤后 0 error（仅已知 lightMaterial/
+  materialAttacked 缺失）；普通首页冒烟 0 新增报错；
+  tsc 0 诊断；钩子已删净（grep TMP 归零）。
+已知差异：
+- 原包 10 个中文姓氏是混淆字符串变量，按英文半组 Zhao/Qian/... 对应
+  还原为“赵钱孙李周吴郑王冯陈”；specialNames[14] 混淆变量无法还原，
+  以“孤狼”占位；均不影响功能。
+- 好友榜（微信开放数据域 getOpenDataContext/postMessage）与
+  setRank 微信上报在 Web/非微信环境无法实现，显示占位提示。
+- storage key 与原包 namesData/lastUpdateDate 不互通，使用工程独立
+  key（与 LevelProgress 策略一致）。
+- 行头像是异步加载（loadAny 缓存/并发去重），首次打开可能有 1 帧空白。
+待人肉验收清单：
+- 首页点排行榜：面板弹出，世界榜 50 行，前三名金银铜奖牌、4 名后数字；
+  行底左米右粉不拉伸变形；水果头像/名字/“N关”颜色位置正常；
+- 底部固定行“99+ 自己 N关”（N=当前关-1）；
+- 世界榜/好友榜 tab 选中底图切换正确，好友榜显示占位文字；
+- 点遮罩或右上关闭按钮可关闭并播放点击音，再次打开数据不变（持久化）。
+- 面板底板 01 九宫格已按原包 capInsets=[31,0,29,35] 修 border
+  （白色底板上下不再变形）。
+- tab 底条矩形5 [29,19,23,14]、列表区米色底板02 [16,0,21,30] 同步修复
+  （世界榜/好友榜按钮底条与好友榜内部背景不再拉伸；按钮上的
+  世界榜0/1、好友榜0/1、图层2 原图即等尺寸使用，capInsets 为 0 不动）。
+```
+
+## 第 16 步：首页扩展 - 图鉴（GbzFruitBookLayer）
+
+```text
+步骤：第 16 步 - 图鉴（水果/蔬菜收集册）
+状态：自动验证完成（0 error），待人肉视觉/交互验收
+本次改动：
+- CollectibleTable.ts 追加 bookCount/bookNameAt/bookIconUuidAt/
+  bookHasIcon（175 条 cityUnlockData 复用第 14 步提取结果）。
+- 新增 assets/scripts/home/FruitBookState.ts：原版
+  fruitBookLastLevel 持久化（xiaoshuiguo_fruitbook_v1，默认 0）。
+- 新增 assets/scripts/home/FruitBookLayer.ts：复用原
+  GbzFruitBookLayer.prefab（标题/收集进度/ScrollView 均在）和原
+  fruitBook.prefab 格子模板（parent 行底/fruit/fruitName/num/newTip
+  节点与贴图均完整），剔除失效的 GridLayerListView/FruitBookComp。
+  网格定位逐字照搬 GridListView.initParam/addItems：3 列、
+  colX=-200/0/200、rowY=-228*(row+0.5)、content 锚点(0.5,1)、
+  高 59*228；175 格全部实例化（原池化为表现优化，功能等价）。
+  解锁规则同 FruitBookComp.refreshPro：r < game_level 解锁亮彩、
+  否则水果染黑+UIOpacity 100+隐藏名字/No；新解锁项显示 newTip；
+  每格 parent 0 -> 0.9 backOut 0.5s 进场弹跳。
+- GameNavigator：btn_fruitBook 打开弹层；按钮 children[0] 红点按
+  lastViewed < currentLevel 初始化，查看后面板关闭写档并隐藏红点；
+  clearLevel 兜底销毁。
+预览入口：首页左下 btn_fruitBook（图鉴书按钮）。
+验证结果：?tmpbookshot=1 新标签自动开面板，175 格实例化 0 error，
+截图确认前 4 项解锁（彩图/名字/No/新角标）、其后剪影、3 列布局正常；
+tsc 0 诊断；钩子已删净。
+已知差异：
+- 原包 6 类主题（水果/甜品/蔬菜/动物/海洋/糖果）工程只迁入
+  水果/蔬菜贴图（49/175）；无图条目即使解锁也显示剪影+名字，
+  不用默认草莓图冒充；补齐需另迁主题 bundle 资源。
+- cityUnlockData 有 7 项原包即混淆变量名，名字显示“？？？”。
+待人肉验收清单：
+- 上下滑动 175 格滚动正常，顶部“收集进度: N/175”N=当前关-1（封顶 175）；
+- 关闭后首页按钮红点消失；通关推进一关后红点重新出现、对应新格子有“新”角标；
+- 点遮罩或右上 X 关闭有点击音，重开数据一致。
+- 面板“设置面板”九宫格已按原包 capInsets=[35,113,32,41] 修 border
+  （蓝色头部/分隔线/底部圆角不再拉伸）。
+```
+
 ## 6. 每一步的固定交付格式
 
 后续每完成一步，都按以下格式记录，方便逐步查看效果：
@@ -1547,10 +1661,10 @@ GbzLvCommon 预制体实测）：
 
 以下内容不会阻塞 Level 核心闭环，将在玩法稳定后另列计划：
 
-- 排行榜、开放数据域和好友数据。
+- 好友榜开放数据域（世界榜 NPC 排行已在第 15 步重建）。
 - 广告、分享、订阅、客服、游戏圈等平台能力。
 - 段位、排行榜奖励和长期数值平衡。
-- 图鉴和蔬菜收集的完整经济系统。
+- 图鉴的主题皮肤/完整收集经济（图鉴展示与解锁状态已在第 16 步完成）。
 - 服务端存档、账号同步和运营活动。
 - 原包中用途不明确的开发调试面板。
 

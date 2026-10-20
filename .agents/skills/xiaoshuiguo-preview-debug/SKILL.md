@@ -93,6 +93,41 @@ for o in d:
 遍历 `uuidList/uuidObjList/uuidPropList`，压缩 uuid 到对应子包 `config.json`
 的 `uuids[]/paths[]` 查路径。用完删 tmp/orig-*.json。
 
+实测更简单的配方（排行榜行模板验证通过）：
+- editor 上下文不能 require('cc')；scene 上下文可以直接用全局 cc，
+  且能用 require('fs') 读绝对路径（safety_checks=false）。
+- 打包 JSON 是数组 [ver, depUuids, keys, classes, masks, ...]：json[1] 是
+  该预制体依赖的全部 uuid（含 @f9941），先打印它拿图片/材质清单。
+- cc.deserialize(json) 返回 Prefab，根节点是 res.data（res.isNode=false，
+  别直接遍历 res）。递归读 name/position/UITransform.contentSize/components
+  （Sprite 的 spriteFrame._uuid/type/color、Label 的 string/fontSize/color、
+  MissingScript 上的自定义属性也能直接读）。
+- 22 位压缩 uuid 本地解码：base64 字母表 A-Za-z0-9+/，首 2 字符保留，
+  之后每 2 字符解 3 个 hex，拼成 8-4-4-4-32 标准 uuid。
+
+九宫格（SLICED）资源恢复：
+- 恢复出的 png.meta 默认 border 全 0，SLICED 会每帧刷
+  Sliced.updateUVs reading '0'（spriteFrame.uvSliced 为空）。
+  运行时改 sf.insetLeft 等无效（UV 导入时算好）。正确做法：改
+  xxx.png.meta 的 subMetas.f9941.userData 的
+  borderTop/Bottom/Left/Right，refresh-asset 该 png，验证
+  library 下 <uuid>@f9941.json 的 content.capInsets=[l,t,r,b]，
+  再新开预览标签（旧标签缓存旧资源）。
+- border 数值首选权威来源：原包子包 config.json 的 paths 按资源名
+  找到 spriteFrame 的 uuid 下标，packs{packKey:[uuid下标...]} 定位
+  pack 文件（import/<key前2>/<key>.json，磁盘文件名可能与 key 差一字符），
+  该 pack 的 d[5] 里按名字找 cc.SpriteFrame 实例，读
+  `"capInsets":[left,top,right,bottom]`（引擎语义就是 l/t/r/b，
+  见 sprite-frame.ts INSET_LEFT=0..）。已验证：排行榜底板01
+  [31,0,29,35]、图鉴设置面板 [35,113,32,41]、排行榜行底 [50,25,30,25]。
+  原包没给数据时再按 native 下 png 像素视觉分段。
+
+loadAny 取图片必须带子资源后缀：裸 uuid 会拿到 ImageAsset 而不是
+SpriteFrame，症状是赋帧时报 _applySpriteSize reading 'width' 或
+Sliced uvSliced undefined。常量表一律存 uuid 拼 @f9941。
+代码动态建 Sprite 时先把 sizeMode 设 CUSTOM 再赋 spriteFrame，
+默认 RAW 模式在原尺寸未就绪时同样会报 width undefined。
+
 ## 5. 还原一个原版功能的标准路径（音频/特效/过场/弹层通用）
 
 按这个顺序，基本不会返工：
@@ -113,6 +148,18 @@ for o in d:
    按 `constructor.name === 'MissingScript'` 剔除。
 7. **收尾**：tsc → editor refresh（新建目录/文件后先让 meta 生成）→
    第 3 节三件套自动验证 → 删临时代码 → 交人肉看视觉/听声音。
+
+**GridLayerListView（9d992 池化列表）失效时的原生替代**（图鉴/排行榜行模板验证通过）：
+- 面板预制体里 content 上禁用的 Layout 参数是图鉴残留（paddingLeft30/
+  spacingX12/spacingY38），实际定位全在 GridListView.initParam/addItems：
+  纵向时 itemSize=格高+spaceY、spaceSize=格宽+spaceX、
+  cellNum=floor(内容宽/spaceSize)；content 锚点(0.5,1)、与 view 等宽、
+  高=行数*itemSize、y=view高/2；colX=(col-(cellNum-1)/2)*spaceSize、
+  rowY=-itemSize*(row+0.5)。spaceX/Y 取挂在 list 节点的 9d992 序列化值
+  （图鉴 spaceY=28，排行榜 spaceY=10；行模板根 scale 不能漏，排行榜行底是 0.9）。
+- 175 格直接全量 instantiate 无性能问题（每格约 5 节点），不必复刻对象池；
+  批量 loadAny 加载去重后的真实贴图 uuid，未迁入类目不套默认图冒充，
+  用剪影+文字呈现（图鉴无图类目处理）。
 
 已建的可复用层：
 - `assets/scripts/audio/GameAudio.ts`：音效单例（play 限流/playCombo/playBGM/

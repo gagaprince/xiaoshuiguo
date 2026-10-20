@@ -200,4 +200,24 @@ export class CollectibleTable {
         const item = COLLECTIBLES[n];
         return item[2] || DEFAULT_FRUIT_ICON;
     }
+
+    /** 图鉴总数（原版 GbzFruitBookLayer.allNum = 175）。 */
+    public static get bookCount(): number {
+        return COLLECTIBLES.length;
+    }
+
+    /** 图鉴条目名（原表少量条目是混淆变量名无法还原，显示为？？？）。 */
+    public static bookNameAt(index: number): string {
+        return COLLECTIBLES[index]?.[0] || '？？？';
+    }
+
+    /** 图鉴条目 SpriteFrame uuid；工程未迁入的类目回退默认水果图。 */
+    public static bookIconUuidAt(index: number): string {
+        return COLLECTIBLES[index]?.[2] || DEFAULT_FRUIT_ICON;
+    }
+
+    /** 工程是否迁入了该条目的真实贴图（甜品/动物/海洋/糖果类目多数未迁入）。 */
+    public static bookHasIcon(index: number): boolean {
+        return !!(COLLECTIBLES[index]?.[2]);
+    }
 }
