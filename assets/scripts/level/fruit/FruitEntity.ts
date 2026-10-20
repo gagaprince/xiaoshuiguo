@@ -5,10 +5,12 @@ import {
     Contact2DType,
     Color,
     Component,
+    DistanceJoint2D,
     ERigidBody2DType,
     EventTouch,
     IPhysics2DContact,
     instantiate,
+    Label,
     Node,
     Prefab,
     PolygonCollider2D,
@@ -23,6 +25,9 @@ import {
     tween,
 } from 'cc';
 import { FRUIT_PHYSICS_GROUP } from './FruitPrefabMap';
+import type { HoleComp } from '../HoleComp';
+import { GameAudio } from '../../audio/GameAudio';
+import { EffectLayer } from '../effects/EffectLayer';
 
 const { ccclass } = _decorator;
 
@@ -37,6 +42,8 @@ export interface FruitInputHost {
     canCheckY: number;
     /** 水果被点击：下移关立即整体下移一步（对齐 GameMgr.fruitDown）。 */
     onFruitClicked(entity: FruitEntity): void;
+    /** 第 12 步：点击尚未解冻的冰冻水果（对齐 GameMgr.iceTip，每局只提示一次）。 */
+    onFrozenTouched(): void;
     /** 水果接触 floor/btnFirstWall/btnSecondWall，进入下方收集区。 */
     onFruitSettled(entity: FruitEntity): void;
     /** 两个同类型水果物理接触且满足配对条件（对齐 FruitComp.checkID 的 F 分支）。 */
@@ -50,6 +57,8 @@ export interface FruitEntityInit {
     fruitType: number;
     kind?: FruitKind;
     stage?: number;
+    /** 第 12 步：冰冻水果解冻所需受击次数（CalculatedInfo.unlockNum）。 */
+    thawHits?: number;
     /** 布局碰撞半径（世界单位，已含缩放），供后续点击/物理步骤使用。 */
     radius?: number;
 }
@@ -90,6 +99,8 @@ export class FruitEntity extends Component {
     public canCheckPassed = false;
     /** 已锁定到一对消除中（原版 isCollider），防止同一水果重复结算。 */
     public isCollider = false;
+    /** 第 13 步：手动点击下落前的位置（原版 FruitComp.downOrgPos，复活归位用）。 */
+    public downOrgPos: Vec3 | null = null;
     /** 点击下落时的重力倍率（原版固定 13，世界重力 -10）。 */
     public readonly gravityScale = 13;
     public readonly restitution = 0;
@@ -105,6 +116,37 @@ export class FruitEntity extends Component {
     private baseHeight = 0;
     /** 第 11 步：随机盒外壳节点（CalculatedInfo.type=2 时挂在水果下）。 */
     private boxShell: Node | null = null;
+    /** 第 12 步：冰冻外壳 iceLab（fruitType=1 时挂在水果下）。 */
+    private iceShell: Node | null = null;
+    /** 第 12 步：解冻所需剩余受击次数（原版 FruitComp.iceCounts）。 */
+    private iceCount = 0;
+    /** 第 12.2 步：当前绑定的黑洞（原版 FruitComp.holeComp，点击后单向解绑）。 */
+    public hole: HoleComp | null = null;
+    /** 第 12.3 步：绳索挂在本水果上的 DistanceJoint（原版 FruitComp.disJoint）。 */
+    private disJoint: DistanceJoint2D | null = null;
+    /** 第 12.3 步：绳索另一端的水果（建绳后 0.5s 互相赋值，原版 jointFruit）。 */
+    public jointFruit: FruitEntity | null = null;
+    /** 第 14 步：出生/归位位置（原版 FruitComp.originPos，碰撞音位移基准）。 */
+    private originPos: Vec3 = new Vec3();
+    /** 第 14 步：本果本次下落已响过碰撞音的水果 uuid（原版 hitFruits）。 */
+    private readonly hitFruits = new Set<string>();
+    /** 第 14 步：侧移关已撞过落槽斜面（原版 isLRAddForce，落地音只播一次）。 */
+    private isLRAddForce = false;
+    /** 第 14 步：本次下落已播过斜面落地粒子（原版 isShowedlandEff）。 */
+    private isShowedLandEff = false;
+
+    /** 原版 isJoint：身上有绳索关节即为绳索果。 */
+    public get isJoint(): boolean {
+        return this.disJoint !== null;
+    }
+
+    /**
+     * 原版 isBind：绳索还在、且另一端水果尚未被点走。
+     * 绑定期间不做 canCheck 越线、接触配对/入槽判定（由先被点走的一端拖着走）。
+     */
+    public get isBind(): boolean {
+        return this.isJoint && this.jointFruit !== null && !this.jointFruit.isTouch;
+    }
 
     public setup(init: FruitEntityInit, scale: number): void {
         this.id = init.id;
@@ -119,6 +161,15 @@ export class FruitEntity extends Component {
         this.inCheckBox = false;
         this.canCheckPassed = false;
         this.isCollider = false;
+        this.iceCount = init.thawHits ?? 0;
+        this.iceShell = null;
+        this.hole = null;
+        this.disJoint = null;
+        this.jointFruit = null;
+        this.hitFruits.clear();
+        this.isLRAddForce = false;
+        this.isShowedLandEff = false;
+        this.originPos.set(0, 0, 0);
         this.boardScale = scale;
 
         this.baseWidth = this.node.getComponent(UITransform)?.width ?? 100;
@@ -148,6 +199,66 @@ export class FruitEntity extends Component {
         const shellScale = 0.55 / Math.max(0.0001, this.boardScale);
         shell.setScale(new Vec3(shellScale, shellScale, 1));
         this.boxShell = shell;
+    }
+
+    /**
+     * 第 12 步：挂上 iceLab 冰冻外壳（对齐 FruitComp.setFruitType case 1）。
+     * 冰壳缩放 = 水果宽 / iceLab 宽 + 0.15，数字节点反向旋转抵消水果倾角。
+     */
+    public attachIceShell(prefab: Prefab): void {
+        if (this.fruitType !== 1 || this.iceShell) return;
+        const shell = instantiate(prefab);
+        this.node.addChild(shell);
+        shell.setPosition(0, 0, 0);
+        shell.angle = 0;
+        const fruitWidth = this.node.getComponent(UITransform)?.width ?? 100;
+        const shellWidth = shell.getComponent(UITransform)?.width ?? 165;
+        const shellScale = fruitWidth / shellWidth + 0.15;
+        shell.setScale(new Vec3(shellScale, shellScale, 1));
+        const count = shell.getChildByName('count');
+        if (count) {
+            count.angle = -this.node.angle;
+            count.getComponent(Label)!.string = `${Math.max(0, this.iceCount)}`;
+        }
+        this.iceShell = shell;
+    }
+
+    /** 第 12 步：场上消除一对后所有冰冻水果受击一次（原版 FruitComp.iceBox）。 */
+    public applyIceHit(): void {
+        if (this.fruitType !== 1) return;
+        this.iceCount -= 1;
+        if (this.iceCount <= 0) {
+            this.unlockIce();
+        } else {
+            this.playIceCountTween();
+        }
+    }
+
+    /** 第 12 步：解冻（原版 FruitComp.unlockFruit 的冰冻分支）。 */
+    public unlockIce(): void {
+        if (this.fruitType !== 1) return;
+        this.fruitType = 0;
+        this.iceCount = 0;
+        if (this.iceShell) {
+            this.iceShell.destroy();
+            this.iceShell = null;
+        }
+    }
+
+    /** 原版 upIceLa：数字 1→1.5(backIn)→换数→1(backOut) 弹跳。 */
+    private playIceCountTween(): void {
+        const count = this.iceShell?.getChildByName('count');
+        if (!count) return;
+        const label = count.getComponent(Label);
+        Tween.stopAllByTarget(count);
+        count.setScale(new Vec3(1, 1, 1));
+        tween(count)
+            .to(0.2, { scale: new Vec3(1.5, 1.5, 1) }, { easing: 'backIn' })
+            .call(() => {
+                if (label?.isValid) label.string = `${Math.max(0, this.iceCount)}`;
+            })
+            .to(0.2, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
+            .start();
     }
 
     /** 第 11 步：随机盒开盖（对齐 FruitComp.unlockFruit 的盒分支）。 */
@@ -184,9 +295,16 @@ export class FruitEntity extends Component {
     private onTouchStart(event: EventTouch): void {
         event.propagationStopped = true;
         const host = this.host;
-        if (!host || !host.isInputActive() || this.fruitType === 1) return;
+        if (!host || !host.isInputActive()) return;
+        // 原版 touchStart：冰冻水果不可点击，只弹一次“未解冻”提示。
+        if (this.fruitType === 1) {
+            host.onFrozenTouched();
+            return;
+        }
         if (!this.isCanTouch || this.isTouch) return;
 
+        // 第 13 步复活：记录点击前原位（原版 touchStart 的 downOrgPos）。
+        this.downOrgPos = this.node.position.clone();
         const body = this.body;
         if (body) body.group = FRUIT_PHYSICS_GROUP.CLICK_FRUIT;
         // 直接写 _group，下面 setRigType 的 collider.apply() 会用新 filter 重建
@@ -197,9 +315,13 @@ export class FruitEntity extends Component {
         this.clickTween();
         this.node.setScale(new Vec3(this.boardScale, this.boardScale, 1));
         this.isTouch = true;
+        // 第 12.2 步：黑洞关联水果被点走 -> breakHole，洞开始按距离吐下一个。
+        this.hole?.notifyTouched();
+        this.hole = null;
         this.applyAppearance(false);
         Tween.stopAllByTarget(this.node);
         this.setRigType(ERigidBody2DType.Dynamic, this.gravityScale, true);
+        GameAudio.ins.play('点击水果');
         host.onFruitClicked(this);
     }
 
@@ -219,6 +341,8 @@ export class FruitEntity extends Component {
     protected update(): void {
         const host = this.host;
         if (!host || !this.isTouch) return;
+        // 第 12.3 步：绳索绑定期间由另一端拖着走，不做越线/开盖判定（原版 isBind）。
+        if (this.isBind) return;
         this.canCheckPassed = this.node.position.y <= host.canCheckY;
         // 第 11 步：随机盒点击下落、越过 canCheck 线即开盖露出真水果（FruitComp.update）。
         if (this.fruitType === 2 && this.boxShell && this.canCheckPassed) {
@@ -234,6 +358,7 @@ export class FruitEntity extends Component {
     ): void {
         // 原版所有接触回调都先判 ENUM_STATUS.RUN；胜负锁定后不再入槽/配对。
         if (!this.host?.isInputActive()) return;
+        if (this.isBind) return;
         switch (other.node.name) {
             case 'canCheck':
                 this.inCheckBox = true;
@@ -245,8 +370,17 @@ export class FruitEntity extends Component {
                 break;
             case 'dropRight':
             case 'dropLeft':
-                // 原包 checkDropWall 的力向量是未施加的死代码，这里只保留接触语义；
-                // 落地音效/粒子在后续表现步骤补。
+                // 原版 checkDropWall：被点水果首次撞落槽斜面播落地音（并发上限 5）。
+                // 反弹力与 landEff 粒子在第 14 步特效子任务补。
+                if (this.isTouch && !this.isLRAddForce) {
+                    this.isLRAddForce = true;
+                    GameAudio.ins.play('水果落地', 5);
+                    // 原版 checkDropWall：首次撞斜面在脚下播 landEff 尘土粒子（每果一次）。
+                    if (!this.isShowedLandEff) {
+                        this.isShowedLandEff = true;
+                        EffectLayer.instance?.playLand(this.node);
+                    }
+                }
                 break;
             case 'btnFirstWall':
             case 'btnSecondWall':
@@ -265,6 +399,7 @@ export class FruitEntity extends Component {
     /** 原版 checkID 在 POST_SOLVE 里对 floor/btnFirstWall/btnSecondWall 的入槽分支。 */
     private onPostSolve(_self: Collider2D, other: Collider2D): void {
         if (!this.host?.isInputActive()) return;
+        if (this.isBind) return;
         const otherEntity = other.node.getComponent(FruitEntity);
         if (otherEntity) {
             this.handleFruitContact(otherEntity);
@@ -288,6 +423,16 @@ export class FruitEntity extends Component {
      * floor/btnFirstWall/btnSecondWall，上层水果靠接触已入槽水果计入槽位。
      */
     private handleFruitContact(other: FruitEntity): void {
+        // 原版 checkID 开头：被点走的水果离开出生位 >=50px 后，每碰到一个新水果
+        // 响一次轻碰撞音并短震（hitFruits 按节点 uuid 去重）。
+        const dx = this.node.position.x - this.originPos.x;
+        const dy = this.node.position.y - this.originPos.y;
+        const otherId = other.node.uuid;
+        if (dx * dx + dy * dy >= 2500 && !this.hitFruits.has(otherId)) {
+            this.hitFruits.add(otherId);
+            GameAudio.ins.play('ui_click');
+            FruitEntity.vibrateShort();
+        }
         if (this.tryPair(other)) return;
         if (this.isInSlot || !other.isInSlot) return;
         if (this.isCollider || other.isCollider) return;
@@ -301,6 +446,8 @@ export class FruitEntity extends Component {
     /** @returns 是否已触发配对（触发后跳过同次接触的其余分支）。 */
     private tryPair(other: FruitEntity): boolean {
         if (this.isCollider || other.isCollider) return false;
+        // 原版 checkID F 分支：绳索未断开的两端不参与配对。
+        if (this.isBind || other.isBind) return false;
         if (this.pairId <= 0 || this.pairId !== other.pairId) return false;
         const bothPassedCanCheck = this.canCheckPassed && other.canCheckPassed;
         const oneInSlot = this.isInSlot || other.isInSlot;
@@ -317,11 +464,150 @@ export class FruitEntity extends Component {
     }
 
     /**
+     * 第 13 步：打乱开始（原版 FruitComp.hideCollider）。
+     * 关碰撞体、刚体转 Static(g=0) 并清零速度，随后只做纯位移 tween。
+     * 在按钮触摸事件中调用（非物理回调），可直接 apply。
+     */
+    public prepareShuffle(): void {
+        Tween.stopAllByTarget(this.node);
+        if (this.circleCollider) {
+            this.circleCollider.sensor = true;
+            this.circleCollider.enabled = false;
+            this.circleCollider.apply();
+        }
+        if (this.body) {
+            this.body.enabledContactListener = false;
+            this.body.gravityScale = 0;
+            this.body.allowSleep = true;
+            this.body.bullet = false;
+            this.body.angularVelocity = 0;
+            this.body.linearVelocity = new Vec2(0, 0);
+            this.body.angularDamping = 0;
+            this.body.linearDamping = 0;
+            this.body.type = ERigidBody2DType.Static;
+        }
+    }
+
+    /**
+     * 第 13 步：打乱位移 + 弹出（原版 movePos(t=null,e=.4) 接 anim(true,cb,.4)）。
+     * 先 0.4s 平移到目标位置（碰撞已关），再 Dynamic(g=0) 下 0.4s backOut，
+     * 结束后恢复 Static/碰撞/FRUIT 组与未点击状态，done 由场地做 checkBound。
+     */
+    public playShuffleTween(target: Vec3, done: () => void): void {
+        const node = this.node;
+        tween(node)
+            .to(0.4, { position: new Vec3(target.x, target.y, 0) })
+            .call(() => {
+                if (!node.isValid) {
+                    done();
+                    return;
+                }
+                this.setRigType(ERigidBody2DType.Dynamic, 0, false);
+                tween(node)
+                    .to(0.4, { scale: new Vec3(this.boardScale, this.boardScale, 1) }, { easing: 'backOut' })
+                    .call(() => {
+                        if (!node.isValid) {
+                            done();
+                            return;
+                        }
+                        node.setScale(new Vec3(this.boardScale, this.boardScale, 1));
+                        this.finishShuffle();
+                        done();
+                    })
+                    .start();
+            })
+            .start();
+    }
+
+    /** 第 13 步：打乱落位后恢复为场上未点击的普通 Static 水果。 */
+    private finishShuffle(): void {
+        this.isTouch = false;
+        this.isAutoDrop = false;
+        this.canCheckPassed = false;
+        this.inCheckBox = false;
+        if (this.body) this.body.group = FRUIT_PHYSICS_GROUP.FRUIT;
+        if (this.circleCollider) {
+            (this.circleCollider as unknown as { _group: number })._group = FRUIT_PHYSICS_GROUP.FRUIT;
+        }
+        // setRigType 会重新 enabled 碰撞体并 apply 新 filter。
+        this.setRigType(ERigidBody2DType.Static, 0, true);
+    }
+
+    /** 第 13 步复活：场上未点击水果临时 Dynamic(g=0)，供归位水果无碰撞穿越。 */
+    public prepareReviveBystander(): void {
+        this.setRigType(ERigidBody2DType.Dynamic, 0, false);
+    }
+
+    /** 第 13 步复活：归位结束后场上水果恢复 Static。 */
+    public finishReviveBystander(): void {
+        this.setRigType(ERigidBody2DType.Static, 0, true);
+    }
+
+    /**
+     * 第 13 步复活：已点击水果（除最低锚点果外）退回原位
+     * （原版 reviveFun：group 回 fruit -> movePos(0.5) -> anim(0.4) -> fruitReset）。
+     * autoDrop 水果没有 downOrgPos，由场地给安全点；颜色恢复白色。
+     */
+    public reviveReturnTo(target: Vec3, done: () => void): void {
+        const node = this.node;
+        this.applyAppearance(false);
+        if (this.body) this.body.group = FRUIT_PHYSICS_GROUP.FRUIT;
+        if (this.circleCollider) {
+            (this.circleCollider as unknown as { _group: number })._group = FRUIT_PHYSICS_GROUP.FRUIT;
+        }
+        this.prepareShuffle();
+        tween(node)
+            .to(0.5, { position: new Vec3(target.x, target.y, 0) })
+            .call(() => {
+                if (!node.isValid) {
+                    done();
+                    return;
+                }
+                this.setRigType(ERigidBody2DType.Dynamic, 0, false);
+                tween(node)
+                    .to(0.4, { scale: new Vec3(this.boardScale, this.boardScale, 1) }, { easing: 'backOut' })
+                    .call(() => {
+                        if (!node.isValid) {
+                            done();
+                            return;
+                        }
+                        node.setScale(new Vec3(this.boardScale, this.boardScale, 1));
+                        this.resetAfterRevive();
+                        done();
+                    })
+                    .start();
+            })
+            .start();
+    }
+
+    /** 第 13 步复活：留在槽内的最低锚点果恢复白色并继续 Dynamic 下落。 */
+    public resumeFallingAnchor(): void {
+        this.applyAppearance(false);
+        this.setRigType(ERigidBody2DType.Dynamic, this.gravityScale, true);
+    }
+
+    /** 原版 fruitReset：归位水果重置为未点击的 Static 普通水果。 */
+    private resetAfterRevive(): void {
+        this.isTouch = false;
+        this.isAutoDrop = false;
+        this.isInSlot = false;
+        this.canCheckPassed = false;
+        this.inCheckBox = false;
+        this.downOrgPos = null;
+        // 原版 fruitReset：归位后碰撞音位移基准与去重集合一并重置。
+        this.originPos.set(this.node.position);
+        this.hitFruits.clear();
+        this.isLRAddForce = false;
+        this.setRigType(ERigidBody2DType.Static, 0, true);
+    }
+
+    /**
      * 生成保护期动画：Dynamic(gravityScale=0) 下 scale 0 -> boardScale 的 backOut 弹出，
      * 结束后冻结 Static。返回动画结束的 Promise（节点已销毁时立即 resolve）。
      */
     public playSpawnAnim(): Promise<void> {
         return new Promise<void>(resolve => {
+            this.originPos.set(this.node.position);
             this.setRigType(ERigidBody2DType.Dynamic, 0, false);
             tween(this.node)
                 .to(
@@ -386,6 +672,60 @@ export class FruitEntity extends Component {
         this.applyAppearance(false);
     }
 
+    /** 第 12.2 步：黑洞锚点果的生成动画结束，转为普通水果（原版 fruitType=0）。 */
+    public becomeHoleAnchor(): void {
+        this.fruitType = 0;
+        this.isCanTouch = true;
+        this.applyAppearance(false);
+    }
+
+    /**
+     * 第 12.3 步：原版 FruitComp.initJoint——在本水果节点上挂 DistanceJoint2D
+     * 连到绳端绳节刚体，maxLength 取当前间距（即绳长固定不可拉长）。
+     */
+    public initJoint(targetBody: RigidBody2D): void {
+        if (this.disJoint) return;
+        const joint = this.node.getComponent(DistanceJoint2D) ?? this.node.addComponent(DistanceJoint2D);
+        joint.connectedBody = targetBody;
+        joint.maxLength = Vec3.distance(this.node.getPosition(), targetBody.node.getPosition());
+        joint.apply();
+        this.disJoint = joint;
+    }
+
+    /** 原版 FruitComp.removeJoint：断开绳端关节（jointFruit 由管理器统一清空）。 */
+    public removeJoint(): void {
+        if (!this.disJoint) return;
+        this.jointFruit = null;
+        this.disJoint.connectedBody = null;
+        this.disJoint.destroy();
+        this.disJoint = null;
+    }
+
+    /**
+     * 第 12.2 步：黑洞吐出的水果弹出动画（原版 FruitComp.init2 + anim）。
+     * 绑定洞时全程 Static（g=0），从 boardScale-0.1 用 0.8s backOut 弹出。
+     */
+    public playHoleSpawnAnim(): Promise<void> {
+        return new Promise<void>(resolve => {
+            const startScale = this.boardScale - 0.1;
+            this.originPos.set(this.node.position);
+            this.node.setScale(new Vec3(startScale, startScale, 1));
+            this.setRigType(ERigidBody2DType.Static, 0, false);
+            tween(this.node)
+                .to(
+                    0.8,
+                    { scale: new Vec3(this.boardScale, this.boardScale, 1) },
+                    { easing: 'backOut' },
+                )
+                .call(() => {
+                    this.node.setScale(new Vec3(this.boardScale, this.boardScale, 1));
+                    if (this.node.isValid) this.setRigType(ERigidBody2DType.Static, 0, true);
+                    resolve();
+                })
+                .start();
+        });
+    }
+
     /**
      * 原版 FruitComp.fruitDrop：水果越过分界线时自动按点击水果规格下落
      * （group 仍是 fruit，Dynamic + gravityScale 13 + bullet 防穿透）。
@@ -395,6 +735,53 @@ export class FruitEntity extends Component {
         this.isTouch = true;
         this.isAutoDrop = true;
         this.setRigType(ERigidBody2DType.Dynamic, this.gravityScale, true);
+    }
+
+    /**
+     * 第 12.5 步：被闪电劈中（原版 FruitComp.electricShock）。
+     * 与点击下落同一套物理结果，但不播点击音效、不触发 fruitDown、不记 downOrgPos：
+     * 先做 4 段 ±15° 抖动（各 0.1s），结束后转 Dynamic(g=13) 自由落体。
+     */
+    public electricShock(): void {
+        if (this.isTouch) return;
+        if (this.body) this.body.group = FRUIT_PHYSICS_GROUP.CLICK_FRUIT;
+        if (this.circleCollider) {
+            // 与 onTouchStart 相同：直接写 _group，setRigType 的 apply() 会重建 filter。
+            (this.circleCollider as unknown as { _group: number })._group =
+                FRUIT_PHYSICS_GROUP.CLICK_FRUIT;
+        }
+        this.isTouch = true;
+        // 原版 electricShock 同样 breakHole（洞锚点果被劈中时开启洞）。
+        this.hole?.notifyTouched();
+        this.hole = null;
+        this.applyAppearance(false);
+        Tween.stopAllByTarget(this.node);
+        tween(this.node)
+            .to(0.1, { angle: 15 })
+            .to(0.1, { angle: -15 })
+            .to(0.1, { angle: 15 })
+            .to(0.1, { angle: 0 })
+            .call(() => {
+                if (this.node.isValid) {
+                    this.setRigType(ERigidBody2DType.Dynamic, this.gravityScale, true);
+                }
+            })
+            .start();
+    }
+
+    /** 原版 FruitComp.hitPower -> GbzSdkManager.vibrateShort：微信短震，Web 兜底 navigator.vibrate。 */
+    private static vibrateShort(): void {
+        try {
+            const wxApi = (globalThis as { wx?: { vibrateShort?: (options?: unknown) => void } }).wx;
+            if (wxApi?.vibrateShort) {
+                wxApi.vibrateShort({ type: 'light' });
+            } else if (typeof navigator !== 'undefined'
+                && typeof (navigator as Navigator & { vibrate?: (ms: number) => void }).vibrate === 'function') {
+                (navigator as Navigator & { vibrate: (ms: number) => void }).vibrate(15);
+            }
+        } catch {
+            // 平台不支持震动时静默忽略。
+        }
     }
 
     /**
@@ -450,6 +837,10 @@ export class FruitEntity extends Component {
         tween(node)
             .to(0.12, { scale: new Vec3(enlarged, enlarged, 1) })
             .to(0.12, { scale: new Vec3(u, u, 1) })
+            .call(() => {
+                // 原版 fruitTween：缩放回弹结束、上浮前在原位喷 effPr 消除粒子。
+                if (node.isValid) EffectLayer.instance?.burstEliminate(node, this.pairId);
+            })
             .start();
 
         tween(node)

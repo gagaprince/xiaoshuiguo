@@ -4841,6 +4841,10 @@
       "__uuid__": "4cdd4ecd-41b3-460d-8f19-1a1c383c631c",
       "__expectedType__": "cc.Prefab"
     },
+    "resurgencePrefab": {
+      "__uuid__": "f3f54626-56b2-4851-8f8a-f3723bdfd4fc",
+      "__expectedType__": "cc.Prefab"
+    },
     "_id": "04GCNiBVxHDoHxhZBxxp8U"
   },
   {

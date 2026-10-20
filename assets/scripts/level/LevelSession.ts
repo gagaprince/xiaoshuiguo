@@ -80,6 +80,12 @@ export class LevelSession {
         return true;
     }
 
+    /** 第 13 步：复活后撤销失败结算（已入筐目标数不回滚，对齐原版 reviveFun）。 */
+    public resetLost(): void {
+        this.lostValue = false;
+        this.loseReasonValue = null;
+    }
+
     /** FruitSpawner.spawn 返回真实总数后绑定（第 1 关 12，其余为 data.fruits.length）。 */
     public bindGoal(total: number): void {
         this.totalGoalValue = total;

@@ -1,6 +1,6 @@
-import { _decorator, Component, instantiate, Node, Prefab, UITransform } from 'cc';
+import { _decorator, Component, instantiate, Node, Prefab, UITransform, Vec3 } from 'cc';
 import { LevelData } from '../generator/LevelTypes';
-import { FruitEntity } from './FruitEntity';
+import { FruitEntity, FruitKind } from './FruitEntity';
 import { FruitFactory } from './FruitFactory';
 import { MechanicPrefabs } from '../MechanicPrefabs';
 import { getFruitNodeScale } from '../generator/LevelGenerator';
@@ -66,7 +66,9 @@ export class FruitSpawner extends Component {
             return FruitSpawner.FIRST_LEVEL_IDS.length * 4;
         }
         void this.spawnGeneric(data).then(() => this.finishSpawn());
-        return data.fruits.length;
+        // 第 12.2 步：总目标含黑洞待吐水果（原版 totalNum = 场上 + 洞内序列）。
+        const holePool = data.blackHoles.reduce((sum, hole) => sum + hole.fruitTypes.length, 0);
+        return data.fruits.length + holePool;
     }
 
     private finishSpawn(): void {
@@ -127,11 +129,20 @@ export class FruitSpawner extends Component {
             return;
         }
 
-        await this.factory.preload(data.fruits.map(fruit => fruit.type));
+        // 第 12.2 步：黑洞待吐水果的预制体也要预热，避免吐果时才异步加载。
+        const preloadTypes = data.fruits.map(fruit => fruit.type);
+        for (const hole of data.blackHoles) {
+            for (const type of hole.fruitTypes) preloadTypes.push(type);
+        }
+        await this.factory.preload(preloadTypes);
         const hasMystery = data.fruits.some(fruit => fruit.mystery === true);
         if (hasMystery) await this.mechanics.preload(['blackBox']);
         let blackBoxPrefab: Prefab | null = null;
         if (hasMystery) blackBoxPrefab = await this.mechanics.acquire('blackBox').catch(() => null);
+        const hasFrozen = data.fruits.some(fruit => fruit.status === 'frozen');
+        if (hasFrozen) await this.mechanics.preload(['iceLab']);
+        let iceLabPrefab: Prefab | null = null;
+        if (hasFrozen) iceLabPrefab = await this.mechanics.acquire('iceLab').catch(() => null);
 
         const beganAt = Date.now();
         let batches = 0;
@@ -141,8 +152,14 @@ export class FruitSpawner extends Component {
                 stage: fruitData.stage,
                 scale: fruitData.scale,
                 radius: fruitData.radius,
-                kind: fruitData.mystery === true ? 2 : (fruitData.status === 'frozen' ? 1 : 0),
+                // 原版 ReferenceLayMgr 中冰冻在随机盒之后标记并覆盖 type，双重标记时冰冻优先。
+                // 第 12.2 步：洞锚点初始 kind=3，动画结束由 HoleSystem 转为普通果并建洞。
+                kind: fruitData.holeId !== undefined
+                    ? 3
+                    : fruitData.status === 'frozen' ? 1 : (fruitData.mystery === true ? 2 : 0),
                 shellPrefab: blackBoxPrefab,
+                icePrefab: iceLabPrefab,
+                thawHits: fruitData.thawHits,
             });
             if (!this.node.isValid) return;
             if (!node) continue;
@@ -171,9 +188,42 @@ export class FruitSpawner extends Component {
         });
     }
 
+    /**
+     * 第 12.2 步：黑洞在洞口吐出一个普通水果（原版 HoleComp.genFruit ->
+     * createFruitNodes(..., new CalculatedInfo(type, pos, 0, 46, scale), ..., 1)
+     * 走 init2）。实例同样登记到 spawnedEntities，自动参与后续胜负/冰冻统计。
+     */
+    public async emitHoleFruit(type: number, pos: Vec3): Promise<FruitEntity | null> {
+        const fruitsRoot = this.node.getChildByPath('game/fruits');
+        if (!fruitsRoot) {
+            console.warn('[FruitSpawner] game/fruits not found for hole fruit');
+            return null;
+        }
+        const node = await this.createFruit(type, {
+            stage: 0,
+            scale: getFruitNodeScale(type),
+            // 原版洞吐果半径固定 46（CalculatedInfo 第 4 参）。
+            radius: 46,
+            kind: 0,
+        });
+        if (!node || !this.node.isValid) return null;
+        fruitsRoot.addChild(node);
+        node.setPosition(pos.x, pos.y);
+        this.syncLayer(node, fruitsRoot.layer);
+        return node.getComponent(FruitEntity);
+    }
+
     private async createFruit(
         type: number,
-        options: { stage: number; scale: number; radius: number; kind?: 0 | 1 | 2; shellPrefab?: Prefab | null },
+        options: {
+            stage: number;
+            scale: number;
+            radius: number;
+            kind?: FruitKind;
+            shellPrefab?: Prefab | null;
+            icePrefab?: Prefab | null;
+            thawHits?: number;
+        },
     ): Promise<Node | null> {
         let prefab: Prefab;
         try {
@@ -194,11 +244,15 @@ export class FruitSpawner extends Component {
                 kind: options.kind,
                 stage: options.stage,
                 radius: options.radius,
+                thawHits: options.thawHits,
             },
             options.scale,
         );
         if ((options.kind ?? 0) === 2 && options.shellPrefab) {
             entity.attachBoxShell(options.shellPrefab);
+        }
+        if ((options.kind ?? 0) === 1 && options.icePrefab) {
+            entity.attachIceShell(options.icePrefab);
         }
         this.spawnedNodes.push(node);
         this.spawnedEntities.push(entity);

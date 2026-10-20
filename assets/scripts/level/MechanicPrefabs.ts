@@ -10,6 +10,10 @@ export const MECHANIC_PREFAB_UUID = Object.freeze({
     obs3: 'bfef0df9-aca8-4f9b-9d53-f3cf60584c9a',
     stake: '52edd66d-4a44-49a8-bf9b-5ab8c2ed5833',
     blackBox: '149a15cb-297a-44b7-8384-93db1cb2e1ec',
+    iceLab: 'c16c5ea1-6941-4297-aa51-850165f412a2',
+    holeBg: 'd5a734ea-cc94-448e-80dc-9389bddf0953',
+    holeCount: '901aa9a3-fbf4-4f1b-99b0-c8f2ad67f17d',
+    jointPoint: '6bebd4ab-6f1f-490a-96e2-fd8ee338d648',
 } as const);
 
 export type MechanicPrefabKey = keyof typeof MECHANIC_PREFAB_UUID;

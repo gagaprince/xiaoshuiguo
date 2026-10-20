@@ -58,6 +58,8 @@ export interface FruitData {
     particleType: number;
     /** normal 普通 / frozen 冰冻（需要冰冻表现与解冻逻辑）。 */
     status: 'normal' | 'frozen';
+    /** 第 12.2 步：非空时该水果是黑洞锚点（CalculatedInfo.type=3），值为黑洞 id。 */
+    holeId?: number;
     /** 第 11 步：是否为随机盒水果（blackBox，CalculatedInfo.type=2）；盒下是真水果，pairId 不变。 */
     mystery?: boolean;
     /** 冰冻解除阈值；普通水果固定为 0。 */

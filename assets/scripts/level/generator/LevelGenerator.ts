@@ -749,66 +749,81 @@ function getHolePositions(level: number): Point[] {
 }
 
 function buildHoleLevel(level, info, cfg, rng, options) {
+  // 原包 ReferenceMgr 尾号 0 关分支（执行顺序 b=[5,8,0,2,4,1,9,7,3,6]）：
+  // 首阶段前 4 类各 2/4 个（偶数）；次阶段在达到容量基数 zn 前，
+  // 每类计数取 ir-1（1 或 3，奇数），同时向 Un 登记一个“洞内配偶”类型。
+  // 原版随后先随机分配全部 Un、再把排序后最小的 holeCount 个 shift 到
+  // 各洞尾部，导致这两个类型全场各多 1 个无法配对（线上关卡由服务器
+  // 配置覆盖，本地兜底算法有此奇偶缺陷）。本工程修正分配：每个奇数
+  // 类型只在某个洞的序列里放 1 个配偶，保证每种类型总数恒为偶数。
   info.scaleExp = 0.9;
   info.moveDir = MOVE_DIRECTION.NONE;
-  const holeCount = getHoleCount(level);
-  const selectedTypes = selectFruitTypes(28, Boolean(options.useAlternateSkin), rng);
-  let poolTarget = Math.min(cfg.holeBase + Math.floor(level / cfg.holeScale), cfg.holeMax);
-  poolTarget += cfg.holeAddbase * (holeCount - 2);
 
-  // 原包公式：
-  // floor((halfGameH - 190 - stopDownY + 100) * width / (55 * PI * 55))
-  // 其中 stopDownY = 728 - halfGameH；750x1334 时容量基数为 40。
+  // case 5 + 8：洞数（L10=2；十位数 2..7=3；其余=4）。
+  const decade = Math.floor(level / 10) % 10;
+  const holeCount = decade === 1 ? 2 : decade >= 2 && decade <= 7 ? 3 : 4;
+  const holes = Array.from({ length: holeCount }, () => []);
+
+  // case 0：场上容量基数 zn；Fn 是 Un 的登记上限（case 2 再按洞数追加）。
   const width = options.layout.width;
   const halfHeight = options.layout.height / 2;
   const stopDownY = 728 - halfHeight;
-  const layoutCapacity = Math.max(
-    poolTarget,
-    Math.floor((halfHeight - 190 - stopDownY + 100) * width / (55 * Math.PI * 55)),
+  const zn = Math.ceil(
+    (halfHeight - 190 - stopDownY + 100) * width / (55 * Math.PI * 55),
   );
+  let poolTarget = Math.min(cfg.holeBase + Math.floor(level / cfg.holeScale), cfg.holeMax);
+  poolTarget += cfg.holeAddbase * (holeCount - 2);
 
-  const pool = [];
+  // case 4：原版固定从 28 个乱序类型取，首阶段用前 4 个。
+  const selectedTypes = selectFruitTypes(28, Boolean(options.useAlternateSkin), rng);
+  const mates = [];
   let created = 0;
-  for (let stage = 0; stage < 2; stage += 1) {
-    const types = [];
-    const counts = [];
-    const start = stage === 0 ? cfg.oneTypeStartNum : cfg.otherTypeStartNum;
-    const end = stage === 0 ? cfg.oneTypeEndNum : selectedTypes.length;
-    let cursor = start;
 
-    while (created < layoutCapacity && end > start) {
-      const type = selectedTypes[cursor];
-      const pairCount = rng() > 0.5 ? 2 : 4;
-      types.push(type);
-      if (stage === 1 && pool.length < poolTarget) {
-        pool.push(type);
-        counts.push(pairCount - 1);
-        created += pairCount - 1;
-      } else {
-        counts.push(pairCount);
-        created += pairCount;
-      }
-      cursor += 1;
-      if (cursor >= end) cursor = start;
+  const stage0Types = selectedTypes.slice(0, 4);
+  const stage0Counts = stage0Types.map(() => {
+    const count = rng() > 0.5 ? 2 : 4;
+    created += count;
+    return count;
+  });
+
+  const stage1Types = [];
+  const stage1Counts = [];
+  let cursor = 4;
+  while (created < zn) {
+    const type = selectedTypes[cursor];
+    const pairCount = rng() > 0.5 ? 2 : 4;
+    stage1Types.push(type);
+    if (mates.length < poolTarget) {
+      mates.push(type);
+      stage1Counts.push(pairCount - 1);
+      created += pairCount - 1;
+    } else {
+      stage1Counts.push(pairCount);
+      created += pairCount;
     }
-    info.typeArr.push(types);
-    info.countArr.push(counts);
+    cursor += 1;
+    // 原版 case 4：扫完类型表后从头（下标 4）循环。
+    if (cursor === selectedTypes.length) cursor = 4;
   }
+  info.typeArr.push(stage0Types, stage1Types);
+  info.countArr.push(stage0Counts, stage1Counts);
 
-  while (pool.length < poolTarget) {
-    const type = selectedTypes[randomInt(0, selectedTypes.length - 1, rng)];
-    pool.push(type, type);
+  // case 9/1/6 的修正版：最小的 holeCount 个奇数类型作为各洞“最后一个”
+  // 吐果（对齐 shift 追加到洞尾），其余配偶按次阶段出现顺序随机分洞
+  //（对齐 case 1）；每个奇数类型恰好进入一个洞一次。
+  const reserves = mates
+    .slice()
+    .sort((a, b) => a - b)
+    .slice(0, Math.min(holeCount, mates.length));
+  const reserveSet = new Set(reserves);
+  for (const type of mates) {
+    if (reserveSet.has(type)) continue;
+    holes[randomInt(0, holeCount - 1, rng)].push(type);
   }
-  pool.length = poolTarget;
-  pool.sort((a, b) => a - b);
-
-  info.holeItemTypeArr = Array.from({ length: holeCount }, () => []);
-  for (let i = 0; i < holeCount && pool.length > 0; i += 1) {
-    info.holeItemTypeArr[i].push(pool.pop());
-  }
-  while (pool.length > 0) {
-    info.holeItemTypeArr[randomInt(0, holeCount - 1, rng)].push(pool.pop());
-  }
+  reserves.forEach((type, index) => {
+    holes[index].push(type);
+  });
+  info.holeItemTypeArr = holes;
 }
 
 /**
@@ -1048,12 +1063,107 @@ export function getFruitNodeScale(type: number): number {
   return FRUIT_GEOMETRY[type]?.scale ?? 0.5;
 }
 
+/**
+ * 第 12.4 步：左/右移关的屏外竖列布局，对齐原版 ReferenceLayMgr
+ * initPart + getPos2(RIGHT)/getPos3(LEFT)。
+ *
+ * parts 为 40 行 x 4 列容量格子：RIGHT 行中心 x=-halfW-2i(row+1) 在屏左外，
+ * LEFT 镜像；格子宽 2i、高 i，每格容量 maxCount。水果从“行号=阶段内序号”
+ * 的行开始取格，行内四列随机，格子满即摘除并顺延下一行；点出坐标需通过
+ * 当前阶段条带 [cMinX,cMaxX] 与 Y 范围校验，5000 次失败后条带内随机兜底。
+ */
+function createSideFruitPlacer(bounds, moveDir, scaleExp) {
+  const halfW = bounds.width / 2;
+  const halfH = bounds.height / 2;
+  const stopDownY = 728 - halfH;
+  const bottomY = bounds.bottomY;
+  const cell = (halfH - 290 - stopDownY + 50) / 4;
+  const columnY = [0, 1, 2, 3].map(q => bottomY - 50 + cell * (q + 0.5));
+  const sign = moveDir === 2 ? -1 : 1;
+  const capacityRatio = (cell * cell) / (bounds.itemRadius * Math.PI * bounds.itemRadius);
+  // 原版 RIGHT 用 floor、LEFT 直接 ceil（外层都有 +1），保持逐字节一致。
+  const maxCount = moveDir === 2
+    ? Math.floor(Math.ceil(capacityRatio) / scaleExp) + 1
+    : Math.ceil(Math.ceil(capacityRatio) / scaleExp) + 1;
+  const rows = [];
+  for (let r = 0; r < 40; r += 1) {
+    rows.push(columnY.map(cy => ({ cy, count: 0 })));
+  }
+  let cMinX = 0;
+  let cMaxX = 0;
+
+  return {
+    // 原版 Vt()：按阶段水果总面积推进条带边界（宽 = 面积/(halfH-stopDownY-50)）。
+    beginStage(stageCount) {
+      const stripWidth = (stageCount * Math.PI * bounds.itemRadius * bounds.itemRadius * scaleExp)
+        / (halfH - stopDownY - 50);
+      if (moveDir === 2) {
+        cMaxX = cMinX === 0 ? -halfW - 70 : cMinX;
+        cMinX = cMaxX - stripWidth;
+      } else {
+        cMinX = cMaxX === 0 ? halfW + 70 : cMaxX;
+        cMaxX = cMinX + stripWidth;
+      }
+    },
+    place(radius, rng) {
+      // 原版 initItems：Q 从第 0 行扫到第一个仍有容量格子的行（不是阶段内序号）。
+      let lo = 0;
+      while (rows[lo] && rows[lo].length === 0) lo += 1;
+      let hi = lo;
+      let x = 0;
+      let y = 0;
+      let bin = null;
+      let tries = 0;
+      const lowY = bottomY + 70;
+      const topY = halfH - 165;
+      for (;;) {
+        const invalid = moveDir === 2
+          ? ((x === 0 && y === 0) || y - radius < lowY || y + radius >= topY
+            || x < cMinX + radius || x > cMaxX - radius)
+          : ((x === 0 && y === 0) || y - radius <= lowY || y + radius >= topY
+            || x > cMaxX - radius || x < cMinX + radius);
+        if (!invalid) break;
+        const rowIndex = randomInt(lo, hi, rng);
+        const row = rows[rowIndex];
+        if (row && row.length > 0) {
+          const col = randomInt(0, row.length - 1, rng);
+          const candidate = row[col];
+          if (candidate.count >= maxCount) {
+            row.splice(col, 1);
+          } else {
+            const centerX = sign * (halfW + 2 * cell * (rowIndex + 1));
+            x = centerX + randomFloat(-cell, cell, rng);
+            y = candidate.cy + randomFloat(-cell / 2, cell / 2, rng);
+            bin = candidate;
+            tries += 1;
+            if (tries >= 5000) {
+              x = randomFloat(cMinX + radius, cMaxX - radius, rng);
+              y = randomFloat(lowY + radius, topY - radius, rng);
+              bin = null;
+              break;
+            }
+          }
+        } else {
+          lo += 1;
+          hi += 1;
+        }
+      }
+      if (bin) bin.count += 1;
+      return { x, y };
+    },
+  };
+}
+
 function generateFruitLayout(levelInfo: LevelParameters, options: GenerateLevelOptions = {}): FruitData[] {
   const rng = options.rng || Math.random;
   const bounds = { ...DEFAULT_LAYOUT, ...(options.layout || {}) };
   const fruits = [];
   const { typeArr, countArr, moveDir, scaleExp } = levelInfo;
   const halfHeight = bounds.height / 2;
+  // 第 12.4 步：侧移关水果排在屏外竖列格子里，开局再整体平移进场。
+  const sidePlacer = (moveDir === 2 || moveDir === 3)
+    ? createSideFruitPlacer(bounds, moveDir, scaleExp)
+    : null;
 
   // 原版 ReferenceLayMgr.genLvMapData/initItems：每个阶段一条水平带，
   // 从 _bottomY（boundaryLine.y）开始向上堆叠；带高 = 数量*PI*55^2*scaleExp/gameW。
@@ -1071,7 +1181,9 @@ function generateFruitLayout(levelInfo: LevelParameters, options: GenerateLevelO
     fisherYatesShuffle(stageTypes, rng);
 
     let stageBounds = bounds;
-    if (moveDir === 0 || moveDir === 1) {
+    if (sidePlacer) {
+      sidePlacer.beginStage(stageTypes.length);
+    } else if (moveDir === 0 || moveDir === 1) {
       const bandMinY = bandMaxY === 0 ? bounds.bottomY : bandMaxY;
       const bandHeight =
         (stageTypes.length * Math.PI * bounds.itemRadius * bounds.itemRadius * scaleExp) / bounds.width;
@@ -1086,13 +1198,15 @@ function generateFruitLayout(levelInfo: LevelParameters, options: GenerateLevelO
 
     for (const type of stageTypes) {
       const geometry = getFruitGeometry(type);
-      const position = findFruitPosition(
-        geometry.radius,
-        fruits,
-        stageBounds,
-        rng,
-        options.preferredY,
-      );
+      const position = sidePlacer
+        ? sidePlacer.place(geometry.radius, rng)
+        : findFruitPosition(
+            geometry.radius,
+            fruits,
+            stageBounds,
+            rng,
+            options.preferredY,
+          );
       fruits.push({
         id: fruits.length,
         queueIndex: fruits.length,
@@ -1108,8 +1222,24 @@ function generateFruitLayout(levelInfo: LevelParameters, options: GenerateLevelO
       });
     }
   }
+  // 第 12.2 步：黑洞关（moveDir=NONE）前 holeCount 个水果作为洞锚点，
+  // 位置替换为固定洞位（原版 initItems NONE 分支 bt *0.695），标记 type=3。
+  const holeCount = levelInfo.holeItemTypeArr.length;
+  if (moveDir === 0 && holeCount > 0) {
+    const holePositions = getHolePositions(levelInfo.level).map(p => ({
+      x: p.x * HOLE_ANCHOR_SCALE,
+      y: p.y * HOLE_ANCHOR_SCALE,
+    }));
+    for (let holeId = 0; holeId < Math.min(holeCount, fruits.length); holeId += 1) {
+      fruits[holeId].position = holePositions[holeId];
+      fruits[holeId].holeId = holeId;
+    }
+  }
   return fruits;
 }
+
+/** 第 12.2 步：原版 initItems 中洞位坐标统一乘 0.695。 */
+const HOLE_ANCHOR_SCALE = 0.695;
 
 /** 障碍物在 Y 轴上等分布置，每个障碍物的 X 坐标在 [-208, 208] 内随机。 */
 function generateObstacles(count: number, layout: LayoutConfig, rng: () => number): ObstacleData[] {
@@ -1166,7 +1296,10 @@ function applyIce(fruits, count, layout, rng) {
 
 function buildBlackHoles(levelInfo: LevelParameters): BlackHoleData[] {
   if (levelInfo.level % 10 !== 0) return [];
-  const positions = getHolePositions(levelInfo.level);
+  const positions = getHolePositions(levelInfo.level).map(p => ({
+    x: p.x * HOLE_ANCHOR_SCALE,
+    y: p.y * HOLE_ANCHOR_SCALE,
+  }));
   return positions.map((position, index) => ({
     id: index,
     position,
@@ -1230,9 +1363,13 @@ export function validateLevel(levelData: LevelData): LevelValidationResult {
             continue;
         }
         // 下移关水果带按数量向上堆叠，顶部水果允许超出屏幕（原版无上限）；
-        // 只需保证不出生在下方漏斗区、不超出左右边界。
-        if (fruit.position.x < layout.minX - 1 || fruit.position.x > layout.maxX + 1
-            || fruit.position.y < layout.minY - 1) {
+        // 侧移关水果初始排在屏外竖列（开局再平移进场），不做左右边界校验；
+        // 其余关只需保证不出生在下方漏斗区、不超出左右边界。
+        const outsideSideBounds = parameters.moveDir === 2 || parameters.moveDir === 3
+            ? fruit.position.y < layout.minY - 1
+            : fruit.position.x < layout.minX - 1 || fruit.position.x > layout.maxX + 1
+                || fruit.position.y < layout.minY - 1;
+        if (outsideSideBounds) {
             errors.push(`fruit ${fruit.id} is outside layout bounds: ${fruit.position.x},${fruit.position.y}`);
         }
         if (!(fruit.radius > 0) || !(fruit.scale > 0)) {
@@ -1243,8 +1380,16 @@ export function validateLevel(levelData: LevelData): LevelValidationResult {
         }
     }
 
+    // 第 12.2 步：黑洞关的奇数类型由洞内配偶补齐；先把洞内序列计入统计。
+    for (const hole of levelData.blackHoles) {
+        for (const type of hole.fruitTypes) {
+            countByType.set(type, (countByType.get(type) ?? 0) + 1);
+        }
+    }
     for (const [type, count] of countByType) {
-        if (count % 2 !== 0) errors.push(`type ${type} has odd count: ${count}`);
+        if (count % 2 !== 0) {
+            errors.push(`type ${type} has odd count${levelData.blackHoles.length > 0 ? ' including hole fruits' : ''}: ${count}`);
+        }
     }
 
     if (obstacles.length !== parameters.obsCount) {
@@ -1275,6 +1420,22 @@ export function validateLevel(levelData: LevelData): LevelValidationResult {
         const assigned = blackHoles.reduce((sum, hole) => sum + hole.fruitTypes.length, 0);
         const declared = parameters.holeItemTypeArr.reduce((sum, types) => sum + types.length, 0);
         if (assigned !== declared) errors.push(`black hole fruit mismatch: ${assigned} !== ${declared}`);
+        // 每个黑洞必须恰好对应一个锚点水果，且锚点位置与黑洞位置一致。
+        const anchors = fruits.filter(fruit => fruit.holeId !== undefined);
+        if (anchors.length !== blackHoles.length) {
+            errors.push(`hole anchor mismatch: ${anchors.length} !== ${blackHoles.length}`);
+        }
+        for (const hole of blackHoles) {
+            const anchor = anchors.find(fruit => fruit.holeId === hole.id);
+            if (!anchor) {
+                errors.push(`missing anchor for hole ${hole.id}`);
+                continue;
+            }
+            if (Math.abs(anchor.position.x - hole.position.x) > 0.01
+                || Math.abs(anchor.position.y - hole.position.y) > 0.01) {
+                errors.push(`anchor ${hole.id} position mismatch`);
+            }
+        }
     }
 
     return { valid: errors.length === 0, errors };

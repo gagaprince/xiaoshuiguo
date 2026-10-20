@@ -1,8 +1,20 @@
-import { _decorator, Component, Label, Node, Sprite, Tween, UIOpacity, tween } from 'cc';
+import { _decorator, assetManager, Component, Label, Node, Sprite, SpriteFrame, Tween, UIOpacity, UITransform, tween } from 'cc';
 import { LevelLaunchConfig } from './LevelLaunchConfig';
 import { LevelData } from './generator/LevelTypes';
 
 const { ccclass } = _decorator;
+
+/**
+ * 第 12.4 步：顶部小方向图标（原版 setTip 的
+ * ["xiangxia","向右","向左","中间"][arrangeType-1]，宽度统一 50）。
+ * 仅左右移关在开场动画结束后常显，其余关保持隐藏。
+ */
+const DIR_ICON_SPRITE_FRAME: Readonly<Record<number, string>> = Object.freeze({
+    1: 'c6fe3fa1-6138-470c-9e7c-616c5292e6c4@f9941',
+    2: 'e966b986-22d3-4292-bb58-258ceec934bd@f9941',
+    3: 'de70211e-9510-4dc1-be55-300f3d190d49@f9941',
+    4: 'f067ee1b-231c-4422-b58d-5620377ed931@f9941',
+});
 
 /**
  * 第 2 步：Level 静态 UI 校准与初始状态。
@@ -60,6 +72,7 @@ export class LevelView extends Component {
 
     public start(): void {
         this.applyInitialState();
+        this.prepareDirectionIcon(this.levelData?.parameters.moveDir ?? -1);
         const level = this.levelData?.level ?? LevelLaunchConfig.options.level;
         this.setLevel(level);
 
@@ -82,6 +95,32 @@ export class LevelView extends Component {
     public setLevel(level: number): void {
         if (this.labLevel) this.labLevel.string = `第 ${level} 关`;
         if (this.labLevelSub) this.labLevelSub.string = '';
+    }
+
+    /** 第 12.4 步：左右移开场动画结束后，顶部小方向图标常显。 */
+    public showDirectionIcon(): void {
+        if (this.levelDirImg) this.levelDirImg.active = true;
+    }
+
+    /**
+     * 原版 GameMgr.setTip：arrangeType>0 时给 levelBg/img 换方向小图标，
+     * 宽度按原比例统一为 50（SOUtil.SetSpriteSizeWidth）。初始保持隐藏，
+     * 仅左/右移关由开场动画回调 showDirectionIcon 激活。
+     */
+    private prepareDirectionIcon(moveDir: number): void {
+        const uuid = DIR_ICON_SPRITE_FRAME[moveDir];
+        const img = this.levelDirImg;
+        if (!uuid || !img) return;
+        assetManager.loadAny({ uuid, type: SpriteFrame }, (err, frame: SpriteFrame) => {
+            if (err || !img.isValid) return;
+            const sprite = img.getComponent(Sprite);
+            if (!sprite) return;
+            sprite.spriteFrame = frame;
+            const size = frame.getOriginalSize?.() ?? (frame as unknown as { originalSize?: { width: number; height: number } }).originalSize;
+            if (size && size.width > 0) {
+                img.getComponent(UITransform)?.setContentSize(50, size.height * (50 / size.width));
+            }
+        });
     }
 
     /** 剩余目标水果数；初始为关卡水果总数，每次消除后递减。 */

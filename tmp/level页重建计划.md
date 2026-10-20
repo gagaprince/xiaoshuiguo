@@ -696,7 +696,7 @@ Win / Lose -> Restart / Next / Home
 
 ### 第 11 步：普通障碍、木板和随机盒子
 
-状态：`[ ] 实现完成，待人肉验收（2026-10-19）`
+状态：`[x] 已完成（2026-10-19，人肉验收通过）`
 
 实现范围：
 
@@ -756,7 +756,10 @@ unlockFruit/checkID）：
 
 ### 第 12 步：冰冻、黑洞、关节和方向特殊关卡
 
-状态：`[ ] 未开始`
+状态：`[~] 子步骤 1（冰冻水果）、2（黑洞，含尾号 0 关联合生成/奇偶修正）、
+3（关节绳索）、4（方向提示，含侧移关生成器修复）均已人肉验收通过
+（2026-10-19/20）；子步骤 5（开局闪电）已人肉验收通过（2026-10-20）。
+第 12 步全部完成`
 
 按以下子步骤逐个实现，每个子步骤单独验收：
 
@@ -765,6 +768,250 @@ unlockFruit/checkID）：
 3. 关节/绳索：连接点、约束、断开条件和回收。
 4. 左移、右移、下移：方向切换和 `dirtectionTip` 提示。
 5. 闪电或其他特殊材质：只有源码证据足够时才加入。
+
+实现记录（2026-10-19，子步骤 1 冰冻水果，证据 FruitComp.setFruitType
+case 1/iceBox/unlockFruit/upIceLa/touchStart、GameMgr.breakIceFun/iceTip、
+ReferenceLayMgr 冰冻分配、iceLab 预制体 import/c16c5ea1…）：
+
+- 数据：生成器 applyIce 早已按原版公式产出 status='frozen'+thawHits
+  （候选 queueIndex>=30 且距顶部>=400，不放回；
+  ceil(heightRatio*n*0.5)+rand(0..4)），本步只接运行时表现；
+  原版冰冻在随机盒之后标记并覆盖 type，双重标记时 spawner kind 取冰冻优先。
+- 外壳：FruitEntity.attachIceShell 实例化 iceLab 挂为水果子节点，
+  scale=水果宽/165+0.15，count 子节点 angle 取反抵消水果旋转，
+  Label 初始显示剩余次数。修正重建预制体 iceLab 的两个颜色错误
+  （原版压缩包反查：Label 0xFF000000 黑色不透明粗体、
+  LabelOutline 0xFFFFFFFF 白色；重建时误成红色 alpha=0/黑色描边，
+  导致数字不可见）。
+- 不可点击：onTouchStart 在 isCanTouch 判定之前拦截 fruitType=1，
+  调 LevelPlayfield.onFrozenTouched（isIceTip 每局一次），
+  由 GameNavigator 接 levelView.showFullTip('未解冻')；水果保持 Static，
+  仍参与物理阻挡，且不参与配对（tryPair 要求双方 fruitType=0）。
+- 受击解冻：CollectionController 的 fruit-arrived（每个水果到筐）触发
+  LevelPlayfield.onFruitArrivedBreakIce，等价 breakIceFun——
+  isBreakingIce 守卫 + scheduleOnce(0.01) 防止一对两个水果连扣两次；
+  对所有 fruitType=1 实体 applyIceHit：iceCounts--，归 0 调 unlockIce
+  （fruitType=0、销毁冰壳）成为普通可点水果，否则播放 upIceLa
+  数字 1->1.5(backIn) 中途换数 ->1(backOut) 弹跳。
+- 验证：tsc 0 诊断；verify-level-generator 1440 组全绿；
+  预览 ?autolevel=1&level=21 开局可见带数字冰壳（位置偏高的其余
+  冰冻水果随 fruitDown 下降后出现）。待人肉验证：点击弹"未解冻"
+  且不掉落；消除几对后数字递减弹跳、归 0 冰壳消失并可点击配对。
+
+实现记录（2026-10-19，子步骤 2 黑洞，证据 HoleComp.init/upInfo/genFruit/
+recycle、FruitComp.init/init2/anim/breakHole/touchStart、GameMgr.
+createFruitNodes/checkSlotLose/getMatchFruit/btnDisturbFun/reviveFun、
+ReferenceLayMgr 洞位与 initItems NONE 分支）：
+
+- 数据（此前已完成，verify 1440 组全绿）：尾号 0 关（moveDir=0）生成器
+  前 holeCount 个水果作为洞锚点（FruitData.holeId），位置取
+  getHolePositions 固定洞位 ×0.695（L10 为 [-270,400]/[270,400]
+  →[-187.65,278]）；blackHoles[].fruitTypes 为洞内待吐序列；
+  spawner.spawn 返回总数=场上果+洞内序列（L10=40+8+7=55）。
+
+- 修订（2026-10-19，人肉验收发现总数为奇、关尾必有水果无法配对）：
+  此前 buildHoleLevel 是独立近似，场上 40 果与洞序列分别生成导致
+  总数 55 为奇。回查原版 ReferenceMgr 尾号 0 关分支（执行序
+  b=[5,8,0,2,4,1,9,7,3,6]）后改为逐 case 移植：
+  zn=ceil((halfH-190-stopDownY+100)*visibleSize.width/(55π55))
+  注意原版用的是全屏宽 750（zn=41），不是半宽；Fn=min(holeBase+
+  floor(level/holeScale),holeMax)+holeAddbase*(洞数-2)（L10=15）；
+  Xn=ranTypeArr(28)，首阶段前 4 类计数 2/4（偶），次阶段在达到 zn
+  前每类计数 ir-1（1/3，奇）并向 Un 登记一个洞内配偶。原版本地
+  兜底算法随后把 Un 全量随机分洞、再 shift 排序后最小的 holeCount
+  个追加到各洞尾——这两个类型因此全场各多 1 个（board 奇+洞 2=奇），
+  尾号 0 关本地配置恒留 2 个无配对果（线上真实关卡由服务器配置
+  LayoutIMy 覆盖）。本工程修正分配：每个奇数类型只进一个洞一次，
+  最小 holeCount 个放洞尾（保留 shift 的吐果顺序语义），validateLevel
+  奇偶校验改为“场上+洞内”合并统计；L10 实测 43 场上+9+6=58，
+  TS 与 tmp/gen.js 同步，verify 1440 组仍全绿。
+- 新建 assets/scripts/level/HoleComp.ts：init(洞位,锚点果,序列,deps)
+  对齐原版——Static 刚体、circle 启用、holeCount 计数实例挂 game/numRoot
+  （children[0] 的 Label 显剩余数，定位 洞+(20,-20)，layer 递归同步）；
+  update 等价 upInfo：armed 且绑定果离开洞口 Vec3.distance>=80 时
+  异步 emitNext（shift 类型→洞口造果→重新绑定→更新计数）；
+  forceEmit 供磁铁强制消耗序列（不等距离，原版 genFruit）；
+  吐出序列最后一个果后立即 recycle（原版同）：解绑、销毁计数与洞节点、
+  onEmpty 从场地 holes 列表移除。
+- 运行时接线 LevelPlayfield.setupBlackHoles（spawn 动画+bindInput 后、
+  running=true 前）：锚点 entity 按 data.fruits 顺序 1:1 映射
+  spawner.entities，调 becomeHoleAnchor（fruitType=0、可点）；
+  holeBg 实例化后剔除 MissingScript（原脚本 uuid a2e1e…丢失），
+  insertChild(fruits,0) 在水果后面，物理组显式置 DEFAULT，
+  scheduleOnce 内 apply 重建 fixture；deps.onEmitted 对新吐果
+  bindInput/markBoardTouchable/playHoleSpawnAnim（Static 全程、
+  scale-0.1 用 0.8s backOut 弹出，对齐 init2+anim）。
+- FruitSpawner.emitHoleFruit：复用 createFruit（kind=0、radius=46、
+  scale=getFruitNodeScale，原版 new CalculatedInfo(type,pos,0,46,scale)），
+  挂 game/fruits、登记 spawnedEntities（自动参与后续胜负/冰冻统计）；
+  spawnGeneric 预加载补上洞内序列类型。
+- 判定：evaluateLose 两个“消不掉啦”分支加 this.holes.length===0 门控
+  （原版 checkSlotLose 洞存活直接 return false）；“装不下啦”不受影响；
+  胜利纯计数驱动（最后一果入筐前洞必已 recycle，等价原版 holeComps 检查）。
+- 磁铁：board seed 池排除洞绑定果；getMatchFruit 桶顺序改为
+  普通>洞绑定>冰冻>随机盒；配偶为绑定果时 forceEliminatePair 前
+  partner.hole.forceEmit()，绑定果照常飞筐。
+  另补原版 btnRemoveFun 第二遍扫描：槽内果场上无配偶时，可直接
+  消耗某洞待吐序列里的同类型（HoleComp.consumeQueuedType，序列果
+  不生成实体、洞空即消失），槽内果走 CollectionController.forceEliminateOne
+  独自飞筐，并补发一次 fruit-arrived 虚拟到达以递减剩余目标。
+- 打乱：候选增加 !entity.hole（原版还交换洞绑定关系，本工程简化为
+  直接排除，已在方法注释注明）；复活简化：未点锚点作为 bystander
+  Dynamic(g=0) 保护，已点锚点归位回洞位（原版走 getSafePos），
+  尾号 0 为静止关、影响可接受。
+- 验证：tsc 0 诊断；预览 ?autolevel=1&level=10 无运行时报错
+  （仅已知无害材质缺失），日志确认 40 果生成、2 洞创建；
+  截图确认两个黑洞在锚点果（葡萄/卷心菜）后面、计数 8 与 7、剩余 55。
+  待人肉验收：点锚点果后洞“开启”、果离开 80 距离洞口吐新果（0.8s
+  弹出）、计数递减、吐完洞消失；磁铁取绑定果强制消耗序列；
+  洞存活时不提前判“消不掉”、全部收完才胜利。
+
+实现记录（2026-10-19，子步骤 3 关节绳索，证据 JointGearMgr.init/
+mapCreateJoint/shuffleCreateJoint/canCreateLines/createRope/drawRope/
+upDrawRope/removeRopeByFruit/recycle、FruitComp.initJoint/removeJoint/
+isJoint/isBind、GameMgr.initLevel/btnDisturbFun/getMatchFruit/update）：
+
+- 仅尾号 8 关启用（ReferenceMgr case 8：itemConnet=true、moveDir=DOWN，
+  首个测试关 L8）；开局时序对齐原版：生成动画+建洞后 jointMgr.init(graphics)
+  +mapCreateJoint，done 回调里才 running=true/fruitDown（绳索 Dynamic
+  0.5s -> Static 期间全场 UNRUN）；beginPlay 闭包化。
+- 新建 assets/scripts/level/JointRopeMgr.ts（@ccclass JointRopeMgr，
+  运行时挂 GbzLvCommon 根）；MechanicPrefabs 注册 jointPoint
+  （uuid 6bebd4ab…，预制体 Dynamic g0/damping0.8/CircleCollider r10
+  sensor/自带 DistanceJoint2D）。
+- 选对 1:1 移植：o=min(5,2+floor(level/10))；首果下标 [3,n-1] 随机、
+  双方不重复占绳、次果下标 ±10 内顺序扫，距离 [139,347.5]，每对 3000 次
+  尝试（另加 10000 硬上限）；打乱重建走 RandomInt(20,30) 起扫 +
+  canCreateLine 走廊判定（中线矩形长=距-50 宽 20 随连线旋转，
+  CalculateCorners + Intersection2D.polygonCircle 逐果圆相交检测）。
+- 物理链 createRope：l=floor(距/19) 个 jointPoint 挂 game/graphics，
+  从果 A 边缘（半宽*scale 沿方向偏移）起每 距/l 一个；A.initJoint(首节)、
+  B.initJoint(末节) 后销毁末节自带空关节，相邻节 addComponent
+  DistanceJoint2D maxLength=10（链节短、链长松，物理上自然垂成绳形）；
+  果端 maxLength=果心到端节当前距离。FruitEntity 此前已加 disJoint/
+  jointFruit 字段、isJoint/isBind getter、initJoint/removeJoint 及
+  update/onBeginContact/onPostSolve/tryPair 的 isBind 守卫。
+- Graphics 绘线：game/graphics（cc.Graphics lineWidth10、
+  strokeColor(255,45,60,74)，预制体 UITransform 0x0 运行时补 750x1334）；
+  moveTo(A)->lineTo 各绳节->lineTo(B)->统一 stroke；建链 0.5s 回调置
+  needRedraw 首绘，之后 lateUpdate->upDrawRope 仅在端点移动 >0.5px 重绘。
+- 断绳时机对齐原版：onFruitMatch 两端各 removeRopeByFruit（checkID F）、
+  onFruitSettled 入槽即断（checkID 墙体/槽果分支）、磁铁 getMatchFruit
+  桶优先级插入关节桶（普通>关节>洞>冰>盒）且飞筐前 seed/partner 都断绳；
+  打乱先 recycle 拆全部，tween 落位后 shuffleCreateJoint 按原对数重建，
+  建链 0.5s 期间保持输入锁定；onDestroy recycle 清 graphics/链节/两端关节。
+- isBind 玩法语义：绳建好两端均未点 -> 双方 isBind=true 跳过 update/
+  接触/配对；只点一端时该端 isBind 仍为 true（看对端 isTouch），下落被
+  链条吊在绳长内、不进槽不配对，必须两端都点才双双下落（原版同款，
+  Static 端不会被关节拉动）；另一端此时 isBind=false 恢复物理判定。
+- 简化（已记录）：复活 JointRestorePosition 的成对等齐归位未移植，
+  绳端果按通用复活逻辑各自归位、绳索不断，尾号 8 为下移关影响可接受；
+  jointPoint 不做对象池（原版 GbzPoolManager），直接 instantiate/destroy。
+- 验证：tsc 0 诊断；?autolevel=1&level=8 无运行时报错（仅已知无害材质
+  缺失），临时诊断确认 2 根绳 13+7 节、graphics 20 子节点、4 果
+  isJoint=true 且 jointFruit 互链（诊断代码已删）。待人肉验收：
+  红绳连接成对水果；点一端被吊住、另一端可点后双落；配对/入槽绳消失；
+  打乱后绳按原对数重建；磁铁能选关节果并断绳；过关/重开/返回清理干净。
+
+修订（2026-10-19，人肉验收发现“消除一对水果后再点打乱报错”）：
+
+- 根因：配对水果飞筐到达后节点 destroy，FruitEntity 组件的 node 置 null；
+  打乱重建 shuffleCreateJoint/canCreateLines 收到的是 spawner.entities
+  全量数组（含已销毁实体），直接读 entity.node.isValid 即
+  “Cannot read properties of null (reading 'isValid')”。
+- 修复：JointRopeMgr 增加 alive(entity)（组件 isValid 且 node 非空且
+  node.isValid），选对/建链/绘制/回收所有遍历点统一用它过滤。
+- 验证：临时 debugjoint=1 钩子（强制一对绳果飞筐销毁 -> 2s 后打乱）
+  修复前稳定复现报错，修复后 disturb executed、shuffle recreated 1 ropes、
+  无任何业务报错；钩子代码已删除。
+
+实现记录（2026-10-19，子步骤 4 方向提示，证据 GbzMainLayer.showAnim/
+showlightning、GameMgr.initLevel/setTip、全工程调用点检索）：
+
+- 死代码澄清：game/dirtectionTip + GameMgr.dirTipFun 在整个反混淆包内
+  零调用（与 roundtwo 同类），不做；真实过场是 HUD GbzMainLayer 的
+  animNodes，资源在重建预制体中齐全（animNode0“难度提升”面板、
+  animNode1/icons/{xiangxia,向左,向右}+dir Label、animbg 带 BlockInputEvents）。
+- 新增 scripts/level/LevelHudIntro.ts（动态挂到 HUD 实例）：
+  playLevel2Panel = showAnim(0)——面板从 ±(屏宽/2+200) 0.5s 滑入、停 1.5s、
+  0.5s 滑出；playDirectionIntro = showAnim(1)——icons 1.5 倍、±15°
+  各 0.1s 摇 3 轮，dir 文案“从左/右往X移动”（右移显 icons 第 3 子节点
+  向右、左移第 2 个向左），随后 0.5s backIn 缩飞到 levelBg/img 的
+  世界坐标（UITransform.convertToWorld/NodeSpaceAR），结束显小图标。
+- GameNavigator.showLevel 时序对齐原版：HUD 在玩法层后创建；L2 先播
+  面板，2.5s 回调里才 spawn/enter（实测 LevelLaunch→spawn 间隔 3.0s）；
+  其余关立即开局，moveDir=2/3 并行播方向动画，回调 levelView.showDirectionIcon；
+  beginPlay 抽成闭包，过场中返回首页时 levelCommon/session 已置空，安全跳过。
+- LevelView：新增 DIR_ICON_SPRITE_FRAME（xiangxia/向右/向左/中间
+  @f9941 uuid），start 按 moveDir 加载小图标并按 SetSpriteSizeWidth
+  等比置宽 50，初始隐藏；仅 showDirectionIcon 常显。修正此前把
+  levelBg/img 永久隐藏的实现（原版下移/静止关也不显，仅左右移常显）。
+- 验证：tsc 0 诊断；L2/L4(moveDir=2)/L9(moveDir=3) 冒烟无逻辑报错。
+  待人肉验收：L2“难度提升”横滑面板且面板结束后水果才生成；
+  L4 大向右图标摇晃后飞向顶部并常显小图标、文案“从左往右移动”；
+  L9 向左图标与“从右往左移动”；L1/下移关无过场、无小图标。
+
+修订（2026-10-19，人肉验收发现“向右关开局水果铺满上部、自动滚落直接失败”）：
+
+- 根因不在过场动画，而在生成器：generateFruitLayout 此前只实现了
+  DOWN/NONE 的水平带状排布，moveDir=2/3 退化为全场随机撒点；L4 开局
+  即有 17 个水果落在线 x=±305 的 50px 自动下落带内，checkBoundAll
+  直接 autoDrop 入漏斗导致秒败。LevelPlayfield.fruitMove 初始靠拢
+  对左移关还漏了符号翻转（原版 i() 内 `arrangeType==2?e:-e`
+  对初始/步进都生效）。
+- 移植原版 ReferenceLayMgr.initPart/getPos2/getPos3（TS 与 tmp/gen.js
+  同一份逻辑，保持 verify 1440 组逐字段等价）：40 行 x 4 列容量格子
+  排在屏外（RIGHT x=-halfW-2i(row+1)，LEFT 镜像），格宽 2i、高 i，
+  i=(halfH-290-stopDownY+50)/4=91.5，每格 maxCount
+  （RIGHT floor/LEFT ceil(ceil(0.881)/scaleExp)+1=2）；每个水果从
+  第 0 行扫到首个未满行，行内随机列，Y 需在 [bottomY+70+r, halfH-165-r]、
+  X 在当前阶段条带 [cMinX,cMaxX] 内；5000 次失败条带内随机兜底；
+  条带边界按阶段总面积在 beginStage 推进（宽=面积/(halfH-stopDownY-50)）。
+  validateLevel 对侧移关放开左右边界校验（仍保留下漏斗区校验）。
+- 实测：L4 开局 xRange[-2145,-458]、autoDrops=0，初始靠拢后 nearest
+  恰为 120；L9 镜像 [423,3521]→[-185,…] 同样 0 掉落；verify-level-generator
+  基线 + 1440 组全绿；?sidebug=1 临时代码已删除。
+
+实现记录（2026-10-20，子步骤 5 闪电，证据 GbzMainLayer.showlightning、
+GameMgr.start/initLevel/blitzkrieg、FruitComp.electricShock、
+ReferenceMgr.curTheme）：
+
+- 机制澄清：所谓“闪电材质”不是水果状态材质，而是开局雷击事件。
+  GameMgr.start 的 initLevel 回调参数 n 来自 showlightning：
+  仅当 fakeGame_level%10==1 且 ReferenceMgr.curTheme==1（curTheme=
+  floor(max(1,level-1)/10)%4，即 L11/51/91…，每 40 关一轮）时播
+  全屏闪电，回调 true -> blitzkrieg；其余关立即回调 false 正常开局。
+  L1 虽尾号 1 但 curTheme=0 不触发；L21 主题 2 是冰冻关、L31 主题 3
+  是障碍关，均不触发（与生成器 cycle 公式同源）。
+- 闪电视觉：HUD GbzMainLayer 根下 lightningNode（预制体重建齐全）：
+  animbg 为 opacity80 全屏暗层带 BlockInputEvents（过场吞触摸）；
+  anim 子节点挂 Animation（assets/game/resUI/lightning/anim.anim，
+  9 帧精灵切换、0.15s 速度 0.3）与 UIOpacity。LevelHudIntro.playLightning
+  1:1 还原：节点显形、opacity 100->255（0.2s）、play("anim")、
+  delay 0.3 后隐藏并回调，总时长约 0.5s。
+- 雷击选果（GameMgr.blitzkrieg）：数量 floor(实体数/13)；下标
+  RandomInt(20,length-1)、不重复、节点 y>=300；重建版另加存活/
+  未点/未入槽守卫与 3000 次尝试上限（原版 do-while 无上限）。
+  L11 实测 172 果 -> 劈落 13 个。
+- FruitEntity.electricShock 1:1 还原 FruitComp：group 改 clickFruit、
+  isTouch=true、breakHole（洞锚点开启）、白色，4 段 ±15° 抖动各 0.1s
+  （15/-15/15/0）后 setRigType(Dynamic,13) 自由落体；与点击下落的区别
+  仅在不播音效、不触发 fruitDown、不记 downOrgPos（复活时走安全点兜底）。
+  被劈水果之后的配对/入槽/胜负走原有 isTouch 链路，无需额外接线。
+- 时序：LevelPlayfield.run 在建洞/绳索之后、beginPlay 之前插入闪电关
+  （lightningFlash 由 GameNavigator 桥接到 HUD LevelHudIntro.playLightning），
+  await 0.5s 过场 -> blitzkrieg -> running=true/fruitDown；闪电与关节
+  配置互斥（尾号 1 vs 尾号 8），无叠加分支。
+- 未做：雷声 ENUM_CLIP.lei（音效体系整体在后续表现步骤）；
+  GameMgr.hightLight 的 materialAttacked（b6c5f405 材质缺失）是
+  fruitTween 消除飞筐的 0.24s 材质闪烁，属消除表现，不属于本子步骤；
+  lightMaterial（727e741a）在反混淆包内零调用，死属性。
+- 验证：tsc 0 诊断；?autolevel=1&level=11 无运行时报错，临时日志确认
+  play start(true,true,true) -> 0.51s 后 play done -> blitzkrieg
+  struck 13/13（临时代码已删）；L21（尾号 1 主题 2 冰冻关）无 blitzkrieg
+  日志，条件正确。待人肉验收：开局白屏闪光+闪电帧动画约 0.5s，
+  暗层期间点击无效；随后约 13 个水果抖动后自动掉落并正常配对入槽，
+  其余水果不动；L1/L21 等无闪电。
 
 可见效果：
 
@@ -777,7 +1024,207 @@ unlockFruit/checkID）：
 
 ### 第 13 步：道具、复活和新手引导
 
-状态：`[ ] 未开始`
+状态：`[~] 子步骤 1 刷新打乱、2 消除磁铁、3 解锁槽位、4 复活均已人肉验收
+通过（2026-10-19）；子步骤 5 第 1 关新手引导已人肉验收通过（2026-10-19）`
+
+原版逻辑梳理（2026-10-19，证据 GbzMainLayer/GbzGameManager/GameMgr/
+GbzLoseFullLayer/GbzResurgenceLayer/GbzDataManager/GbzGetItemLayer/
+GbzPropSpecialLayer + 重建工程预制体实测）：
+
+- 入口与数量：HUD `skills` Layout 下两个按钮——btn_skill_core（消除）
+  与 btn_skill_board（打乱），子节点 ad（广告角标）/propNumLbl（库存）。
+  PropType：removeFruit=0、disturbFruit=1；库存 getPropNum/addProp
+  持久化在 DataManager（ZXMTG 存档，本步不接），耗尽走广告获取
+  （GbzGetItemLayer，本步不接广告），每局免费广告次数 itemADCounts=[4,4]。
+  第 1 关两个道具都不可用，点击只弹“第二关使用”。点击道具期间
+  skillIndex>=0，水果输入锁定（status=UNRUN），执行完恢复 RUN。
+  本步按计划“广告/分享/付费不做，先给本地可测试入口”：两个按钮
+  不扣库存、不弹广告，RUN 状态直接执行，库存角标维持预制体原样。
+- 消除（磁铁，btnRemoveFun(t=1)）：先 sortFruit（按当前移动方向
+  对 fruitsComp 排序：下移/静止按 y 升序，右移按 x 降序，左移按 x
+  升序），再选一对——槽内已有水果时从槽尾向前找第一个在场内能
+  配成对的；否则从全场普通水果（ID>0、fruitType=0、非黑洞）随机序
+  中按方向取边界果（下移取最低 y，左移取最左 x，右移走最右 x，
+  静止随机），再经 getMatchFruit 找配偶（普通>关节>黑洞出果>
+  冰冻解冻>随机盒开盖；本工程只有普通/冰冻/盒，取普通优先、
+  没有可配的普通对时允许解冻一个冰冻或开一个盒）。选中的水果
+  先 hideCollider+isTouch=true，走正常 fruitTween 入筐，到达事件
+  照常驱动目标递减/胜利/死局复检；因此本工程 CollectionController
+  需提供对任意一组水果直接消除的入口，到达事件链不变。
+- 打乱（btnDisturbFun）：候选 = !isCollider && !isInSlot &&
+  (fruitType=0 或 2) && !holeComp && !canCheckPassed（未越过
+  canCheck 线、未入槽的可操作水果；冰冻 fruitType=1 不参与）。
+  2 个直接交换位置；>2 用 shuffleArray 把位置数组洗牌后逐个
+  movePos（关碰撞→0.4s 移动→anim 弹出→checkBound），期间物理
+  重构关节（本工程第 12.3 未做，跳过）。移动完做一次 checkBoundAll。
+  候选不足 2 个时原包也会按 0 个正常走完回调（无提示）；建议
+  本工程候选 <2 时不锁输入、直接 return（同样不扣次数）。
+  movePos 的“关碰撞→位移→Dynamic(g=0) 弹出分离→Static”与
+  生成保护期动画同构，可复用 FruitEntity 的刚体重置方法。
+
+- 解锁槽位（屏幕中央漏斗上方的“解锁”箭头即墙体自身）：
+  game/walls/btnFirstWall、btnSecondWall 是带刚体的限制墙，初始
+  slotsNum=colorLimit=3。原版点墙看广告（breakWall）：3→4 砸掉
+  btnFirstWall 并给 btnSecondWall 换贴图/亮子节点；4→5 砸掉
+  btnSecondWall；>=5 不可再砸。breakAllWall/breakSingleWall 是
+  特殊道具广告入口（GbzPropSpecialLayer，本步不接）。本步本地
+  测试入口：直接点击墙即砸毁（playChuiziEff/creatBoxBoom 锤子
+  与碎石特效留到第 14 步，本步先做墙消失+容量+1），容量上限 5。
+  LevelPlayfield.slotCapacity 由常量 3 改为可扩展字段，
+  LevelSession.expandCapacity 已预留；危险闪烁阈值同步 +1。
+  checkPro50UeseProp 的进度 50% 弹窗不做（广告特殊道具）。
+- 复活：失败时原版先显示复活引导（GbzLoseFullLayer 的
+  style/panel：“复活吗?”+剩余数 labNum+btn_relive+btn_close2/
+  点空白关闭；独立的 GbzResurgenceLayer 是其复用版本，重建工程
+  的 LoseLayer 第 9 步已把 panel 隐藏，本步改回先 panel 后
+  lose_panel）。每局 reliveCount=1，广告不接：btn_relive 本地
+  直接复活一次，关闭入口进 lose_panel。reviveFun 机制——
+  场上未点击未过线水果临时 Dynamic(g=0) 防碰撞；isTouch 的水果
+  中除 y 最低的一个外全部退回点击前原位（FruitComp.downOrgPos，
+  本工程需在 onTouchStart 记录），自动下落/黑洞位改走 getSafePos
+  （本工程无黑洞；自动下落果给边界内安全点），movePos 归位后
+  fruitReset（Static+checkBound+isTouch=false），从槽位移除；
+  留在槽内的（最低锚点果）恢复 Dynamic(g=13) 继续下落；全部
+  完成后 status=RUN、gameState=isPlaying。复活不回滚目标数
+  （已入筐计数不变）。需新增 LevelSession.resetLost()，
+  GameNavigator 的 outcomeLock 可解、HUD 重新显示、finalizeLose
+  的变灰在复活路径上要能撤销（颜色变白）。
+- 新手引导（仅第 1 关）：finger 预制体已在
+  assets/game/prefab/game/finger.prefab；行节点 pos1 含 4 个
+  定位点（children 0-3）+ 4 个水果（children 4-7），setFinger
+  把手指放到定位点并把对应水果 isCanTouch=true。原版时序：
+  开局手指指第 1 个西瓜；第 1 次点击后指第 2 个；第 2 次点击
+  后显示 leaderTip/roundone（“2 个相同的水果会消除”，2s）；
+  第 4 次点击触发 pos2/pos3 两行 2s 移入（本工程
+  startFirstLevelRound2 已实现，补手指与气泡即可）。
+  leaderTip/roundtwo 文案“2 个相同的磁铁会消除一组水果”在
+  反混淆代码中找不到任何激活点（全工程仅 leaderTip 整体在
+  clickCount=2 激活一次），且第 1 关道具点击原版只弹“第二关
+  使用”，磁铁教学触发时机无证据——实现时按“证据不足不做”
+  处理，除非玩家另有指示。第 1 关开局只放行手指指向的水果
+  可点（pos2/3 在屏外天然不可点），点击后逐个开放。
+
+本步实现顺序与集成点：
+
+1. 刷新/打乱：HUD 技能按钮接线（GameNavigator.bindLevelButtons），
+   逻辑放 LevelPlayfield（候选筛选/位置交换/移动动画/碰撞开关），
+   执行期 isInputActive 临时关闭，结束复检 checkBoundAll。
+2. 消除/磁铁：CollectionController 增加 forceEliminate(entities)
+   （复用现有锁定+飞筐+到达事件），LevelPlayfield 按原版规则选一对。
+3. 解锁槽位：LevelPlayfield 绑定两面墙 TOUCH_END，上限 5。
+4. 复活：LoseLayer 改为 panel 先行；playfield.revive()；
+   session/navigator 状态可恢复；entity 记录 downOrgPos。
+5. 新手引导：第 1 关手指+roundone 气泡+逐果开放。
+
+实现记录（2026-10-19，子步骤 4 复活，证据 GameMgr.reviveFun/
+getSafePos/isOnScreen、FruitComp.fruitReset/movePos、
+GbzLoseFullLayer.onEnable/onClose、GbzResurgenceLayer.onRelive）：
+
+**状态：[x] 已完成（2026-10-19，人肉验收通过）**
+
+- FruitEntity：手动点击时记录 downOrgPos；新增
+  prepareReviveBystander/finishReviveBystander（场上果临时 Dynamic
+  g=0 防穿越）、reviveReturnTo（归 FRUIT 组+关碰撞+0.5s 回位+
+  0.4s backOut+fruitReset 等价：isTouch/isAutoDrop/isInSlot/
+  canCheckPassed 全复位回 Static、颜色恢复白色）、
+  resumeFallingAnchor（槽内最低锚点果白色+Dynamic g=13 继续下落）。
+- CollectionController.removeFromSlot 改 public（复活退回时摘槽）。
+- LevelPlayfield.revive：touched=isTouch 且未锁定的水果，最低 y 的
+  锚点留槽；其余从槽位摘除退回 downOrgPos（自动下落果没有原位，
+  走 getSafeRevivePosition：中部矩形内按半径避让随机 30 次，
+  失败兜底随机）；场上未点击未入槽未过线且在屏内的水果临时
+  Dynamic g=0；全部归位后恢复 Static、checkBoundAll、重新开放输入。
+  目标数不回滚；isDowning 期间挡住 fruitDown；复活结束复检死局。
+- LevelSession.resetLost 撤销失败；GameNavigator 新增 reviveUsed
+  （每局限一次，showLevel 重置），onRevive 销毁失败层、解 outcomeLock、
+  重显 HUD、调 playfield.revive；第二次失败直接进 lose_panel。
+- LoseLayer 重写：reviveAvailable 时先显示 style/panel（“复活吗?”
+  +labInfos/labNum 剩余数+btn_relive，隐藏广告角标），btn_close2
+  缩出后进 style/lose_panel；无复活次数时直接 lose_panel。
+- 验证：tsc 0 诊断；L2 加载冒烟正常。待人肉验收：打满 4 个不配对
+  水果触发失败→弹复活面板且剩余数正确→点复活后已点击水果退回
+  场上、只剩最低一个在槽内、可继续操作；点关闭后正常进失败层；
+  复活后再失败不再显示复活面板；重试/下一关复活次数刷新。
+
+修订（2026-10-19，子步骤 4 UI 终版，人肉反馈叠字后改为双独立弹层
+对齐原版）：
+- 引擎反序列化原包预制体证实：GbzLoseFullLayer.onEnable 在
+  reliveCount>0 时隐藏自身、改弹独立 GbzResurgenceLayer
+  （btn_relive 底图 reviveUI1=播放图标+复活；关闭 btn_close 回失败层）。
+- 新增 scripts/level/ResurgenceLayer.ts（style/panel/Bg 下
+  btn_relive/btn_close/labInfos/labNum，0.35 backOut 入场）；
+  LoseLayer 精简为只管 style/lose_panel（重试/主页，隐藏分享），
+  style/panel 强制隐藏；GameNavigator 新增 resurgencePrefab
+  （场景已挂 f3f54626…），lose() 先建隐藏的失败层再弹复活层，
+  关闭→closeResurgence 显失败层，复活→两层都销毁并 revive()。
+- 修复清场报错：LevelPlayfield.onDestroy 对 firstWall/secondWall
+  的 off 加 isValid 守卫（父组件 onDestroy 时子墙节点可能已销毁，
+  原写法抛 Cannot read properties of null (reading 'off')，并连锁
+  destroy twice）。自动链路验证：关闭复活层→返回主页/重玩均 0 报错。
+
+实现记录（2026-10-19，子步骤 3 解锁槽位，证据 GameMgr.breakWall/
+breakSingleWall/breakAllWall、GbzPropSpecialLayer、预制体实测）：
+
+- 预制体实测：walls/btnFirstWall（y=-466，贴图=水果解锁砖、箭头
+  子节点常显）与 btnSecondWall（y=-546，贴图=普通水果砖、两个
+  子节点初始隐藏）叠在漏斗颈，均带刚体+122×91 BoxCollider，水果
+  撞其表面即入槽（第 9 步接触逻辑已支持）。
+- LevelPlayfield：slotCapacity 改可变（3），缓存两面墙；开局只给
+  firstWall 绑 TOUCH_END。breakWall（箭头函数绑 this）——3→4：
+  把第一面的“水果解锁砖”SpriteFrame 直接复用给第二面（免异步
+  加载）、显示其两个子节点并绑定点击，再销毁第一面、容量+1；
+  4→5：销毁第二面、容量+1；之后无墙可点即上限 5。运行中且非
+  道具锁定才响应。扩位后调 evaluateLose 顺带清除危险红白闪烁。
+  GameNavigator 接 slotExpandedHandler -> levelSession.expandCapacity。
+- 跳过广告（showVideo/GbzGetItemLayer/GbzPropSpecialLayer）与
+  锤子、碎石特效（playChuiziEff/creatBoxBoom 留第 14 步表现阶段）；
+  checkPro50UeseProp 的 50% 进度弹窗不做（广告特殊道具）。
+- 验证：tsc 0 诊断。待人肉验收：点“解锁”砖消失、第二块带箭头
+  出现、可再点一次；容量 4/5 时第 4/5 个水果入槽不再立刻判负；
+  重开/下一关墙与容量复原为 3。
+
+实现记录（2026-10-19，子步骤 2 消除/磁铁，证据 GameMgr.btnRemoveFun/
+getMatchFruit/eliminateDataSort、GbzGameManager.onGameSkill、
+GbzMainLayer.onSkillClick）：
+
+- CollectionController 抽出 eliminatePair 私有流程，新增
+  forceEliminatePair（不检查接触/越线/类型，复用 lockForElimination+
+  飞筐 tween+fruit-arrived 事件，目标递减/胜利/死局复检/扣冰/
+  侧移关 fruitMove 全部沿用原链）。
+- LevelPlayfield.removeFruitPair：第 1 关 level-locked、忙时 busy、
+  无配对 no-target。选对规则——槽内优先（slotEntities 逆序找场内
+  有同 pairId 配偶者）；否则全场普通果按方向取边界果（下移最低 y、
+  左移最左 x、右移最右 x、静止随机）。findPartner 按 getMatchFruit
+  桶序：普通 > 冰冻（直接 unlockIce 解冻）> 随机盒（unlockBlackBox
+  开盖）；同桶内已点击下落中的优先、再按方向排序（eliminateDataSort
+  简化）。选中双方 isTouch=true 防场地移动，执行期 isDowning+
+  skillLocked，两个 fruit-arrived 后解锁并在下移关补一次 fruitDown。
+- GameNavigator 绑定 skills/btn_skill_core；第 1 关弹“第二关使用”，
+  无目标弹“没有可消除的水果”。不扣库存不播广告。
+- 验证：tsc 0 诊断。待人肉验收：点消除直接飞筐一对（优先救槽内
+  水果）、剩余数-2、无目标提示、执行中输入锁定、冰冻/盒可被磁铁
+  直接解冻/开盖带走。
+
+实现记录（2026-10-19，子步骤 1 刷新/打乱，证据 GameMgr.btnDisturbFun、
+FruitComp.movePos/anim/hideCollider、SOUtil.shuffleArray、
+GbzMainLayer.onSkillClick/refreshSkillBtn）：
+
+- FruitEntity 新增 prepareShuffle（关碰撞体+Static g=0+清零速度，
+  触摸上下文直接 apply）、playShuffleTween（0.4s 位移后 Dynamic g=0
+  下 0.4s backOut，落位恢复 FRUIT 分组/碰撞/Static 与未点击状态）；
+  isTouch/isAutoDrop/canCheckPassed/inCheckBox 全部复位。
+- LevelPlayfield 新增 disturbFruits：候选=!isCollider&&!isInSlot&&
+  !canCheckPassed 且 fruitType 0/2（冰冻与黑洞果不动）；2 个强制互换、
+  >2 Fisher-Yates（同 SOUtil.shuffleArray）；执行期 isDowning+
+  skillLocked 双锁（挡住 fruitDown/fruitMove 调度与全部输入/接触
+  结算，等价 status=UNRUN），全部落位后解锁并逐个 checkBoundOne
+  （方向关压暗/越线自动下落仍生效）；第 1 关返回 level-locked。
+- GameNavigator 绑定 GbzMainLayer skills/btn_skill_board；第 1 关
+  showFullTip('第二关使用')；胜负锁定后不响应。消除按钮
+  btn_skill_core 留待子步骤 2。本地测试不扣库存不播广告。
+- 验证：tsc 0 诊断；L2 预览加载正常（174 水果、按钮就位）；
+  人肉验收通过（换位动画、动画中输入锁定、入槽/消除中水果不动、
+  第 1 关“第二关使用”均符合预期）。
 
 实现顺序：
 
@@ -800,9 +1247,36 @@ unlockFruit/checkID）：
 - 无合法目标时不扣除道具并给出合理反馈。
 - 复活后既不会立刻再次失败，也不会错误直接胜利。
 
+实现记录（2026-10-19，子步骤 5 第 1 关新手引导，证据 GameMgr.firstLevel/
+showLeader/setFinger/opacityTween/firsrLevelRound2、FruitComp.checkBound、
+GbzLvCommon 预制体实测）：
+
+- 门控澄清：原版 arrangeType=1 时 FruitComp.checkBound 把全部水果
+  isCanTouch=true，setFinger 只保证被指水果开放；pos2/pos3 在屏外天然
+  点不到。手指是纯视觉引导，不做“只放行一个水果”的严格门控
+  （否则第 3/4 次点击无水果可点，showLeader 只开放了 fruit[4]/[5]）。
+- LevelPlayfield：run() 第 1 关分支改为 await startFirstLevelGuide()
+  后 return，running 在 setFinger 后延迟 0.3s 置 true（原版 UNRUN 窗口）。
+  finger 用 assetManager.loadAny 按 UUID 加载（39f2d48e…），静态 Promise
+  跨关缓存；实例挂到 game/firstLevel 下、同步 layer，opacityTween 用
+  union().repeatForever() 做 scale 0.7<->0.8 各 0.5s 呼吸。
+- setFinger(row, anchorIdx, fruitIdx, show) 严格照搬原版：
+  finger 坐标 = (锚点.x, 锚点.y + 行节点.y)；锚点/水果无效或水果已
+  isTouch 时强制隐藏；有效时同步 isCanTouch=true。
+- showLeader 按 clickCount：1 -> setFinger(0,1,5,true) 指第 2 个西瓜；
+  2 -> setFinger(0,1,4,false)+leaderTip.active=true+setFinger(0,1,5,false)
+  +2s 后隐藏气泡；4 -> 藏手指 + startFirstLevelRound2（既有）。
+  leaderTip 预制体本就含 roundone 三个 Label“2个/相同/的水果会消除”
+  +气泡底图（roundtwo 无激活证据，保持隐藏）。
+- 清理：onDestroy 停 finger tween 并销毁实例；run() 重置 clickCount。
+- 验证：tsc 0 诊断；?autolevel=1&level=1 冒烟 0 逻辑报错（仅已知
+  lightMaterial/materialAttacked 材质缺失）。待人肉验收：开局手指指
+  第 1 个西瓜且呼吸；点第 1 个后移指第 2 个；点第 2 个后出“2 个相同
+  的水果会消除”气泡约 2s 消失；第 4 次点击后 pos2/pos3 两行 2s 移入。
+
 ### 第 14 步：音效、特效、过场和完整回归
 
-状态：`[ ] 未开始`
+状态：`[ ] 部分完成（音效子任务代码完成，待人肉验收；特效/汽车过场/完整回归未开始）`
 
 实现范围：
 
@@ -822,6 +1296,215 @@ unlockFruit/checkID）：
 - 控制台无持续错误和未清理回调。
 - 多轮游戏后节点数、事件数和内存不会持续增长。
 - 至少覆盖第 1、2 关以及每类特殊机关的代表关卡。
+
+#### 子任务 1：音效（2026-10-20，代码完成待验收）
+
+```text
+步骤：第 14 步子任务 1 - 音效重建
+状态：部分完成（声音只能人肉听辨，待验收）
+本次改动：
+- 新增 assets/scripts/audio/GameAudio.ts：单例 GameAudio.ins，常驻
+  __GameAudio__ 节点（addPersistRootNode），挂 sfx/bgm 两个 AudioSource。
+  24 个音频 UUID 常量表 CLIP_UUID（key 即 assets/game/audios/ 中文文件名）。
+  play(key,maxConcurrent=1,group=key) 按组限流 + playOneShot，额度按
+  clip.getDuration() 延时释放；playCombo() 复刻原版 3s 窗口连击
+  xiaochu_1..5 循环（独立组 __combo__，并发上限 5）；playBGM/stop/pause/
+  resume（loop、volume 0.3、同名不重播）；EVENT_HIDE/SHOW 自动暂停恢复；
+  soundOn/musicOn 开关；preloadSfx() 在 loading 阶段预加载 21 个短音效。
+- FruitEntity.ts：onTouchStart 播「点击水果」；dropLeft/dropRight 首次
+  接触（isTouch 且未撞过）播「水果落地」（上限 5）；handleFruitContact
+  按位移 >=50px² + uuid 去重播「ui_click」同类碰撞轻音，并 vibrateShort
+  短震（wx.vibrateShort 优先，navigator.vibrate 兜底）。新增 originPos、
+  hitFruits:Set、isLRAddForce 字段，setup 复位。
+- CollectionController.ts：eliminatePair 播 playCombo()；onFruitArrived
+  播「水果消失」。
+- LevelPlayfield.ts：blitzkrieg 开局闪电播「lei」；breakWall 播「解锁坑位」。
+- GameNavigator.ts：showHome 播 BGM「水果消除bgm」、showLevel 播
+  「水果消除关卡bgm」；lose 按 reason 播「装不下啦」/「失败」；
+  showWinLayer 播「胜利」；开始/返回/刷新成功/磁铁成功/复活层等回调
+  按钮播「ui_click」，刷新成功再播「刷新」、磁铁成功再播「磁铁音效」。
+- ShuiguoGameBootstrap.ts：loadingTasks 增加 GameAudio.ins.preloadSfx()。
+原版依据：tmp/recovered-src/readable/GbzAudioManager.ts.js 的
+  playSound(group,i,clip) 限流语义、playComboSound 3s/5 循环、
+  playBGM/pauseBGM/resumeBGM（group0=BGM, group1=普通音效, group2=UI/胜负）；
+  GbzEnum.ts.js ENUM_CLIP 24 clip 完整映射。
+预览入口：首页 → 开始游戏；?autolevel=1&level=N（L11 测 lei 闪电音）
+可见效果：点击/落地/碰撞/连消/消失/解锁/刷新/磁铁/闪电/胜负/按钮均有音效，
+  首页与关卡两首 BGM 自动切换，切后台 BGM 暂停、回前台恢复。
+验证结果：tsc 0 诊断；editor refresh-asset 后 ?autolevel=1&level=1 冒烟
+  无 JS 报错（仅已知 lightMaterial/materialAttacked 材质缺失），关卡正常
+  生成 12 个水果；临时诊断日志已删净（grep TMPAUDIO = 0）。
+已知差异/未接线：
+- 「水果喷射」原版在 GbzFruitDownLayer 快速点击节流时播，重建无此机制，跳过。
+- 「相同水果碰撞」枚举 sameIDHitSound 在原包内零调用，死音效，不接。
+- 排位/蔬菜等外围页面音效不在本工程范围。
+- 音效开关 UI（声音/音乐按钮）原版有本地存档，当前仅暴露 soundOn/musicOn
+  接口，待设置入口接线时使用。
+待人肉验收清单：
+- 点水果、落斜面、同类相碰轻音+短震、配对连消 xiaochu_1..5 递进、
+  水果进槽消失、解锁坑位、刷新、磁铁、L11 闪电 lei、装不下/失败、胜利、
+  按钮 ui_click、首页/关卡 BGM 切换、切后台 BGM 暂停恢复。
+下一步：验收通过后做子任务 2 特效（effPr 消除粒子/streak 拖尾/
+  boxBoom+chuizi 砸墙/landEff0~3 落地粒子）。
+```
+
+#### 子任务 2：特效（2026-10-20，代码完成待验收）
+
+```text
+步骤：第 14 步子任务 2 - 消除/落地/砸墙/拖尾特效
+状态：部分完成（视觉只能人肉看，待验收）
+本次改动：
+- 新增 assets/scripts/level/effects/EffectLayer.ts：挂在运行时创建的
+  game/effsRoot 节点，9 个特效预制体 UUID 常量表 + loadAny 缓存。
+  - burstEliminate(source, fruitId)：复刻 GameMgr.showFruitEff，
+    水果 ID -> 粒子颜色子节点 eff0~eff6（originalPt 全 35 项映射，
+    缺省 2）；每次喷 8~12 个，随机偏移 ±50、缩放 0.69*[1,2)，
+    随机方向飞 55~95px（sineOut，时长=距离/[55,95)），并行自转
+    260~300° + 缩放到 0，结束 NodePool 回收。
+  - spawnStreak(target)：streak 预制体挂到水果同父节点，独立脚本
+    StreakFollow（每 3 帧对齐坐标，3s 自毁），MotionStreak 出残影。
+  - playLand(fruit)：脚下 60px 播 landEff{floor(level/10)%4}，
+    ParticleSystem2D.resetSystem，autoRemoveOnFinish 自毁。
+  - playBoxBoom(wall)：墙世界坐标转 effsRoot 本地，碎石粒子自毁。
+  - playHammer(wall, onStrike)：chuizi 预制体（实例化后剔除丢失的
+    ChuiziComp MissingScript），找子节点 chuizi/eff，延迟 0.5s ->
+    0.08s 转到 -10°（quadOut）-> 0.18s 到 45°（backOut），命中时
+    回调 + eff 粒子，2s 后销毁。
+- 新增 assets/scripts/level/effects/StreakFollow.ts（一文件一组件）。
+- FruitEntity.ts：新增 isShowedLandEff；首次撞 dropLeft/Right 斜面
+  播 playLand（与落地音同条件、每果一次）；playEliminationTween 缩放
+  回弹结束（0.24s 上浮前）.call 触发 burstEliminate(pairId)，
+  普通配对/磁铁/单果飞筐全部覆盖。
+- LevelPlayfield.ts：run() 在 game 下建 effsRoot + EffectLayer，
+  设 currentLevel 并 preloadAll 全部特效预制体；breakWall 改为
+  playHammer 时序：点击即 off/expandSlot（容量立即生效），锤击命中
+  瞬间才播「解锁坑位」音 + boxBoom + 拆墙/升级第二面（贴图在销毁前
+  缓存）；wallBreaking 仅防连点，不锁水果输入。磁铁场上路径
+  （种子不在槽内）给 seed/partner 挂 streak，槽内优先路径不挂。
+原版依据：GameMgr.showFruitEff/playChuiziEff/creatBoxBoom/breakWall、
+  FruitComp.streakFun/checkDropWall、StreakComp、ChuiziCom、
+  ReferenceLayMgr.originalPt/getEliminateColor、ReferenceMgr
+  RandomInt(闭区间)/randomN/RandomAngle。
+预览入口：?autolevel=1&level=N；解锁槽位关用 N>=10（如 ?level=10），
+  落地粒子在左右移关（moveDir=2/3）更明显，拖尾点磁铁道具观察。
+验证结果：tsc 0 诊断；临时 ?dbgeff=1 钩子自动触发四种特效，
+  日志确认 12 个 effPr（颜色=水果映射）、streak、land0（第 2 关
+  floor(2/10)%4=0）、hammer strike + boxBoom 全部执行且 0 运行时
+  报错；临时代码已删净（grep TMPDBGEFF/dbgeff = 0）；最终 L1
+  冒烟仅已知材质缺失报错。
+已知差异/未做：
+- effMagnet 预制体在原包反混淆代码中零调用，未接线。
+- 锤子弹跳用 node.angle 等价原版 Quaternion z 轴旋转。
+- 粒子/锤子未走对象池（原版 GbzPoolManager），频率低直接实例化自毁；
+  effPr 高频已用 NodePool。
+待人肉验收清单：
+- 配对消除时水果原位喷对应颜色粒子并飞散旋转缩没；
+- 磁铁消场上水果有白色拖尾；
+- 点水果撞左右斜面脚下有尘土粒子（每果一次）；
+- 点解锁砖：锤子 0.5s 后砸下、命中瞬间碎石 + 解锁音、墙消失/升级；
+- 各特效层级位置正确、不挡 UI、长时间游玩无报错。
+下一步：验收通过后做子任务 3 汽车过关动画（car.prefab + 汽车鸣笛）。
+```
+
+#### 子任务 3：汽车过关过场（2026-10-20，代码完成待验收）
+
+```text
+步骤：第 14 步子任务 3 - 汽车过场（GbzCarMoveLayer）
+状态：部分完成（视觉只能人肉看，待验收）
+本次改动：
+- 新增 assets/scripts/level/CityTable.ts：原版 CityConfig
+  getCurCityName 的 200 城顺序表，数据从反混淆 CityConfig.ts.js
+  提取：常规表 e（35 省、100 城）+ 季节表 a（100 城），各条目
+  [省份名, 城市数]；getCityName(t) 按 1-based 累计命中、对 200 取模
+  （0 视为 200），与原包 e[0] 空项、先 e 后 a 的遍历顺序一致。
+- 新增 assets/scripts/level/CarTransitionLayer.ts：复刻
+  GbzCarMoveLayer.losePanelTween。play(cityName, onArrive)：
+  cao/zhanpai/lv Label 设省份名；shan（5 个子节点）与 cao（8 个）
+  全部从 scale 0 起，按序号延迟 0.2*i、0.5s backOut 弹出；
+  car 置于 carStart.x；1s 时播「汽车鸣笛」（group2 音效）；
+  tween delay(1).to(2,{x:carEnd.x}) 行驶到右侧，结束回调进下一关。
+  预制体自带 Animation（carmove.anim，playOnLoad 车身动画）与尾气
+  ParticleSystem2D；onDestroy 停全部 tween（children 可空守卫，
+  销毁期不再 NPE）。
+- GameNavigator.ts：胜利层“下一关”由直接 gotoLevel 改为
+  playCarTransition(nextLevel)：销毁胜利层 -> loadAny 按 UUID
+  （a981e4ed…，GbzCarMoveLayer.prefab）加载并实例化到 Stage，
+  递归同步 layer 到 Stage，CityTable.getCityName(nextLevel-1)
+  取名，到达回调销毁过场层后 gotoLevel 下一关；clearLevel 兜底
+  销毁残留 carLayer；加载失败直接进下一关不卡死。重玩/返回主页
+  不经过汽车过场（原版只有下一关走 CarMoveLayer）。
+原版依据：GbzCarMoveLayer.ts.js（shan/cao 弹出、carStart/End
+  -747.044->891.86、1s 鸣笛、2s 行驶）、GbzWin2Layer.onClickButtons
+  （关胜利层 -> toggle CarMoveLayer -> recycleDownFruit）、
+  GbzEnum ENUM_CLIP.GAME_CAR=汽车鸣笛、CityConfig.getCurCityName。
+预览入口：通关任一点“下一关”；自动验证用临时 ?dbgcar=1（已删除）。
+验证结果：tsc 0 诊断；MCP validate-prefab 111 引用 0 缺失；
+  钩子自动触发确认 play city=广东省（第 2 关后）/山东省（第 3 关后，
+  广东 3 城后切换正确）、shan 5 / cao 8、起止坐标与原包一致、
+  arrive 后正常 LevelLaunch 下一关且 0 运行时报错；onDestroy 的
+  children NPE 已修；临时代码删净（grep TMPDBCAR/dbgcar = 0）；
+  L1 最终冒烟仅已知材质缺失报错。
+已知差异：
+- 季节表 a 在原包为对象（整数键升序遍历），重建按数组顺序等价；
+  原包 200 城提取计数 e=100/a=100 完全吻合。
+- 过场期间未调用原版 recycleDownFruit（重建 gotoLevel 直接重建场景）。
+待人肉验收清单：
+- 过关点“下一关”：胜利层消失，山/草依次弹出、标牌显示正确省份名、
+  汽车 1s 鸣笛后从左开到右（约 2s），随后进入下一关；
+- 重玩、返回主页按钮不触发过场；汽车尾气/车身动画正常。
+下一步：验收后做子任务 4（多屏/长时间完整回归）或按需补剩余表现。
+```
+
+#### 子任务 3.5：胜利层补全（2026-10-20，代码完成待验收）
+
+```text
+步骤：第 14 步子任务 3.5 - 胜利弹层恢复光圈/城市进度，移除重玩按钮
+状态：部分完成（待人肉看视觉）
+本次改动：
+- WinLayer.ts 重写：
+  - 删除“重玩”按钮（通关后无重玩需求），按钮容器仅保留居中的
+    btn_restart“下一关”，WinLayerHandlers 去掉 onReplay；
+    GameNavigator 同步只传 onNext/onHome。
+  - 恢复原版 GbzWin2Layer 布局：guang（放射光圈）+ 中央收集物图标、
+    info（“不得了…比89%玩家厉害”烤字图）、proBg（城市进度：
+    FILLED 进度条 + 小车 + lv RichText）；btnshare 分享翻倍继续隐藏。
+  - 入场时序对齐原版 losePanelTween：title 立即 backOut；
+    0.5s 后 guang/info/proBg backOut，同时 proBg_fill.fillRange 与
+    小车 x 在 1s 内从上一关进度走到本关；按钮在 0.5+1+0.5+0.2=2.2s
+    弹出。
+  - lv RichText：省内最后一关显示“即将到达{省简称}”，否则
+    “再过{N}关到达{省简称}”（黄色 f4fd14 + 黑描边，原版模板）。
+- CityTable.ts 扩展：e/a 表补省份简称（simpleName），
+  getProgress(level) 返回 {cur,total,diff,nextSimple}，
+  getCityName 继续供汽车过场标牌使用。
+- 新增 CollectibleTable.ts：原版 CityConfig.u 收集物表 175 项
+  [名字,类型,SpriteFrame压缩UUID]；类型 0 水果（fruits/水果图标，
+  36 张）与 2 蔬菜（vegetable/蔬菜，28 张）共 49 项写入实际 UUID，
+  1/3/4/5（甜品/动物/海洋/糖果，工程无资源）与原包变量名条目
+  回退默认草莓图标；iconUuidForNextLevel 复刻
+  (fakeGame_level-2)%(length-1) 索引。
+原版依据：GbzWin2Layer.ts.js onEnable（cityUnlockData 取 icon）
+  与 losePanelTween（全部时序/fillRange/car.x/RichText 模板）、
+  CityConfig.ts.js（u 表 175 项、e/a 表省名+简称+城市数）、
+  GbzEnum ENUM_Theme_Sprites_Sub（fruits/vegetable 路径）。
+预览入口：通关任一点胜利；自动验证用临时 ?dbgwin=1（已删除）。
+验证结果：tsc 0 诊断；钩子在 L1/L3/L4 验证进度数据：
+  L1 cur=1/3 diff=2“再过2关到达山东”、L3 diff=0“即将到达山东”、
+  L4 进入山东省；L1 图标加载成功（人参果 d4f47a61…@f9941）；
+  0 运行时报错；临时代码删净（grep TMPDBGWIN/dbgwin=0）；
+  proBg_fill 预制体 _type=3(FILLED) 确认；L1 最终冒烟无异常。
+已知差异：
+- 175 收集物中 126 项为甜品/动物/海洋/糖果主题，原工程未迁入
+  对应 bundle，统一回退草莓图标（前 40 关仅 u[3] 华夫饼等少数
+  命中回退）。
+- btnshare 分享翻倍按钮不实现，保持隐藏；原版 1s 处的弹出占位
+  在按钮时序中保留时间差（2.2s），视觉与原版一致。
+待人肉验收清单：
+- 通关后标题与按钮之间有金色光圈+中央水果图、夸赞文案条、
+  城市进度条（车从左侧进度位置向右走、条同步填充）、省份文字；
+- 只剩一个居中“下一关”按钮，点击照常进汽车过场；
+- 右上角返回首页仍可用。
+```
 
 ## 6. 每一步的固定交付格式
 

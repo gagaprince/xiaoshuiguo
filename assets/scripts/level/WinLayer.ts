@@ -1,33 +1,55 @@
-import { _decorator, Color, Component, instantiate, Label, Node, Size, Sprite, tween, UITransform, Vec3 } from 'cc';
+/**
+ * 第 8/14 步：GbzWin2Layer 胜利弹层。
+ *
+ * 第 14 步起恢复原版完整布局：title（恭喜过关）、guang（放射光圈 + 中央
+ * 收集物图标，按关卡从 CityConfig.u 表取水果/蔬菜）、info（夸赞文案图）、
+ * proBg（城市进度：填充条 + 小车 + “即将到达/再过 N 关到达” RichText）、
+ * buttons（仅“下一关”，通关后无需重玩）；btnshare（分享翻倍）不实现、隐藏。
+ *
+ * 入场时序与原版 losePanelTween 一致：
+ * title 立即 backOut；0.5s 后 guang/info/proBg backOut 且进度条与小车
+ * 用 1s 从上一关节点走到本关；再 1s+0.5s+0.2s 后 buttons 弹出。
+ */
+import {
+    _decorator,
+    assetManager,
+    Component,
+    Node,
+    RichText,
+    Size,
+    Sprite,
+    SpriteFrame,
+    Tween,
+    UITransform,
+    Vec3,
+    tween,
+} from 'cc';
+import { CityTable } from './CityTable';
+import { CollectibleTable } from './CollectibleTable';
 
 const { ccclass } = _decorator;
 
-/** 第 8 步：胜利弹层三个最小可用出口。 */
 export interface WinLayerHandlers {
-    /** 下一关（原版 GbzWin2Layer.onClickButtons 经汽车过场进入下一关，本步直接进）。 */
+    /** 下一关（原版 onClickButtons 经汽车过场进入下一关）。 */
     onNext: () => void;
-    /** 重新挑战当前关（原弹层无此按钮，运行时复制下一关按钮改造而成）。 */
-    onReplay: () => void;
-    /** 返回首页（原版 btn_close2 -> LAYER_MENU）。 */
+    /** 返回首页（btn_close2）。 */
     onHome: () => void;
 }
 
-/**
- * GbzWin2Layer 的最小可用控制器（第 8 步）。
- *
- * 预制体里城市进度（proBg）、蔬菜奖励（guang/info）、分享翻倍（btnshare）
- * 与汽车过场相关，本步隐藏；只保留“恭喜过关”标题、下一关、重玩、返回主页。
- * 组件需在 addChild 到舞台前 setup，入场动画在 start 播放。
- */
 @ccclass('WinLayer')
 export class WinLayer extends Component {
     private handlers: WinLayerHandlers | null = null;
     private busy = false;
 
     private title: Node | null = null;
-    private buttons: Node | null = null;
+    private guang: Node | null = null;
+    private info: Node | null = null;
+    private proBg: Node | null = null;
+    private fill: Sprite | null = null;
+    private car: Node | null = null;
+    private nextLabel: Node | null = null;
 
-    public setup(handlers: WinLayerHandlers): void {
+    public setup(handlers: WinLayerHandlers, clearedLevel: number): void {
         this.handlers = handlers;
 
         const panel = this.node.getChildByPath('style/panel');
@@ -36,73 +58,102 @@ export class WinLayer extends Component {
             return;
         }
 
-        // 本步不实现：蔬菜奖励、城市进度、分享翻倍。
-        for (const name of ['guang', 'info', 'proBg', 'btnshare']) {
-            const node = panel.getChildByName(name);
-            if (node) node.active = false;
-        }
+        // 分享翻倍不实现；其余节点（guang/info/proBg）恢复显示。
+        const share = panel.getChildByName('btnshare');
+        if (share) share.active = false;
 
         this.title = panel.getChildByName('title');
-        this.buttons = panel.getChildByPath('buttons');
-        const nextButton = this.buttons?.getChildByName('btn_restart') ?? null;
-        const closeButton = panel.getChildByName('btn_close2');
+        this.guang = panel.getChildByName('guang');
+        this.info = panel.getChildByName('info');
+        this.proBg = panel.getChildByName('proBg');
+        this.fill = this.proBg?.getChildByName('proBg_fill')?.getComponent(Sprite) ?? null;
+        this.car = this.proBg?.getChildByName('car') ?? null;
+        const icon = this.guang?.getChildByName('icon')?.getComponent(Sprite) ?? null;
+        const levelText = this.proBg?.getChildByName('lv')?.getComponent(RichText) ?? null;
+        this.nextLabel = this.proBg?.getChildByName('lv') ?? null;
 
+        // 中央收集物图标：按 fakeGame_level = clearedLevel + 1 取 CityConfig.u 表。
+        if (icon) {
+            const uuid = CollectibleTable.iconUuidForNextLevel(clearedLevel + 1);
+            assetManager.loadAny(uuid, (error, frame: SpriteFrame) => {
+                if (!error && frame && icon.isValid) {
+                    icon.spriteFrame = frame;
+                }
+            });
+        }
+
+        // 城市进度文案与进度值（原版 getCityTotalProgress/getLvDiffNum/getNextCityName）。
+        const progress = CityTable.getProgress(clearedLevel);
+        if (levelText) levelText.string = this.buildRouteText(progress.diff, progress.nextSimple);
+
+        const width = this.proBg?.getComponent(UITransform)?.width ?? 350;
+        const nowRatio = (progress.cur - 1) / progress.total;
+        const targetRatio = progress.cur / progress.total;
+        this.progressStartX = -width / 2 + width * nowRatio;
+        this.progressTargetX = -width / 2 + width * targetRatio;
+        this.progressTargetRatio = targetRatio;
+        if (this.fill) this.fill.fillRange = nowRatio;
+        if (this.car) this.car.setPosition(this.progressStartX, this.car.position.y);
+
+        const nextButton = panel.getChildByPath('buttons/btn_restart');
+        const closeButton = panel.getChildByName('btn_close2');
         if (nextButton) {
             this.matchButtonTouchArea(nextButton);
             nextButton.on(Node.EventType.TOUCH_END, this.onNextClick, this);
-            const replayButton = this.buildReplayButton(nextButton);
-            if (replayButton) {
-                this.matchButtonTouchArea(replayButton);
-                this.layoutButtons(nextButton, replayButton);
-                replayButton.on(Node.EventType.TOUCH_END, this.onReplayClick, this);
-            }
         }
         closeButton?.on(Node.EventType.TOUCH_END, this.onHomeClick, this);
 
-        // 入场前先收起，start 再播 backOut。
-        if (this.title) this.title.setScale(new Vec3(0, 0, 1));
-        if (this.buttons) this.buttons.setScale(new Vec3(0, 0, 1));
+        // 入场前全部收起，start 再按原时序弹出。
+        for (const node of [this.title, this.guang, this.info, this.proBg, nextButton]) {
+            node?.setScale(new Vec3(0, 0, 1));
+        }
+    }
+
+    private progressStartX = 0;
+    private progressTargetX = 0;
+    private progressTargetRatio = 0;
+
+    /** 原版 RichText 模板：本省最后一关显示“即将到达”，否则“再过 N 关到达”。 */
+    private buildRouteText(diff: number, nextSimple: string): string {
+        if (diff === 0) {
+            return `<outline color=black width=4><b>即将到达<color=f4fd14>${nextSimple}</color></b></outline>`;
+        }
+        return `<outline color=black width=4><b>再过<color=f4fd14>${diff}</color>关到达`
+            + `<color=f4fd14>${nextSimple}</color></b></outline>`;
     }
 
     public start(): void {
-        if (this.title) {
-            tween(this.title)
-                .to(0.35, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
+        const pop = (node: Node | null, delay: number): void => {
+            if (!node) return;
+            tween(node)
+                .delay(delay)
+                .to(0.5, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
                 .start();
-        }
-        if (this.buttons) {
-            tween(this.buttons)
-                .delay(0.15)
-                .to(0.35, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
-                .start();
-        }
+        };
+
+        // title 立即弹出。
+        pop(this.title, 0);
+
+        // 0.5s 后光圈/文案/进度条弹出，填充与小车 1s 走到本关节点。
+        this.scheduleOnce(() => {
+            pop(this.guang, 0);
+            pop(this.info, 0);
+            pop(this.proBg, 0);
+            if (this.fill) tween(this.fill).to(1, { fillRange: this.progressTargetRatio }).start();
+            if (this.car) {
+                tween(this.car)
+                    .to(1, { position: new Vec3(this.progressTargetX, this.car.position.y, 0) })
+                    .start();
+            }
+        }, 0.5);
+
+        // 原版 0.5 + 1(btnshare 占位) + 0.5 + 0.2 后按钮弹出。
+        const nextButton = this.nextButtonNode();
+        pop(nextButton, 2.2);
     }
 
-    /**
-     * 复制 btn_restart：蓝底（btn_restart-001）保留，
-     * 关掉自带与子节点上的“下一关”图片字，加一个白色 Label“重玩”。
-     * 预制体 buttons 容器的 Layout 是禁用状态，位置由 layoutButtons 手动排。
-     */
-    private buildReplayButton(nextButton: Node): Node | null {
-        if (!this.buttons) return null;
-        const replay = instantiate(nextButton);
-        replay.name = 'btn_replay';
-        const ownText = replay.getComponent(Sprite);
-        if (ownText) ownText.enabled = false;
-        const imageText = replay.getChildByName('btn_restart-002');
-        if (imageText) imageText.active = false;
-
-        const labelNode = new Node('lbl_replay');
-        labelNode.layer = replay.layer;
-        const label = labelNode.addComponent(Label);
-        label.string = '重玩';
-        label.fontSize = 36;
-        label.lineHeight = 44;
-        label.color = new Color(255, 255, 255, 255);
-        replay.addChild(labelNode);
-
-        this.buttons.addChild(replay);
-        return replay;
+    private nextButtonNode(): Node | null {
+        return this.node.getChildByPath('style/panel/buttons/btn_restart');
     }
 
     /** 按钮节点触摸区默认 152x45，但可见蓝底（btn_restart-001）是 287x110，需放大触摸区。 */
@@ -110,16 +161,6 @@ export class WinLayer extends Component {
         const bg = button.getChildByName('btn_restart-001')?.getComponent(UITransform);
         const ui = button.getComponent(UITransform);
         if (bg && ui) ui.setContentSize(new Size(bg.width, bg.height));
-    }
-
-    /** 两个按钮以 20px 间距水平居中并排（预制体 Layout 禁用，不能依赖自动布局）。 */
-    private layoutButtons(nextButton: Node, replayButton: Node): void {
-        const width = nextButton.getComponent(UITransform)?.width ?? 287;
-        const spacing = 20;
-        const centerDistance = (width + spacing) / 2;
-        const y = nextButton.position.y;
-        nextButton.setPosition(new Vec3(-centerDistance, y, 0));
-        replayButton.setPosition(new Vec3(centerDistance, y, 0));
     }
 
     private runOnce(action: () => void): void {
@@ -132,11 +173,13 @@ export class WinLayer extends Component {
         this.runOnce(() => this.handlers?.onNext());
     }
 
-    private onReplayClick(): void {
-        this.runOnce(() => this.handlers?.onReplay());
-    }
-
     private onHomeClick(): void {
         this.runOnce(() => this.handlers?.onHome());
+    }
+
+    protected onDestroy(): void {
+        for (const node of [this.title, this.guang, this.info, this.proBg, this.car, this.nextLabel]) {
+            if (node) Tween.stopAllByTarget(node);
+        }
     }
 }

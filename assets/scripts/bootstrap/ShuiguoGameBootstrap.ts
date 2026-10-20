@@ -2,6 +2,7 @@ import { _decorator, Component } from 'cc';
 import { LoadingState } from '../core/LoadingState';
 import { GameNavigator } from '../nav/GameNavigator';
 import { LevelLaunchConfig } from '../level/LevelLaunchConfig';
+import { GameAudio } from '../audio/GameAudio';
 
 const { ccclass, property } = _decorator;
 
@@ -23,7 +24,10 @@ export class ShuiguoGameBootstrap extends Component {
      * 加载任务列表，后续把资源预加载填充到这里。
      * 任务为普通函数，可返回 Promise；0~99% 的进度表现由进度条渐近公式驱动。
      */
-    private loadingTasks: Array<() => Promise<void> | void> = [];
+    private loadingTasks: Array<() => Promise<void> | void> = [
+        // 第 14 步：Loading 阶段预加载全部短音效（BGM 进首页/关卡时懒加载）。
+        () => GameAudio.ins.preloadSfx(),
+    ];
 
     public async start(): Promise<void> {
         LoadingState.ins.loadingRate = 0;

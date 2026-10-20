@@ -2,30 +2,29 @@ import { _decorator, Component, Node, tween, Vec3 } from 'cc';
 
 const { ccclass } = _decorator;
 
-/** 第 9 步：失败弹层两个最小可用出口；复活（onRevive）仅预留接口。 */
+/** GbzLoseFullLayer 出口（原版 onRestart / onBackHome）。 */
 export interface LoseLayerHandlers {
     /** 重新挑战当前关（原版 GbzLoseFullLayer.onRestart）。 */
     onRetry: () => void;
     /** 返回首页（原版 onBackHome -> LAYER_MENU）。 */
     onHome: () => void;
-    /** 复活（原版先弹 panel/GbzResurgenceLayer 看广告）：本步不接广告，不调用。 */
-    onRevive?: () => void;
 }
 
 /**
- * GbzLoseFullLayer 的最小可用控制器（第 9 步）。
+ * GbzLoseFullLayer 控制器。
  *
- * 预制体里 style/panel 是广告复活引导（btn_relive/剩余数），
- * 本步按“复活只留接口”隐藏它，直接展示 style/lose_panel：
- * 重试（btn_restart）、回首页（btn_back）；分享（btnShare）隐藏。
- * 组件需在 addChild 到舞台前 setup，入场动画在 start 播放。
+ * 只负责 style/lose_panel：重试（btn_restart）、回首页（btn_back），
+ * 分享（btnShare）隐藏。复活引导是独立的 GbzResurgenceLayer
+ * （ResurgenceLayer），由 GameNavigator 负责两层切换。
+ * 节点可能先以 inactive 形态创建（等复活弹层关闭后再显示），
+ * 所以入场缩放动画放在 start() 里随激活自动播放。
  */
 @ccclass('LoseLayer')
 export class LoseLayer extends Component {
     private handlers: LoseLayerHandlers | null = null;
     private busy = false;
 
-    private title: Node | null = null;
+    private losePanel: Node | null = null;
     private restartButton: Node | null = null;
     private backButton: Node | null = null;
 
@@ -33,35 +32,41 @@ export class LoseLayer extends Component {
         this.handlers = handlers;
 
         const style = this.node.getChildByName('style');
-        const panel = style?.getChildByName('panel') ?? null;
-        const losePanel = style?.getChildByName('lose_panel') ?? null;
-        if (!losePanel) {
+        const revivePanel = style?.getChildByName('panel') ?? null;
+        if (revivePanel) revivePanel.active = false;
+        this.losePanel = style?.getChildByName('lose_panel') ?? null;
+        if (!this.losePanel) {
             console.warn('[LoseLayer] style/lose_panel missing');
             return;
         }
+        this.losePanel.active = true;
 
-        // 广告复活引导本步不做（onRevive 仅预留接口）。
-        if (panel) panel.active = false;
-        losePanel.active = true;
-
-        this.title = losePanel.getChildByName('title');
-        this.restartButton = losePanel.getChildByName('btn_restart');
-        this.backButton = losePanel.getChildByName('btn_back');
-        const shareButton = losePanel.getChildByName('btnShare');
+        const shareButton = this.losePanel.getChildByName('btnShare');
         if (shareButton) shareButton.active = false;
-
+        this.restartButton = this.losePanel.getChildByName('btn_restart');
+        this.backButton = this.losePanel.getChildByName('btn_back');
         this.restartButton?.on(Node.EventType.TOUCH_END, this.onRetryClick, this);
         this.backButton?.on(Node.EventType.TOUCH_END, this.onHomeClick, this);
 
-        // 入场前先收起，start 再播 backOut。
-        if (this.title) this.title.setScale(new Vec3(0, 0, 1));
+        this.collapseLosePanel();
+    }
+
+    public start(): void {
+        this.playLosePanelTween();
+    }
+
+    /** 收起 lose_panel 的标题与按钮，供入场动画弹出。 */
+    private collapseLosePanel(): void {
+        const title = this.losePanel?.getChildByName('title');
+        if (title) title.setScale(new Vec3(0, 0, 1));
         if (this.restartButton) this.restartButton.setScale(new Vec3(0, 0, 1));
         if (this.backButton) this.backButton.setScale(new Vec3(0, 0, 1));
     }
 
-    public start(): void {
-        if (this.title) {
-            tween(this.title)
+    private playLosePanelTween(): void {
+        const title = this.losePanel?.getChildByName('title');
+        if (title) {
+            tween(title)
                 .to(0.35, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
                 .start();
         }

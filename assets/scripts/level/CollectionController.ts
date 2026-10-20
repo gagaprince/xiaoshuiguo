@@ -1,5 +1,6 @@
 import { _decorator, Component, EventTarget, Mat4, Node, Vec3, tween } from 'cc';
 import { FruitEntity } from './fruit/FruitEntity';
+import { GameAudio } from '../audio/GameAudio';
 
 const { ccclass } = _decorator;
 
@@ -69,9 +70,40 @@ export class CollectionController extends Component {
         if (a === b || a.isCollider || b.isCollider) return;
         if (!a.node.isValid || !b.node.isValid) return;
         if (a.pairId !== b.pairId || a.pairId <= 0) return;
+        this.eliminatePair(a, b);
+    }
 
+    /**
+     * 第 13 步：磁铁/消除道具强制消除一对（原版 GameMgr.btnRemoveFun
+     * 选中后对每个水果 hideCollider + fruitTween）。不检查接触/越线/类型，
+     * 调用方负责挑选与解冻/开盖；复用同一套飞筐/到达事件链。
+     * @returns 是否成功发起消除。
+     */
+    public forceEliminatePair(a: FruitEntity, b: FruitEntity): boolean {
+        if (a === b || a.isCollider || b.isCollider) return false;
+        if (!a.node.isValid || !b.node.isValid) return false;
+        if (a.pairId !== b.pairId || a.pairId <= 0) return false;
+        this.eliminatePair(a, b);
+        return true;
+    }
+
+    /**
+     * 第 12.2 步：单果飞筐（原版 btnRemoveFun 第二遍扫描：槽内果在黑洞
+     * 待吐序列里找到同类型时，序列项直接消耗、不生成实体，槽内果独自飞筐）。
+     * 到达时只派发一次 fruit-arrived；序列项的那次递减由调用方另发虚拟事件。
+     */
+    public forceEliminateOne(entity: FruitEntity): boolean {
+        if (entity.isCollider || !entity.node.isValid || entity.pairId <= 0) return false;
+        entity.lockForElimination();
+        entity.playEliminationTween(this.basketLocalFor(entity), () => this.onFruitArrived(entity));
+        return true;
+    }
+
+    private eliminatePair(a: FruitEntity, b: FruitEntity): void {
         a.lockForElimination();
         b.lockForElimination();
+        // 原版 checkID F 分支配对成功即播连击音（xiaochu_1..5，3s 窗口递增）。
+        GameAudio.ins.playCombo();
         // 原版：配对水果在 fruitTween 到达回收时才 fruitSplice 出槽，
         // 飞行期间仍占容量（第 9 步溢出判定依赖此时机）。
 
@@ -81,8 +113,8 @@ export class CollectionController extends Component {
         this.events.emit(COLLECTION_EVENT_PAIR_ELIMINATED, { pairId: a.pairId } as PairEliminatedDetail);
     }
 
-    /** 原版 fruitSplice：水果到达篮筐回收时从槽位列表摘除。 */
-    private removeFromSlot(entity: FruitEntity): void {
+    /** 原版 fruitSplice：水果到达篮筐回收时从槽位列表摘除；复活退回的水果同样摘除。 */
+    public removeFromSlot(entity: FruitEntity): void {
         const index = this.inSlotEntities.indexOf(entity);
         if (index >= 0) this.inSlotEntities.splice(index, 1);
     }
@@ -96,6 +128,8 @@ export class CollectionController extends Component {
     private onFruitArrived(entity: FruitEntity): void {
         this.removeFromSlot(entity);
         this.playBasketTween();
+        // 原版 fruitTween：水果消失音，同组并发上限 1。
+        GameAudio.ins.play('水果消失', 1);
         // 原版顺序：basketTween -> updateFruitText（递减/胜利判定）-> fruitMove -> recycleFruit。
         this.events.emit(COLLECTION_EVENT_FRUIT_ARRIVED, { pairId: entity.pairId } as FruitArrivedDetail);
         this.pairArrived?.();
