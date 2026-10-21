@@ -184,7 +184,8 @@
     "level": 2,
     "difficulty": "normal",
     "levelCycle": 0,
-    "totalFruitCount": 174
+    "totalFruitCount": 174,
+    "itemFruitTotal": 0
   },
   "layout": {
     "width": 750,

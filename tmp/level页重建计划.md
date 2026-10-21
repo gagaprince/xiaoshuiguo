@@ -576,6 +576,24 @@ Win / Lose -> Restart / Next / Home
 - 接入 `GbzWin2Layer` 的最小可用状态：下一关、重新挑战、返回首页。
 - 暂不实现蔬菜奖励、广告翻倍、汽车过场和段位系统。
 
+联调修复（2026-10-20，水果资源加载失败会死关）：
+
+- 现象假设成立——`FruitFactory.acquire` 失败时 `FruitSpawner.createFruit`
+  返回 null 被 `continue` 跳过：场上缺实体，但
+  `spawn()` 仍按 `data.fruits.length(+洞池)` 绑定总目标，剩余数永远清不到 0，
+  关卡不可通关；尾号 0 黑洞关还会因
+  `spawner.entities[anchorIndex]` 与数据 1:1 错位导致锚点错乱；
+  `HoleComp` 吐果失败同样直接丢弃队列果。
+- 修复（`fruit/FruitFactory.ts`）：loadAny 失败按 150/350ms 自动重试 2 次；
+  仍失败时用 type1（第一关教学硬依赖，必然存在）预制体兜底，
+  同类型只 warn 一次。兜底实例 `pairId/fruitType` 语义仍是真实类型
+  （`FruitEntity.setup` 只取传入 type），配对/进篮/计数不受影响，仅贴图替身，
+  保证数据水果与实体严格 1:1。type1 也失败（资源系统整体损坏）才抛错，
+  spawner 打 error 并报告 `created/total` 缺口。
+- 验证：临时 `?TMPBADFRUIT=8` 故障注入（已删除，grep TMP 归零），
+  第 6 关 10 个 type8 实体 pairId 全为 8、实际 SpriteFrame=西瓜（type1），
+  日志 `spawned 130/130`，0 TypeError；正常关无 warn。
+
 可见效果：
 
 - 第 1 关从 4 个剩余目标逐步变为 2、0，进度从 0% 到 50%、100%。
@@ -742,9 +760,20 @@ unlockFruit/checkID）：
   12=2 块中线木板，22=6 块侧边木板，31=5 个 obs 石头；已截图确认就位。
 - 验证：tsc 0 诊断；verify-level-generator 1440 组全绿（基线条目不涉及
   mystery 字段，向后兼容）。
-- 已知遗留：尾号 6 的道具布局关（itemLayout，6/16/26…）网格水果生成
-  本步前就是 0 水果（GridManager.InitPart 系列未恢复），随机盒校验按
-  min(randomBox, 水果数) 放行；该类关卡整体在后续专项恢复。
+- 尾号 6 道具布局关（itemLayout，6/16/26…）已恢复（2026-10-20）：
+  对齐原版 ReferenceLayMgr.genLvMapData 的 itemLayout 分支，水果摆在
+  GridManager 固定格点（格距 83，stopDownY=728-halfH）而非三阶段带状堆放；
+  phase=(level-6)%40 选网格：0=InitPart(7,42)（偶行6/奇行7）、
+  10=InitPart2(7,45)（横向偏移 0..4..0 八行循环）、
+  20=InitPart7(7,48)（7/6/6/6 四行循环，部分行从第 1 列起）、
+  30=InitPart8(7,89)（奇行4/6、偶行3/5/7 随机）。
+  总数 gt：6..10=130；11..29=182+20*floor((t-10)/10)；
+  31..99=min(238,210+2*floor((t-30)/5))；>=100=min(268,238+2*floor((t-100)/10))。
+  前 floor(gt/3) 个类型取 RandomInt(1,11)、其余取 RandomInt(1,22+min(11,floor(t/10)))，
+  各自成对 push 后分别 shuffle，自底行逐格 shift 填充；randomBox 仍由
+  applyRandomBoxes 覆盖标记。LevelParameters 新增 itemFruitTotal 元数据。
+  verify-level-generator 对尾号 6 关改查网格专属不变量（行数<=7、
+  y=stopDownY+83*row、|x|<=336、成对偶数、随机盒数），1440 组全绿。
 - 联调修复（2026-10-19，生成器 moveDir 错误）：第 3 关起一进关水果
   挤成一团的根因是生成器把尾号 1/2/3/5（lv2_3_5 家族）及 6/7/8
   尾号关的 moveDir 漏设为默认 NONE，而原版 ReferenceMgr 这些分支末尾
@@ -1182,6 +1211,17 @@ breakSingleWall/breakAllWall、GbzPropSpecialLayer、预制体实测）：
 - 验证：tsc 0 诊断。待人肉验收：点“解锁”砖消失、第二块带箭头
   出现、可再点一次；容量 4/5 时第 4/5 个水果入槽不再立刻判负；
   重开/下一关墙与容量复原为 3。
+- 联调修复（2026-10-20，锤子加载失败不能锁死扩槽）：
+  breakWall 的拆墙/第二面墙升级/wallBreaking 复位全在
+  EffectLayer.playHammer 的 onStrike 回调里；chuizi 预制体加载失败时
+  playHammer 原实现直接 return，回调永不执行 → 墙永驻、点击锁永久
+  卡死、第二面墙永不激活（容量 expandSlot 虽已 +1 但链路断裂）。
+  修复：EffectLayer.load 加 150/350ms 两次重试（与 FruitFactory 一致）；
+  playHammer 失败路径保证调用 onStrike（场地/墙已销毁的关卡退出场景
+  除外），无锤子动画也立即完成拆墙。
+  验证：临时 ?TMPBADHAMMER=1 + ?TMPBRKWALL=1 内部驱动 breakWall
+  （钩子已删，grep TMP 归零）：重试耗尽后 cap 3→4→5、两面墙均销毁、
+  breaking 均复位 false；无注入的正常动画路径结果一致，0 TypeError。
 
 实现记录（2026-10-19，子步骤 2 消除/磁铁，证据 GameMgr.btnRemoveFun/
 getMatchFruit/eliminateDataSort、GbzGameManager.onGameSkill、
@@ -1578,6 +1618,14 @@ GbzLvCommon 预制体实测）：
 - tab 底条矩形5 [29,19,23,14]、列表区米色底板02 [16,0,21,30] 同步修复
   （世界榜/好友榜按钮底条与好友榜内部背景不再拉伸；按钮上的
   世界榜0/1、好友榜0/1、图层2 原图即等尺寸使用，capInsets 为 0 不动）。
+- 联调修复（2026-10-20，连点弹多层）：onRankClick/onFruitBookClick
+  原守卫只检查已实例化的弹层节点，而节点在 loadAny 异步回调里才赋值，
+  加载空窗期连续点击每次都过守卫 → 同屏实例化多个排行榜/图鉴层。
+  新增 rankOpening/fruitBookOpening 同步在途标志（回调里复位），
+  两个首页弹层互斥（另一个已开或加载中直接忽略）；加载失败标志复位可重试。
+  验证：临时 ?TMPPOPUP=spam（同按钮连点 3 次→rank=1）与
+  ?TMPPOPUP=cross（排行榜+图鉴同帧点→rank=1/book=0），
+  0 TypeError；钩子已删净。
 ```
 
 ## 第 16 步：首页扩展 - 图鉴（GbzFruitBookLayer）
@@ -1618,6 +1666,22 @@ tsc 0 诊断；钩子已删净。
 - 点遮罩或右上 X 关闭有点击音，重开数据一致。
 - 面板“设置面板”九宫格已按原包 capInsets=[35,113,32,41] 修 border
   （蓝色头部/分隔线/底部圆角不再拉伸）。
+
+首页未实现按钮通用占位（2026-10-21）：
+- GbzMenuLayer 除 btn_start/btn_rank/btn_fruitBook 外的 10 个按钮
+  （btn_setting/btn_share/btn_Service/btn_Theme/btn_addShortcut/
+  btn_advise/btn_cbl/btn_fans/btn_gameClub/btn_request）原点击无响应，
+  现统一播 ui_click + 中央 toast“功能开发中”。
+- GameNavigator.showHomeToast：纯代码 toast，零美术资源依赖——
+  Graphics 画 480x86 圆角 18 黑底（alpha 190）+ 白字 Label，
+  0.15s 淡入/停留 1.1s/0.25s 淡出，自增 token 防连点提前隐藏，
+  进关卡时停 tween 并隐藏。踩坑：不能用
+  builtinResMgr.get('default-sprite-frame') 配 Sprite，预览分包后
+  跨 bundle 取到的对象 instanceof SpriteFrame=false、完全不渲染。
+- 验证：临时 ?TMPTOAST=1 钩子（已删）：10 按钮全部找到绑定，
+  emit touch-end 后 toast active/文案/(0,140) 正确，连点 3 次
+  stage 上只有 1 个 homeToast 节点；截图确认黑底圆角与白字；
+  首页冒烟 0 新增报错；tsc 0 诊断。
 ```
 
 ## 6. 每一步的固定交付格式

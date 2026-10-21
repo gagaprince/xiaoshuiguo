@@ -102,6 +102,8 @@ export interface LevelParameters {
     moveDir: number;
     /** 尾号 6 关卡启用的特殊道具布局。 */
     itemLayout: boolean;
+    /** 尾号 6 道具布局关的网格水果总数（原版由 GridManager 格点直接摆放，不走三阶段表）。 */
+    itemFruitTotal: number;
     /** 原包保留的拼写：是否启用水果连接玩法。 */
     itemConnet: boolean;
     /** 每个黑洞分配的水果类型序列。 */

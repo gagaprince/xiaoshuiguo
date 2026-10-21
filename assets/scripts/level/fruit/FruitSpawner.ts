@@ -146,6 +146,7 @@ export class FruitSpawner extends Component {
 
         const beganAt = Date.now();
         let batches = 0;
+        let created = 0;
         for (let index = 0; index < data.fruits.length; index += 1) {
             const fruitData = data.fruits[index];
             const node = await this.createFruit(fruitData.type, {
@@ -163,6 +164,7 @@ export class FruitSpawner extends Component {
             });
             if (!this.node.isValid) return;
             if (!node) continue;
+            created += 1;
             fruitsRoot.addChild(node);
             node.setPosition(fruitData.position.x, fruitData.position.y);
             this.syncLayer(node, fruitsRoot.layer);
@@ -177,7 +179,11 @@ export class FruitSpawner extends Component {
                 if (!this.node.isValid) return;
             }
         }
-        console.log(`[FruitSpawner] level ${data.level} spawned ${data.fruits.length} fruits`
+        if (created !== data.fruits.length) {
+            console.error(`[FruitSpawner] level ${data.level} missing ${data.fruits.length - created} fruit`
+                + ` instances (${created}/${data.fruits.length}); goal can never reach 0`);
+        }
+        console.log(`[FruitSpawner] level ${data.level} spawned ${created}/${data.fruits.length} fruits`
             + ` in ${Date.now() - beganAt}ms across ${batches + 1} batches`);
     }
 
@@ -229,7 +235,7 @@ export class FruitSpawner extends Component {
         try {
             prefab = await this.factory.acquire(type);
         } catch (err) {
-            console.warn(`[FruitSpawner] load fruit${type} failed`, err);
+            console.error(`[FruitSpawner] load fruit${type} failed even with fallback prefab`, err);
             return null;
         }
         if (!this.node.isValid) return null;

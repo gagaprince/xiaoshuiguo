@@ -593,6 +593,7 @@ function baseLevelInfo(): UnfinishedLevelInfo {
     scaleExp: 1,
   moveDir: MOVE_DIRECTION.NONE,
     itemLayout: false,
+    itemFruitTotal: 0,
     itemConnet: false, // 原包字段就是这个拼写，为保持数据兼容而不做更名。
     holeItemTypeArr: [],
     randomBox: 0,
@@ -865,6 +866,7 @@ function generateLevelParameters(level: number, options: GenerateLevelOptions = 
   if (digit === 6) {
     const cfg = config.lv6Config;
     info.itemLayout = true;
+    info.itemFruitTotal = getItemLayoutTotal(level);
     info.randomBox = Math.min(cfg.randomMin, cfg.randomBase + Math.floor(level / cfg.randomScale));
     // 原版 ReferenceMgr：道具布局关（尾号 6）也是下移关。
     info.moveDir = MOVE_DIRECTION.DOWN;
@@ -933,7 +935,7 @@ function attachParameterMetadata(info: UnfinishedLevelInfo, level: number, diffi
     level,
     difficulty,
     levelCycle: cycle,
-    totalFruitCount: sumCounts(info.countArr),
+    totalFruitCount: sumCounts(info.countArr) + info.itemFruitTotal,
   };
 }
 
@@ -1154,12 +1156,205 @@ function createSideFruitPlacer(bounds, moveDir, scaleExp) {
   };
 }
 
+/** 尾号 6 道具布局关的格点参数（原版 GridManager 调用里 p=83、类型基数 7）。 */
+const ITEM_GRID_CELL = 83;
+const ITEM_GRID_TYPE = 7;
+const ITEM_GRID_STOP_DOWN_OFFSET = 728;
+
+type GridCell = { x: number; y: number };
+
+/**
+ * 原版 ReferenceLayMgr.genLvMapData itemLayout 分支的水果总数 gt。
+ * 10 关前固定 130；之后随十关/五关递增并封顶（238 / 268）。
+ */
+function getItemLayoutTotal(level: number): number {
+  if (level > 10 && level < 30) {
+    return 182 + 20 * Math.floor((level - 10) / 10);
+  }
+  if (level > 30 && level < 100) {
+    return Math.min(238, 210 + 2 * Math.floor((level - 30) / 5));
+  }
+  if (level >= 100) {
+    return Math.min(268, 238 + 2 * Math.floor((level - 100) / 10));
+  }
+  return 130;
+}
+
+/** 原版 GridManager.InitPart：偶数行 t-1 格、奇数行 t 格，居中排列。 */
+function gridInitPart(typeCount: number, rowCount: number, stopDownY: number): GridCell[][] {
+  const rows: GridCell[][] = [];
+  for (let row = 0; row < rowCount; row += 1) {
+    const cells = row % 2 === 0 ? typeCount - 1 : typeCount;
+    const startX = -((cells - 1) / 2) * ITEM_GRID_CELL;
+    const y = stopDownY + row * ITEM_GRID_CELL;
+    const line: GridCell[] = [];
+    for (let col = 0; col < cells; col += 1) {
+      line.push({ x: startX + col * ITEM_GRID_CELL, y });
+    }
+    rows.push(line);
+  }
+  return rows;
+}
+
+/** 原版 GridManager.InitPart2：每行固定 t 格，横向偏移按 0,1,2,3,4,3,2,1 八行循环。 */
+function gridInitPart2(typeCount: number, rowCount: number, halfWidth: number, stopDownY: number): GridCell[][] {
+  const rows: GridCell[][] = [];
+  let offsetLevel = 0;
+  let descending = false;
+  for (let row = 0; row < rowCount; row += 1) {
+    const m = ITEM_GRID_CELL * offsetLevel / 2;
+    const startX = ITEM_GRID_CELL / 2 - (halfWidth - 5) + m;
+    const y = stopDownY + row * ITEM_GRID_CELL;
+    const line: GridCell[] = [];
+    for (let col = 0; col < typeCount; col += 1) {
+      line.push({ x: startX + col * ITEM_GRID_CELL, y });
+    }
+    rows.push(line);
+    if (!descending) offsetLevel += 1;
+    else offsetLevel -= 1;
+    if (offsetLevel === 4) descending = true;
+    if (offsetLevel === 0) descending = false;
+  }
+  return rows;
+}
+
+/** 原版 GridManager.InitPart7：行内格数 7/6/5/6 四行循环，部分行从第 1 列开始。 */
+function gridInitPart7(typeCount: number, rowCount: number, stopDownY: number): GridCell[][] {
+  const rows: GridCell[][] = [];
+  let startCol = 0;
+  let cellsInRow = typeCount;
+  let startCounter = 1;
+  let shortenCounter = 0;
+  for (let row = 0; row < rowCount; row += 1) {
+    if (startCol === 0) startCounter += 1;
+    if (cellsInRow === 6) shortenCounter += 1;
+    const count = row % 2 !== 0 ? typeCount - 1 : typeCount;
+    const startX = -((count - 1) / 2) * ITEM_GRID_CELL;
+    const y = stopDownY + row * ITEM_GRID_CELL;
+    const line: GridCell[] = [];
+    for (let col = startCol; col < cellsInRow; col += 1) {
+      line.push({ x: startX + col * ITEM_GRID_CELL, y });
+    }
+    rows.push(line);
+    if (startCol === 1) startCol = 0;
+    if (startCounter === 3) {
+      startCol = 1;
+      startCounter = 0;
+    }
+    if (cellsInRow === typeCount) cellsInRow = 6;
+    if (shortenCounter === 3) {
+      cellsInRow = typeCount;
+      shortenCounter = 0;
+    }
+  }
+  return rows;
+}
+
+/** 原版 GridManager.InitPart8：首行 t 格，之后行宽随机（奇行 4/6，偶行 3/5/7）。 */
+function gridInitPart8(typeCount: number, rowCount: number, stopDownY: number, rng: () => number): GridCell[][] {
+  const rows: GridCell[][] = [];
+  let cells = typeCount;
+  for (let row = 0; row < rowCount; row += 1) {
+    if (row === 0) {
+      cells = typeCount;
+    } else if (row % 2 !== 0) {
+      cells = typeCount - 1 - 2 * randomInt(0, 1, rng);
+    } else {
+      cells = typeCount - 2 * randomInt(0, 2, rng);
+    }
+    const startX = -((cells - 1) / 2) * ITEM_GRID_CELL;
+    const y = stopDownY + row * ITEM_GRID_CELL;
+    const line: GridCell[] = [];
+    for (let col = 0; col < cells; col += 1) {
+      line.push({ x: startX + col * ITEM_GRID_CELL, y });
+    }
+    rows.push(line);
+  }
+  return rows;
+}
+
+/**
+ * 尾号 6 道具布局关的水果布局（原版 ReferenceLayMgr.genLvMapData 的
+ * itemLayout 分支）：GridManager 四种网格按 (level-6)%40 选择，
+ * 前 floor(gt/3) 个水果（凑偶）类型取 1..11，其余取 1..xt，
+ * xt = 22 + min(11, floor(level/10))；两段各自成对压入后打乱，
+ * 从最底行起逐格填充；moveDir 固定 DOWN，顶部水果允许在屏幕外。
+ */
+function buildItemLayoutFruits(
+  level: number,
+  bounds: LayoutConfig,
+  rng: () => number,
+): FruitData[] {
+  const stopDownY = ITEM_GRID_STOP_DOWN_OFFSET - bounds.height / 2;
+  const phase = (level - 6) % 40;
+  let rows: GridCell[][];
+  if (phase === 10) {
+    rows = gridInitPart2(ITEM_GRID_TYPE, 45, bounds.width / 2, stopDownY);
+  } else if (phase === 20) {
+    rows = gridInitPart7(ITEM_GRID_TYPE, 48, stopDownY);
+  } else if (phase === 30) {
+    rows = gridInitPart8(ITEM_GRID_TYPE, 89, stopDownY, rng);
+  } else {
+    rows = gridInitPart(ITEM_GRID_TYPE, 42, stopDownY);
+  }
+
+  const total = getItemLayoutTotal(level);
+  const firstTypes: number[] = [];
+  const restTypes: number[] = [];
+  let firstBudget = Math.floor(total / 3);
+  let remaining = total;
+  while (remaining > 0) {
+    const target = firstBudget > 0 ? firstTypes : restTypes;
+    const maxType = firstBudget > 0 ? 11 : 22 + Math.min(11, Math.floor(level / 10));
+    const fruitType = randomInt(1, maxType, rng);
+    target.push(fruitType, fruitType);
+    if (firstBudget > 0) firstBudget -= 2;
+    remaining -= 2;
+  }
+  fisherYatesShuffle(firstTypes, rng);
+  fisherYatesShuffle(restTypes, rng);
+
+  const fruits: FruitData[] = [];
+  let filled = true;
+  for (const row of rows) {
+    if (!firstTypes.length && !restTypes.length) break;
+    for (const cell of row) {
+      const fruitType = firstTypes.length ? firstTypes.shift() : restTypes.shift();
+      if (fruitType === undefined) {
+        filled = false;
+        break;
+      }
+      const geometry = getFruitGeometry(fruitType);
+      fruits.push({
+        id: fruits.length,
+        queueIndex: fruits.length,
+        type: fruitType,
+        stage: 0,
+        position: { x: cell.x, y: cell.y },
+        radius: geometry.radius,
+        sourceRadius: geometry.sourceRadius,
+        scale: geometry.scale,
+        particleType: geometry.particleType,
+        status: 'normal',
+        thawHits: 0,
+      });
+    }
+    if (!filled) break;
+  }
+  return fruits;
+}
+
 function generateFruitLayout(levelInfo: LevelParameters, options: GenerateLevelOptions = {}): FruitData[] {
   const rng = options.rng || Math.random;
   const bounds = { ...DEFAULT_LAYOUT, ...(options.layout || {}) };
   const fruits = [];
   const { typeArr, countArr, moveDir, scaleExp } = levelInfo;
   const halfHeight = bounds.height / 2;
+  // 尾号 6：原版 ReferenceLayMgr.genLvMapData 的 itemLayout 分支，
+  // 水果摆在 GridManager 固定格点上，不走三阶段带状堆放。
+  if (levelInfo.itemLayout) {
+    return buildItemLayoutFruits(levelInfo.level, bounds, rng);
+  }
   // 第 12.4 步：侧移关水果排在屏外竖列格子里，开局再整体平移进场。
   const sidePlacer = (moveDir === 2 || moveDir === 3)
     ? createSideFruitPlacer(bounds, moveDir, scaleExp)
@@ -1407,8 +1602,8 @@ export function validateLevel(levelData: LevelData): LevelValidationResult {
         if (frozen > parameters.iceCount) errors.push(`too many frozen fruits: ${frozen} > ${parameters.iceCount}`);
     }
 
-    // digit-6 道具布局关（itemLayout）的网格水果生成尚未恢复，水果数可能为 0，
-    // 此时随机盒无处分配；按实际可分配数量校验，不把既有缺口误判为本步回归。
+    // 随机盒在全部水果生成后不放回抽取；itemLayout 网格关水果数远多于
+    // randomBox，min 只是防御性兜底。
     const expectedMystery = Math.min(parameters.randomBox, fruits.length);
     const mystery = fruits.filter((fruit) => fruit.mystery === true).length;
     if (mystery !== expectedMystery) {

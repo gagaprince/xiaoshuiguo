@@ -1,4 +1,20 @@
-import { _decorator, assetManager, Component, find, instantiate, Label, Layers, Node, Prefab } from 'cc';
+import {
+    _decorator,
+    assetManager,
+    Color,
+    Component,
+    find,
+    Graphics,
+    instantiate,
+    Label,
+    Layers,
+    Node,
+    Prefab,
+    Tween,
+    UIOpacity,
+    UITransform,
+    tween,
+} from 'cc';
 import { LevelProgress } from '../core/LevelProgress';
 import { LevelLaunchConfig } from '../level/LevelLaunchConfig';
 import { LevelView } from '../level/LevelView';
@@ -68,6 +84,31 @@ export class GameNavigator extends Component {
     private rankLayer: Node | null = null;
     /** 图鉴弹层（首页 btn_fruitBook 打开）。 */
     private fruitBookLayer: Node | null = null;
+    /** 弹层预制体懒加载进行中：挡住加载空窗期的连续点击，避免实例化多个弹层。 */
+    private rankOpening = false;
+    private fruitBookOpening = false;
+    /** 首页“功能开发中”通用提示（懒建一次复用）。 */
+    private homeToast: Node | null = null;
+    private homeToastLabel: Label | null = null;
+    /** 每次弹 toast 自增，使上一次的定时隐藏失效（连点时不会提前消失）。 */
+    private homeToastToken = 0;
+
+    /**
+     * 首页尚未实现功能的按钮（设置/分享/客服/皮肤/加桌面/反馈/粉丝群/
+     * 游戏圈/邀请等平台或运营入口），统一“功能开发中”占位响应。
+     */
+    private static readonly HOME_PLACEHOLDER_BUTTONS = [
+        'btn_setting',
+        'btn_share',
+        'btn_Service',
+        'btn_Theme',
+        'btn_addShortcut',
+        'btn_advise',
+        'btn_cbl',
+        'btn_fans',
+        'btn_gameClub',
+        'btn_request',
+    ];
     /** 第 9 步：胜负互斥，同一局只结算一次（含最后一对与满载同帧的情况）。 */
     private outcomeLocked = false;
     private navigating = false;
@@ -135,6 +176,11 @@ export class GameNavigator extends Component {
             if (this.home) {
                 this.home.destroy();
                 this.home = null;
+            }
+            // 进关卡：首页 toast 不应残留在关卡画面上。
+            if (this.homeToast) {
+                Tween.stopAllByTarget(this.homeToast.getComponent(UIOpacity));
+                this.homeToast.active = false;
             }
 
             this.levelCommon = instantiate(this.levelCommonPrefab);
@@ -407,6 +453,71 @@ export class GameNavigator extends Component {
         // 原版 fruitBookShow：红点 = fruitBookLastLevel < game_level。
         const bookBadge = btnFruitBook?.children[0] ?? null;
         if (bookBadge) bookBadge.active = FruitBookState.hasNew(LevelProgress.currentLevel);
+        // 其余首页按钮（平台/运营/设置等入口）当前未实现，统一占位响应。
+        for (const name of GameNavigator.HOME_PLACEHOLDER_BUTTONS) {
+            const button = this.home.getChildByName(name);
+            button?.on(Node.EventType.TOUCH_END, this.onPlaceholderClick, this);
+        }
+    }
+
+    /** 未实现的首页按钮：点击音 + “功能开发中”toast。 */
+    private onPlaceholderClick(): void {
+        GameAudio.ins.play('ui_click');
+        this.showHomeToast('功能开发中');
+    }
+
+    /**
+     * 首页中央 toast：半透明黑底白字，淡入 -> 停留 -> 淡出。
+     * 连续触发时重启动画并顺延隐藏，纯代码节点不依赖任何美术资源
+     *（Graphics 画圆角矩形；不用内置 default-sprite-frame——预览打包后
+     * 跨 bundle 取到的对象 instanceof SpriteFrame 为 false，Sprite 不渲染），
+     * 避免资源缺失时提示本身也打不开。
+     */
+    private showHomeToast(text: string): void {
+        if (!this.stage) return;
+        if (!this.homeToast) {
+            const toast = new Node('homeToast');
+            toast.layer = this.stage.layer || Layers.Enum.UI_2D;
+            toast.addComponent(UITransform).setContentSize(480, 86);
+            const background = toast.addComponent(Graphics);
+            background.fillColor = new Color(0, 0, 0, 190);
+            background.roundRect(-240, -43, 480, 86, 18);
+            background.fill();
+            toast.addComponent(UIOpacity);
+
+            const labelNode = new Node('label');
+            labelNode.layer = toast.layer;
+            labelNode.addComponent(UITransform).setContentSize(460, 60);
+            const label = labelNode.addComponent(Label);
+            label.fontSize = 34;
+            label.lineHeight = 44;
+            label.horizontalAlign = Label.HorizontalAlign.CENTER;
+            label.verticalAlign = Label.VerticalAlign.CENTER;
+            label.color = new Color(255, 255, 255, 255);
+            toast.addChild(labelNode);
+            this.homeToastLabel = label;
+            this.homeToast = toast;
+        }
+
+        const toast = this.homeToast;
+        if (this.homeToastLabel) this.homeToastLabel.string = text;
+        if (toast.parent !== this.stage) this.stage.addChild(toast);
+        toast.setPosition(0, 140);
+        toast.active = true;
+
+        const opacity = toast.getComponent(UIOpacity)!;
+        const token = ++this.homeToastToken;
+        Tween.stopAllByTarget(opacity);
+        opacity.opacity = 0;
+        tween(opacity)
+            .to(0.15, { opacity: 255 })
+            .delay(1.1)
+            .to(0.25, { opacity: 0 })
+            .call(() => {
+                // 期间又弹过新 toast 则本次隐藏作废。
+                if (token === this.homeToastToken && toast.isValid) toast.active = false;
+            })
+            .start();
     }
 
     private onStartClick(): void {
@@ -418,9 +529,13 @@ export class GameNavigator extends Component {
 
     /** 首页 btn_rank：懒加载 GbzRankLayer 排行榜弹层到 Stage。 */
     private onRankClick(): void {
-        if (this.rankLayer || !this.stage) return;
+        if (this.rankLayer || this.rankOpening) return;
+        // 两个首页弹层互斥：另一个已打开或正在加载时不再弹。
+        if (this.fruitBookLayer || this.fruitBookOpening || !this.stage) return;
+        this.rankOpening = true;
         GameAudio.ins.play('ui_click');
         assetManager.loadAny(RankLayer.prefabUuid, (error, prefab: Prefab) => {
+            this.rankOpening = false;
             if (error || !this.stage || !this.isValid) {
                 console.warn('[GameNavigator] rank prefab load failed', error);
                 return;
@@ -439,9 +554,12 @@ export class GameNavigator extends Component {
 
     /** 首页 btn_fruitBook：懒加载 GbzFruitBookLayer 图鉴弹层到 Stage。 */
     private onFruitBookClick(): void {
-        if (this.fruitBookLayer || !this.stage) return;
+        if (this.fruitBookLayer || this.fruitBookOpening) return;
+        if (this.rankLayer || this.rankOpening || !this.stage) return;
+        this.fruitBookOpening = true;
         GameAudio.ins.play('ui_click');
         assetManager.loadAny(FruitBookLayer.prefabUuid, (error, prefab: Prefab) => {
+            this.fruitBookOpening = false;
             if (error || !this.stage || !this.isValid) {
                 console.warn('[GameNavigator] fruit book prefab load failed', error);
                 return;

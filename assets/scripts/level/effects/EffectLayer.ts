@@ -31,6 +31,9 @@ import { StreakFollow } from './StreakFollow';
 
 const { ccclass } = _decorator;
 
+/** loadAny 首次失败后的重试间隔（ms），与 FruitFactory 保持一致。 */
+const LOAD_RETRY_DELAYS = [150, 350] as const;
+
 /** 特效预制体 UUID（assets/game/prefab/ 下，主包 loadAny 按 UUID 加载）。 */
 export const EFFECT_PREFAB_UUID = Object.freeze({
     effPr: '27b82d5b-1e79-4595-ae8f-03396c4382ee',
@@ -115,19 +118,49 @@ export class EffectLayer extends Component {
         if (cached) return Promise.resolve(cached);
         const pending = this.loading.get(key);
         if (pending) return pending;
-        const promise = new Promise<Prefab>((resolve, reject) => {
-            assetManager.loadAny(EFFECT_PREFAB_UUID[key], (err, asset: Prefab) => {
+        const uuid = EFFECT_PREFAB_UUID[key];
+        const promise = this.loadWithRetry(uuid).then(
+            asset => {
+                this.cache.set(key, asset);
                 this.loading.delete(key);
+                return asset;
+            },
+            err => {
+                this.loading.delete(key);
+                throw err;
+            },
+        );
+        this.loading.set(key, promise);
+        return promise;
+    }
+
+    /** loadAny 的单次 Promise 封装。 */
+    private loadOnce(uuid: string): Promise<Prefab> {
+        return new Promise<Prefab>((resolve, reject) => {
+            assetManager.loadAny(uuid, (err, asset: Prefab) => {
                 if (err) {
                     reject(err);
                     return;
                 }
-                this.cache.set(key, asset);
                 resolve(asset);
             });
         });
-        this.loading.set(key, promise);
-        return promise;
+    }
+
+    /** 偶发 IO/解压缩失败时按 LOAD_RETRY_DELAYS 自动重试。 */
+    private async loadWithRetry(uuid: string): Promise<Prefab> {
+        let lastError: unknown = null;
+        for (let attempt = 0; attempt <= LOAD_RETRY_DELAYS.length; attempt += 1) {
+            try {
+                return await this.loadOnce(uuid);
+            } catch (err) {
+                lastError = err;
+                if (attempt < LOAD_RETRY_DELAYS.length) {
+                    await new Promise<void>(resolve => setTimeout(resolve, LOAD_RETRY_DELAYS[attempt]));
+                }
+            }
+        }
+        throw lastError instanceof Error ? lastError : new Error(String(lastError));
     }
 
     private async instantiate(key: EffectPrefabKey): Promise<Node | null> {
@@ -260,8 +293,15 @@ export class EffectLayer extends Component {
      */
     public async playHammer(wall: Node, onStrike: () => void): Promise<void> {
         const node = await this.instantiate('chuizi');
-        if (!node || !wall.isValid) {
-            node?.destroy();
+        if (!node) {
+            // 锤子预制体加载失败也要保证命中回调：调用方（breakWall）靠它拆墙、
+            // 升级第二面墙并复位 wallBreaking，否则扩槽后点击锁永久卡死。
+            // 场地已销毁（关卡退出）时不再触碰业务节点。
+            if (wall.isValid && this.node.isValid) onStrike();
+            return;
+        }
+        if (!wall.isValid || !this.node.isValid) {
+            node.destroy();
             return;
         }
         stripMissingScripts(node);

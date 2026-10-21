@@ -192,6 +192,23 @@ Pu(t = {}, "name", 0), Pu(t, "cityNameArr", 0), ...,
 - 参考产物：`CityTable.ts`（省名/简称/城市数 + getCityName/getProgress）、
   `CollectibleTable.ts`（175 项 + spriteFrame uuid）、`GameAudio.CLIP_UUID`（24 音频）。
 - 提取脚本是一次性 python heredoc，不进仓库；中间产物可临时落 `tmp/city_table.json`。
+- **关卡生成器尾号家族**（`ReferenceMgr.initLvCfg` 按 `level%10` 分支）：
+  0=黑洞静止、1/2/3/5=三阶段带状下移、4=右移、6=道具布局网格下移、
+  7=随机盒下移、8=关节连接下移、9=左移。排查"某一关水果数为 0"先看
+  `[LevelGen]` 日志的总数和阶段串，再对照对应分支。
+- **尾号 6 道具布局关**不走 typeArr/countArr，走 `ReferenceLayMgr` 的
+  itemLayout 独立分支，水果摆 `GridManager` 固定格点（格距 83，
+  `stopDownY=728-halfH`）：phase=`(level-6)%40` 四选一
+  InitPart(7,42)/InitPart2(7,45)/InitPart7(7,48)/InitPart8(7,89)，
+  InitPart7/8 是行宽状态机，翻译时按"每行先更新状态再产格、行末再翻转"
+  逐行对账。总数 gt=130/182+.../min(238,...)/min(268,...)（注意边界
+  是 t>10、t>30 不含等号，t=10/30 是黑洞关不会进来）。类型先成对 push
+  到两段数组（前 floor(gt/3) 个取 1..11），各自 shuffle 后**自底行**逐格
+  shift；`ReferenceMgr.RandomInt` 用 Math.random，而 `shuffleArray`
+  走实例 `this.random`（也是 Math.random），无需消耗种子 rng。
+  回归在 `tmp/verify-level-generator.cjs`：旧参考 tmp/gen.js 没实现该分支，
+  尾号 6 不能逐字段对比，改查网格不变量（每行<=7、y=stopDownY+83*row、
+  |x|<=336、类型成对偶数、随机盒=min(randomBox,总数)）。
 
 ## 7. Cocos 3.8 踩坑清单（全部实测）
 
@@ -218,6 +235,42 @@ Pu(t = {}, "name", 0), Pu(t, "cityNameArr", 0), ...,
   declared），用 IIFE `(async()=>{...})()` 或唯一变量名包裹。
 - 预制体上原脚本 uuid 失效 → MissingScript：自己的脚本 `addComponent` 即可，
   预制体实例上的 MissingScript 主动剔除（chuizi 即如此）。
+- **代码动态建纯色底不要用 `builtinResMgr.get('default-sprite-frame')`**：
+  预览打包（chunk 分包）后取到的对象与游戏 bundle 的 SpriteFrame 是跨类域，
+  `instanceof SpriteFrame` 为 false，赋给 Sprite 后**完全不渲染**（节点上的
+  Label 照常显示，极易误判成尺寸/层级问题）。零美术资源的圆角底色块直接用
+  `Graphics`：`addComponent(Graphics)` + `fillColor` + `roundRect(...)` +
+  `fill()`，配 UIOpacity 淡入淡出正常。排查手段：打日志看
+  `spriteFrame instanceof SpriteFrame` 和 `rect.width`，不要只看对象非空。
+- **首页/通用 toast 这类纯代码 UI 的资源依赖为 0**（Graphics+Label），
+  连点用自增 token 让旧的定时隐藏失效；离开页面（进关卡）时 stop 动画并
+  `active=false`，避免残留到下一个界面。
+- **异步资源加载失败必须保住"数据 ↔ 实体 1:1"**：FruitFactory.acquire 失败曾让
+  spawner 跳过该水果，但胜利目标按 `data.fruits.length` 绑定 → 剩余数永远到不了 0，
+  死关；尾号 0 黑洞关还会让 `spawner.entities[anchorIndex]` 锚点索引整体错位；
+  洞吐果失败同理丢队列。修复模式：loadAny 失败自动重试（150/350ms 两次），
+  再失败用"教学关硬依赖必然存在"的 type1 预制体做视觉替身，实体 pairId 仍写真
+  类型（FruitEntity.setup 与 prefab 无关），配对/计数逻辑零影响，同类型只 warn 一次。
+  排查这类问题先看 `[FruitSpawner] spawned created/total` 是否相等。
+- **容错链路用 URL 故障注入验证**（比手改 uuid 安全）：acquire 开头临时加
+  `?TMPBADFRUIT=<type>` 命中即 throw，验完删除；断言日志打替身实体的
+  `entity.pairId`（必须=真类型）和 Sprite 实际 `spriteFrame.name`（必须=替身图，
+  如"西瓜"），以及 spawned 总数不缺。注意 preload 走 loadPrefab 不经过 acquire，
+  注入点放 acquire 才能同时绕过缓存。
+- **异步表演函数的业务回调必须在失败路径也执行**：playHammer(wall,onStrike) 的
+  拆墙/第二面墙升级/wallBreaking 复位全在 onStrike 里，chuizi 预制体加载失败时
+  原实现直接 return → 墙永驻、点击锁永久卡死、扩槽链路断裂（容量虽已 +1）。
+  规则：纯表现异步函数（特效/音效/动画）的 onDone 回调是业务契约，加载失败时
+  立即补调；场地整体销毁（node 无效）时才允许跳过。特效加载器同样加 150/350ms
+  重试（EffectLayer.loadWithRetry）。验证用 TMP 钩子在 enter 里 scheduleOnce
+  直接调私有 `breakWall`（Playwright 点不到 Cocos 触摸），日志序列断言
+  cap 3→4→5、两面墙 isValid 转 false、wallBreaking 最终回 false。
+- **懒加载弹层防连点：在途标志要同步置位**。守卫只查已实例化节点不够——
+  节点在 loadAny 回调里才赋值，加载空窗期连点会实例化多层。模式：
+  click 时同步 `xxxOpening=true`，回调里复位（失败也复位可重试），
+  同类/互斥弹层都查 `layer||opening`。验证：TMP 钩子同 tick 连点 3 次
+  （?TMPPOPUP=spam）和两按钮同帧各点一次（cross），1.5s 后数
+  stage.children 里对应 Component 实例必须只有 1 个。
 
 ## 8. 改动后的标准动作
 
